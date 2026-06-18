@@ -57,7 +57,42 @@ export async function saveExerciseAction(formData: FormData): Promise<void> {
   redirect("/exercises");
 }
 
-export async function deleteExerciseAction(formData: FormData) {
+export async function addCatalogExerciseToLibraryAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const catalogItemId = String(formData.get("catalogItemId") || "");
+
+  const catalogItem = await prisma.exerciseCatalogItem.findFirst({
+    where: { id: catalogItemId, isActive: true },
+  });
+
+  if (!catalogItem) {
+    redirect("/exercises?error=catalog");
+  }
+
+  const existingExercise = await prisma.exercise.findFirst({
+    where: { userId: user.id, catalogItemId: catalogItem.id },
+  });
+
+  if (!existingExercise) {
+    await prisma.exercise.create({
+      data: {
+        userId: user.id,
+        catalogItemId: catalogItem.id,
+        name: catalogItem.name,
+        muscleGroup: catalogItem.muscleGroup,
+        currentWeightKg: catalogItem.defaultWeightKg,
+        imageUrl: catalogItem.imageUrl,
+        note: catalogItem.note,
+      },
+    });
+  }
+
+  revalidatePath("/exercises");
+  revalidatePath("/schedule");
+  redirect("/exercises");
+}
+
+export async function deleteExerciseAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const exerciseId = String(formData.get("exerciseId") || "");
 

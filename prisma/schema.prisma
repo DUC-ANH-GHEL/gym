@@ -21,6 +21,25 @@ model User {
   workoutLogs  WorkoutLog[]
 }
 
+model ExerciseCatalogItem {
+  id              String     @id @default(cuid())
+  slug            String     @unique
+  name            String
+  muscleGroup     String?
+  imageUrl        String?
+  defaultWeightKg Float?
+  note            String?
+  sortOrder       Int        @default(0)
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  exercises       Exercise[]
+
+  @@index([isActive, sortOrder])
+  @@index([muscleGroup, sortOrder])
+}
+
 model GymProfile {
   id          String   @id @default(cuid())
   userId      String   @unique
@@ -40,6 +59,8 @@ model Exercise {
   id              String   @id @default(cuid())
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catalogItemId   String?
+  catalogItem     ExerciseCatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
 
   name            String
   muscleGroup     String?
@@ -53,6 +74,8 @@ model Exercise {
   dayExercises    WorkoutDayExercise[]
 
   @@index([userId, muscleGroup])
+  @@index([catalogItemId])
+  @@unique([userId, catalogItemId])
 }
 
 model WorkoutDay {

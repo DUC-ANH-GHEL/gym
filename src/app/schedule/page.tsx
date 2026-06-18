@@ -35,9 +35,40 @@ export default async function SchedulePage() {
     prisma.exercise.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }),
   ]);
 
+  const hasPersonalExercises = exercises.length > 0;
+
   return (
     <AppShell>
-      <PageHeader title="Lịch tập" description="Thiết lập từng ngày trong tuần." />
+      <PageHeader
+        title="Lịch tập"
+        description="Lịch chỉ dùng bài trong thư viện cá nhân. Thêm từ kho bài tập trước nếu danh sách đang trống."
+        action={
+          <Link
+            href="/exercises"
+            className="shrink-0 rounded-[14px] bg-[#38BDF8] px-4 py-3 text-[15px] font-bold text-[#0B0F14]"
+          >
+            Kho bài tập
+          </Link>
+        }
+      />
+
+      {!hasPersonalExercises ? (
+        <AppCard className="space-y-3 border-[#38BDF8]/50 bg-[#0B1822]">
+          <div>
+            <h2 className="text-[18px] font-bold text-[#F9FAFB]">Chưa có bài cá nhân</h2>
+            <p className="mt-1 text-[15px] leading-6 text-[#D1D5DB]">
+              Vào kho bài tập, bấm thêm vài bài vào thư viện của tôi, rồi quay lại lịch để xếp ngày tập.
+            </p>
+          </div>
+          <Link
+            href="/exercises"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#22C55E] px-4 py-3 text-[15px] font-bold text-white"
+          >
+            Mở kho bài tập
+          </Link>
+        </AppCard>
+      ) : null}
+
       <div className="space-y-4">
         {days.map((dayOfWeek) => {
           const day = workoutDays.find((item) => item.dayOfWeek === dayOfWeek);
@@ -59,18 +90,30 @@ export default async function SchedulePage() {
 
               {!day.isRestDay ? (
                 <div className="space-y-3">
-                  <form action={addExerciseToDayAction} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
-                    <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
-                    <AppSelect name="exerciseId" defaultValue="">
-                      <option value="">Thêm bài từ thư viện</option>
-                      {exercises.map((exercise) => (
-                        <option key={exercise.id} value={exercise.id}>
-                          {exercise.name}
-                        </option>
-                      ))}
-                    </AppSelect>
-                    <AppButton className="w-full">Thêm bài</AppButton>
-                  </form>
+                  {hasPersonalExercises ? (
+                    <form action={addExerciseToDayAction} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
+                      <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
+                      <AppSelect name="exerciseId" defaultValue="">
+                        <option value="">Thêm bài từ thư viện của tôi</option>
+                        {exercises.map((exercise) => (
+                          <option key={exercise.id} value={exercise.id}>
+                            {exercise.name}
+                          </option>
+                        ))}
+                      </AppSelect>
+                      <AppButton className="w-full">Thêm bài</AppButton>
+                    </form>
+                  ) : (
+                    <AppCard className="space-y-2 bg-[#1F2937]">
+                      <p className="text-[15px] font-semibold text-[#F9FAFB]">Cần thêm bài vào thư viện trước.</p>
+                      <Link
+                        href="/exercises"
+                        className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[12px] bg-[#22C55E] px-3 py-2 text-[14px] font-bold text-white"
+                      >
+                        Chọn từ kho bài tập
+                      </Link>
+                    </AppCard>
+                  )}
 
                   {day.exercises.map((entry) => (
                     <AppCard key={entry.id} className="space-y-3 bg-[#111827]">
@@ -129,9 +172,6 @@ export default async function SchedulePage() {
           );
         })}
       </div>
-      <Link href="/exercises/new" className="fixed bottom-[calc(94px+env(safe-area-inset-bottom))] right-4 rounded-full bg-[#22C55E] px-4 py-3 text-[15px] font-bold text-white shadow-lg">
-        + Bài tập
-      </Link>
     </AppShell>
   );
 }

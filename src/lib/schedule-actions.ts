@@ -89,8 +89,16 @@ export async function updateWorkoutSetPlanAction(formData: FormData) {
   const planSetId = String(formData.get("planSetId") || "");
 
   if (planSetId) {
+    const existingSet = await prisma.workoutPlanSet.findFirst({
+      where: { id: planSetId, workoutDayExerciseId: workoutDayExercise.id },
+    });
+
+    if (!existingSet) {
+      return;
+    }
+
     await prisma.workoutPlanSet.update({
-      where: { id: planSetId },
+      where: { id: existingSet.id },
       data: {
         intensityPercent: parsed.data.intensityPercent ?? null,
         targetReps: parsed.data.targetReps ?? null,

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="640" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111827"/>
+      <stop offset="0.55" stop-color="#0B0F14"/>
+      <stop offset="1" stop-color="#12301F"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="132" y1="112" x2="508" y2="208" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#22C55E"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="320" rx="32" fill="url(#bg)"/>
+  <circle cx="520" cy="68" r="96" fill="#22C55E" opacity="0.08"/>
+  <circle cx="118" cy="258" r="112" fill="#38BDF8" opacity="0.08"/>
+  <rect x="132" y="144" width="376" height="32" rx="16" fill="url(#bar)"/>
+  <rect x="94" y="112" width="62" height="96" rx="22" fill="#F9FAFB"/>
+  <rect x="484" y="112" width="62" height="96" rx="22" fill="#F9FAFB"/>
+  <rect x="174" y="104" width="34" height="112" rx="17" fill="#38BDF8"/>
+  <rect x="432" y="104" width="34" height="112" rx="17" fill="#22C55E"/>
+  <text x="320" y="260" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800" fill="#F9FAFB">GYM PLANNER</text>
+</svg>
