@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cloudinary } from "@/lib/cloudinary";
+import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 import { getSessionUserId } from "@/lib/auth";
 
 function isSameOriginPost(request: Request) {
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Ảnh tối đa 5MB." }, { status: 400 });
   }
 
-  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  if (!isCloudinaryConfigured()) {
     return NextResponse.json({ error: "Chưa cấu hình Cloudinary." }, { status: 503 });
   }
 

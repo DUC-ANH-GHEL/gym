@@ -16,9 +16,7 @@ Mobile-first gym planner and workout tracker built with Next.js App Router, Type
    DATABASE_URL=
    NEXTAUTH_SECRET=
    NEXTAUTH_URL=http://localhost:3000
-   CLOUDINARY_CLOUD_NAME=
-   CLOUDINARY_API_KEY=
-   CLOUDINARY_API_SECRET=
+   CLOUDINARY_URL=
    ```
 
    `NEXTAUTH_SECRET` must be set. The app does not use a weak fallback secret.
@@ -45,13 +43,13 @@ Mobile-first gym planner and workout tracker built with Next.js App Router, Type
 
 Exercise image upload uses `/api/upload` and requires a logged-in session. If Cloudinary env vars are empty, the upload UI fails gracefully with a setup message instead of crashing the form.
 
-Required Cloudinary env vars:
+Recommended Cloudinary env var:
 
 ```env
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
+CLOUDINARY_URL=
 ```
+
+The app also supports the split Cloudinary variables (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) if you prefer that format.
 
 ## Verification
 
