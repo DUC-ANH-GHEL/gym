@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppButton, AppCard, AppInput, PageHeader } from "@/components/ui";
+import { BrandLogo } from "@/components/brand-logo";
 import { registerAction } from "./actions";
 
 export default async function RegisterPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
@@ -8,6 +9,7 @@ export default async function RegisterPage({ searchParams }: { searchParams?: Pr
   return (
     <div className="flex min-h-screen items-center px-4 py-8">
       <div className="w-full space-y-5">
+        <BrandLogo />
         <PageHeader title="Tạo tài khoản" description="Tạo hồ sơ gym riêng cho bạn." />
         <AppCard>
           {error ? (

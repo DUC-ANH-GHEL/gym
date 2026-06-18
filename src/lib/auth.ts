@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { authSchema } from "@/lib/validators";
 
 const SESSION_COOKIE = "gym_session";
-const SESSION_MAX_AGE = 60 * 60 * 24 * 14;
+const SESSION_MAX_AGE = 60 * 60 * 24 * 400;
 
 function getSecret() {
   const secret = process.env.NEXTAUTH_SECRET;
@@ -56,12 +56,14 @@ export function verifySessionToken(token: string) {
 export async function setSessionCookie(userId: string) {
   const token = createSessionToken(userId);
   const cookieStore = await cookies();
+  const expires = new Date(Date.now() + SESSION_MAX_AGE * 1000);
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: SESSION_MAX_AGE,
+    expires,
   });
 }
 

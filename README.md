@@ -20,6 +20,7 @@ Mobile-first gym planner and workout tracker built with Next.js App Router, Type
    ```
 
    `NEXTAUTH_SECRET` must be set. The app does not use a weak fallback secret.
+   Keep this value stable in production. Changing it invalidates existing login cookies.
 
 3. Generate Prisma Client:
 
@@ -66,5 +67,6 @@ npm audit --audit-level=moderate
 
 - All app data is scoped by `userId`.
 - Protected pages redirect unauthenticated users to `/login`.
+- Login cookies are long-lived and should only be cleared when the user logs out, the browser deletes site data, or `NEXTAUTH_SECRET` changes.
 - `/api/upload` validates session, same-origin requests, file type, and a 5MB image size limit.
 - `.env*`, `.next`, and `node_modules` are ignored by git.

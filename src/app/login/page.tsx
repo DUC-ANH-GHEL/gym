@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppButton, AppCard, AppInput, PageHeader } from "@/components/ui";
+import { BrandLogo } from "@/components/brand-logo";
 import { loginAction } from "./actions";
 
 export default async function LoginPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
@@ -8,6 +9,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
   return (
     <div className="flex min-h-screen items-center px-4 py-8">
       <div className="w-full space-y-5">
+        <BrandLogo />
         <PageHeader title="Đăng nhập" description="Vào app để xem lịch tập hôm nay." />
         <AppCard>
           {error ? (
