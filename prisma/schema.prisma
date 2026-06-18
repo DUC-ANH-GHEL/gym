@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String?
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  gymProfile   GymProfile?
+  exercises    Exercise[]
+  workoutDays  WorkoutDay[]
+  workoutLogs  WorkoutLog[]
+}
+
+model GymProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  displayName String?
+  goal        String?
+  heightCm    Int?
+  weightKg    Float?
+  timezone    String   @default("Asia/Bangkok")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Exercise {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String
+  muscleGroup     String?
+  imageUrl        String?
+  currentWeightKg Float?
+  note            String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dayExercises    WorkoutDayExercise[]
+
+  @@index([userId, muscleGroup])
+}
+
+model WorkoutDay {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  dayOfWeek  Int
+  title      String
+  isRestDay  Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  exercises  WorkoutDayExercise[]
+
+  @@unique([userId, dayOfWeek])
+  @@index([userId, dayOfWeek])
+}
+
+model WorkoutDayExercise {
+  id           String        @id @default(cuid())
+
+  workoutDayId String
+  workoutDay   WorkoutDay    @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
+
+  exerciseId   String
+  exercise     Exercise      @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  orderIndex   Int           @default(0)
+  note         String?
+
+  sets         WorkoutPlanSet[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([workoutDayId, orderIndex])
+  @@index([exerciseId])
+}
+
+model WorkoutPlanSet {
+  id                   String             @id @default(cuid())
+
+  workoutDayExerciseId  String
+  workoutDayExercise    WorkoutDayExercise @relation(fields: [workoutDayExerciseId], references: [id], onDelete: Cascade)
+
+  setIndex             Int
+  intensityPercent     Int?
+  targetReps           Int?
+  targetWeightKg       Float?
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([workoutDayExerciseId, setIndex])
+}
+
+model WorkoutLog {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workoutDate   DateTime
+  dayOfWeek     Int
+  title         String?
+
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+
+  exerciseLogs  WorkoutExerciseLog[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, workoutDate])
+  @@index([userId, dayOfWeek])
+}
+
+model WorkoutExerciseLog {
+  id            String           @id @default(cuid())
+
+  workoutLogId  String
+  workoutLog    WorkoutLog       @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
+
+  exerciseId    String
+  exerciseName  String
+  muscleGroup   String?
+  imageUrl      String?
+
+  orderIndex    Int              @default(0)
+  isCompleted   Boolean          @default(false)
+
+  setLogs       WorkoutSetLog[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([workoutLogId, orderIndex])
+  @@index([exerciseId])
+}
+
+model WorkoutSetLog {
+  id                   String             @id @default(cuid())
+
+  workoutExerciseLogId  String
+  workoutExerciseLog    WorkoutExerciseLog @relation(fields: [workoutExerciseLogId], references: [id], onDelete: Cascade)
+
+  setIndex             Int
+  intensityPercent     Int?
+  targetReps           Int?
+  targetWeightKg       Float?
+
+  actualReps           Int?
+  actualWeightKg       Float?
+  isCompleted          Boolean          @default(false)
+  note                 String?
+
+  completedAt          DateTime?
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([workoutExerciseLogId, setIndex])
+}
