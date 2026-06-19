@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { authSchema } from "@/lib/validators";
+import { isAdminEmail } from "@/lib/admin-config";
 
 const SESSION_COOKIE = "gym_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 400;
@@ -136,6 +137,10 @@ export async function registerUser(formData: FormData) {
 
   if (!parsed.success) {
     return { error: "Vui lòng nhập email và mật khẩu hợp lệ." };
+  }
+
+  if (isAdminEmail(parsed.data.email)) {
+    return { error: "Email admin không thể đăng ký công khai." };
   }
 
   const existingUser = await prisma.user.findUnique({ where: { email: parsed.data.email } });

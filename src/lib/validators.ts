@@ -37,6 +37,17 @@ export const exerciseSchema = z.object({
   note: z.string().trim().max(500).optional().or(z.literal("")),
 });
 
+export const exerciseCatalogItemSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().trim().min(2).max(120),
+  muscleGroup: z.string().trim().optional().or(z.literal("")),
+  imageUrl: z.string().trim().max(2048).optional().or(z.literal("")),
+  defaultWeightKg: optionalNumberField(z.number().positive().max(1000)),
+  note: z.string().trim().max(500).optional().or(z.literal("")),
+  sortOrder: optionalNumberField(z.number().int().min(0).max(100000)),
+  isActive: z.coerce.boolean().optional(),
+});
+
 export const workoutDaySchema = z.object({
   title: z.string().trim().min(1).max(120),
   isRestDay: z.coerce.boolean(),

@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { AppButton, AppCard, AppInput, AppSelect, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { requireUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin-config";
 import { saveProfileAction, logoutAction } from "@/lib/profile-actions";
 
 const timezones = ["Asia/Bangkok", "Asia/Ho_Chi_Minh", "Asia/Singapore", "UTC"];
@@ -9,6 +11,7 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
   const error = (await searchParams)?.error;
   const user = await requireUser();
   const profile = user.gymProfile;
+  const isAdmin = isAdminEmail(user.email);
 
   return (
     <AppShell>
@@ -38,6 +41,17 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
           <button className="min-h-[44px] w-full rounded-[14px] bg-[#EF4444] px-4 py-3 text-[15px] font-bold text-white">Đăng xuất</button>
         </form>
       </AppCard>
+      {isAdmin ? (
+        <AppCard className="space-y-3">
+          <div>
+            <h2 className="text-[18px] font-bold text-[#F9FAFB]">Admin</h2>
+            <p className="mt-1 text-[14px] text-[#9CA3AF]">Quản lý metadata bài tập chung.</p>
+          </div>
+          <Link href="/admin/exercises" className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#38BDF8] px-4 py-3 text-[15px] font-bold text-[#0B0F14]">
+            Mở admin bài tập
+          </Link>
+        </AppCard>
+      ) : null}
     </AppShell>
   );
 }

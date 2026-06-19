@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-dvh bg-[#0B0F14] px-4 pb-[calc(92px+env(safe-area-inset-bottom))] pt-4 text-[#F9FAFB]">
+    <div className="min-h-dvh bg-[#0B0F14] px-4 pb-[calc(92px+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+18px)] text-[#F9FAFB]">
       <main className="space-y-4">{children}</main>
       <nav className="fixed bottom-0 left-1/2 z-20 w-full max-w-[480px] -translate-x-1/2 border-t border-[#374151] bg-[#111827]/95 px-3 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
         <div className="grid grid-cols-4 gap-1.5">
