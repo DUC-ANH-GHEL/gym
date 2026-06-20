@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AppButton, AppCard, AppInput, AppSelect, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { requireUser } from "@/lib/auth";
-import { isAdminEmail } from "@/lib/admin-config";
+import { isAdminIdentifier } from "@/lib/admin-config";
 import { saveProfileAction, logoutAction } from "@/lib/profile-actions";
 
 const timezones = ["Asia/Bangkok", "Asia/Ho_Chi_Minh", "Asia/Singapore", "UTC"];
@@ -11,7 +11,7 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
   const error = (await searchParams)?.error;
   const user = await requireUser();
   const profile = user.gymProfile;
-  const isAdmin = isAdminEmail(user.email);
+  const isAdmin = isAdminIdentifier(user.email);
 
   return (
     <AppShell>
@@ -22,7 +22,7 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
             Hồ sơ chưa hợp lệ. Kiểm tra lại chiều cao, cân nặng và múi giờ.
           </p>
         ) : null}
-        <p className="text-[15px] text-[#9CA3AF]">{user.email}</p>
+        <p className="text-[15px] text-[#9CA3AF]">Tài khoản: {user.email}</p>
         <form action={saveProfileAction} className="mt-4 space-y-4">
           <AppInput name="displayName" defaultValue={profile?.displayName ?? ""} placeholder="Tên hiển thị" />
           <AppInput name="goal" defaultValue={profile?.goal ?? ""} placeholder="Mục tiêu" />

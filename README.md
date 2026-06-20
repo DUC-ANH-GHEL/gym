@@ -17,7 +17,7 @@ Mobile-first gym planner and workout tracker built with Next.js App Router, Type
    NEXTAUTH_SECRET=
    NEXTAUTH_URL=http://localhost:3000
    CLOUDINARY_URL=
-   ADMIN_EMAILS=
+   ADMIN_IDENTIFIERS=
    ```
 
    `NEXTAUTH_SECRET` must be set. The app does not use a weak fallback secret.
@@ -55,14 +55,14 @@ The app also supports the split Cloudinary variables (`CLOUDINARY_CLOUD_NAME`, `
 
 ## Admin
 
-Set `ADMIN_EMAILS` to a comma-separated list of login emails that can manage exercise catalog metadata.
+Set `ADMIN_IDENTIFIERS` to a comma-separated list of login accounts that can manage exercise catalog metadata.
 
 ```env
-ADMIN_EMAILS=owner@example.com,coach@example.com
+ADMIN_IDENTIFIERS=admin,coach
 ```
 
 Admins can open `/admin/exercises` to add catalog exercises and hide or show existing catalog items.
-Emails nằm trong `ADMIN_EMAILS` không thể tự đăng ký công khai. Hãy tạo sẵn tài khoản đó trong hệ thống rồi mới bật admin.
+Tài khoản nằm trong `ADMIN_IDENTIFIERS` không thể tự đăng ký công khai. Hãy tạo sẵn tài khoản đó trong hệ thống rồi mới bật admin.
 
 ## Verification
 

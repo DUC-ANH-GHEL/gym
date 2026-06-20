@@ -1,10 +1,10 @@
-import { randomBytes, createHmac } from "crypto";
+import { createHmac, randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { isAdminIdentifier } from "@/lib/admin-config";
 import { authSchema } from "@/lib/validators";
-import { isAdminEmail } from "@/lib/admin-config";
 
 const SESSION_COOKIE = "gym_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 400;
@@ -58,6 +58,7 @@ export async function setSessionCookie(userId: string) {
   const token = createSessionToken(userId);
   const cookieStore = await cookies();
   const expires = new Date(Date.now() + SESSION_MAX_AGE * 1000);
+
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
@@ -130,29 +131,32 @@ async function createDefaultWorkoutDays(userId: string) {
 
 export async function registerUser(formData: FormData) {
   const parsed = authSchema.safeParse({
-    email: formData.get("email"),
+    identifier: formData.get("identifier"),
     password: formData.get("password"),
     name: formData.get("name"),
   });
 
   if (!parsed.success) {
-    return { error: "Vui lòng nhập email và mật khẩu hợp lệ." };
+    return { error: "Vui lòng nhập tài khoản và mật khẩu hợp lệ." };
   }
 
-  if (isAdminEmail(parsed.data.email)) {
-    return { error: "Email admin không thể đăng ký công khai." };
+  if (isAdminIdentifier(parsed.data.identifier)) {
+    return { error: "Tài khoản admin không thể đăng ký công khai." };
   }
 
-  const existingUser = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+  const existingUser = await prisma.user.findUnique({
+    where: { email: parsed.data.identifier },
+  });
+
   if (existingUser) {
-    return { error: "Email này đã được sử dụng." };
+    return { error: "Tài khoản này đã được sử dụng." };
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
 
   const user = await prisma.user.create({
     data: {
-      email: parsed.data.email,
+      email: parsed.data.identifier,
       name: parsed.data.name || null,
       passwordHash,
       gymProfile: {
@@ -172,23 +176,26 @@ export async function registerUser(formData: FormData) {
 
 export async function loginUser(formData: FormData) {
   const parsed = authSchema.safeParse({
-    email: formData.get("email"),
+    identifier: formData.get("identifier"),
     password: formData.get("password"),
     name: "",
   });
 
   if (!parsed.success) {
-    return { error: "Email hoặc mật khẩu không hợp lệ." };
+    return { error: "Tài khoản hoặc mật khẩu không hợp lệ." };
   }
 
-  const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.data.identifier },
+  });
+
   if (!user) {
-    return { error: "Email hoặc mật khẩu không đúng." };
+    return { error: "Tài khoản hoặc mật khẩu không đúng." };
   }
 
   const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
   if (!valid) {
-    return { error: "Email hoặc mật khẩu không đúng." };
+    return { error: "Tài khoản hoặc mật khẩu không đúng." };
   }
 
   await setSessionCookie(user.id);
