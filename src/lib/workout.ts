@@ -44,7 +44,7 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
       exercises: {
         orderBy: { orderIndex: "asc" },
         include: {
-          exercise: true,
+          catalogItem: true,
           sets: { orderBy: { setIndex: "asc" } },
         },
       },
@@ -63,10 +63,10 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
       title: workoutDay.title,
       exerciseLogs: {
         create: workoutDay.exercises.map((workoutDayExercise, orderIndex) => ({
-          exerciseId: workoutDayExercise.exerciseId,
-          exerciseName: workoutDayExercise.exercise.name,
-          muscleGroup: workoutDayExercise.exercise.muscleGroup,
-          imageUrl: workoutDayExercise.exercise.imageUrl,
+          catalogItemId: workoutDayExercise.catalogItemId,
+          exerciseName: workoutDayExercise.catalogItem.name,
+          muscleGroup: workoutDayExercise.catalogItem.muscleGroup,
+          imageUrl: workoutDayExercise.catalogItem.imageUrl,
           orderIndex,
           setLogs: {
             create: workoutDayExercise.sets.map((set) => ({
@@ -148,4 +148,3 @@ export function parseNullableNumber(value: FormDataEntryValue | null) {
   const numberValue = Number(trimmed);
   return Number.isFinite(numberValue) ? numberValue : undefined;
 }
-

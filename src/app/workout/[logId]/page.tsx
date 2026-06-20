@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { AppCard, AppButton, PageHeader } from "@/components/ui";
+import { AppButton, AppCard, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { WorkoutProgressBar } from "@/components/workout-progress-bar";
 import { WorkoutSetRow } from "@/components/workout-set-row";
@@ -42,14 +42,24 @@ export default async function WorkoutPage({ params }: { params: Promise<{ logId:
         <AppCard key={exercise.id} className="space-y-3">
           <div className="flex items-start gap-3">
             {exercise.imageUrl ? (
-              <Image src={exercise.imageUrl} alt={exercise.exerciseName} width={160} height={160} className="h-20 w-20 rounded-[14px] object-cover" />
+              <Image
+                src={exercise.imageUrl}
+                alt={exercise.exerciseName}
+                width={160}
+                height={160}
+                className="h-20 w-20 rounded-[14px] object-cover"
+              />
             ) : (
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] text-[#9CA3AF]">Ảnh</div>
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] text-[#9CA3AF]">
+                Ảnh
+              </div>
             )}
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-[18px] font-bold text-[#F9FAFB]">{exercise.exerciseName}</h2>
               <p className="text-[13px] text-[#9CA3AF]">{exercise.muscleGroup || "Chưa có nhóm cơ"}</p>
-              <p className="mt-1 text-[13px] font-semibold text-[#22C55E]">{exercise.isCompleted ? "Hoàn thành" : "Đang tập"}</p>
+              <p className="mt-1 text-[13px] font-semibold text-[#22C55E]">
+                {exercise.isCompleted ? "Hoàn thành" : "Đang tập"}
+              </p>
             </div>
           </div>
           <div className="space-y-3">

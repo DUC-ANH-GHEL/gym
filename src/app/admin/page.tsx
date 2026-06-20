@@ -3,5 +3,5 @@ import { requireAdminUser } from "@/lib/admin";
 
 export default async function AdminPage() {
   await requireAdminUser();
-  redirect("/admin/exercises");
+  redirect("/admin/templates");
 }

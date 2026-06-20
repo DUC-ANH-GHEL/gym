@@ -1,12 +1,12 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { AppButton, AppCard, AppInput, AppSelect, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ScheduleCard } from "@/components/schedule-card";
 import {
-  addExerciseToDayAction,
+  addCatalogItemToDayAction,
   addWorkoutSetPlanAction,
+  applyWorkoutTemplateAction,
   moveWorkoutDayExerciseAction,
   removeExerciseFromDayAction,
   removeWorkoutSetPlanAction,
@@ -18,7 +18,7 @@ const days = [1, 2, 3, 4, 5, 6, 0];
 
 export default async function SchedulePage() {
   const user = await requireUser();
-  const [workoutDays, exercises] = await Promise.all([
+  const [workoutDays, catalogItems, templates, profile] = await Promise.all([
     prisma.workoutDay.findMany({
       where: { userId: user.id },
       orderBy: { dayOfWeek: "asc" },
@@ -26,50 +26,84 @@ export default async function SchedulePage() {
         exercises: {
           orderBy: { orderIndex: "asc" },
           include: {
-            exercise: true,
+            catalogItem: true,
             sets: { orderBy: { setIndex: "asc" } },
           },
         },
       },
     }),
-    prisma.exercise.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }),
+    prisma.exerciseCatalogItem.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    }),
+    prisma.workoutTemplate.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      include: {
+        days: {
+          include: {
+            exercises: true,
+          },
+        },
+      },
+    }),
+    prisma.gymProfile.findUnique({ where: { userId: user.id }, include: { appliedWorkoutTemplate: true } }),
   ]);
-
-  const hasPersonalExercises = exercises.length > 0;
 
   return (
     <AppShell>
-      <PageHeader
-        title="Lịch tập"
-        description="Lịch chỉ dùng bài trong thư viện cá nhân. Thêm từ kho bài tập trước nếu danh sách đang trống."
-        action={
-          <Link
-            href="/exercises"
-            className="shrink-0 rounded-[14px] bg-[#38BDF8] px-4 py-3 text-[15px] font-bold text-[#0B0F14]"
-          >
-            Kho bài tập
-          </Link>
-        }
-      />
+      <PageHeader title="Lịch tập" description="Chọn mẫu lịch có sẵn, rồi sửa tiếp theo ý bạn nếu cần." />
 
-      {!hasPersonalExercises ? (
-        <AppCard className="space-y-3 border-[#38BDF8]/50 bg-[#0B1822]">
-          <div>
-            <h2 className="text-[18px] font-bold text-[#F9FAFB]">Chưa có bài cá nhân</h2>
-            <p className="mt-1 text-[15px] leading-6 text-[#D1D5DB]">
-              Vào kho bài tập, bấm thêm vài bài vào thư viện của tôi, rồi quay lại lịch để xếp ngày tập.
-            </p>
-          </div>
-          <Link
-            href="/exercises"
-            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#22C55E] px-4 py-3 text-[15px] font-bold text-white"
-          >
-            Mở kho bài tập
-          </Link>
-        </AppCard>
-      ) : null}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-[18px] font-bold text-[#F9FAFB]">Mẫu lịch từ admin</h2>
+          <p className="mt-1 text-[13px] text-[#9CA3AF]">
+            Chọn một mẫu sẽ ghi đè toàn bộ lịch hiện tại của bạn.
+            {profile?.appliedWorkoutTemplate ? ` Đang dùng: ${profile.appliedWorkoutTemplate.name}.` : ""}
+          </p>
+        </div>
+        <div className="space-y-3">
+          {templates.map((template) => {
+            const activeDays = template.days.filter((day) => !day.isRestDay).length;
+            const exerciseCount = template.days.reduce((sum, day) => sum + day.exercises.length, 0);
 
-      <div className="space-y-4">
+            return (
+              <AppCard key={template.id} className="space-y-3">
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="text-[18px] font-bold text-[#F9FAFB]">{template.name}</h3>
+                      <p className="text-[13px] text-[#9CA3AF]">
+                        {template.sessionsPerWeek || activeDays} buổi/tuần · {exerciseCount} bài trong mẫu
+                      </p>
+                    </div>
+                    {profile?.appliedWorkoutTemplateId === template.id ? (
+                      <span className="rounded-full bg-[#22C55E]/15 px-3 py-1 text-[12px] font-bold text-[#86EFAC]">
+                        Đang áp dụng
+                      </span>
+                    ) : null}
+                  </div>
+                  {template.description ? (
+                    <p className="mt-2 text-[14px] leading-5 text-[#D1D5DB]">{template.description}</p>
+                  ) : null}
+                </div>
+                <form action={applyWorkoutTemplateAction}>
+                  <input type="hidden" name="templateId" value={template.id} />
+                  <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">
+                    Áp mẫu này
+                  </AppButton>
+                </form>
+              </AppCard>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-[18px] font-bold text-[#F9FAFB]">Lịch của tôi</h2>
+          <p className="mt-1 text-[13px] text-[#9CA3AF]">Sau khi áp mẫu, bạn vẫn có thể chỉnh từng ngày theo ý mình.</p>
+        </div>
         {days.map((dayOfWeek) => {
           const day = workoutDays.find((item) => item.dayOfWeek === dayOfWeek);
           if (!day) {
@@ -90,37 +124,31 @@ export default async function SchedulePage() {
 
               {!day.isRestDay ? (
                 <div className="space-y-3">
-                  {hasPersonalExercises ? (
-                    <form action={addExerciseToDayAction} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
-                      <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
-                      <AppSelect name="exerciseId" defaultValue="">
-                        <option value="">Thêm bài từ thư viện của tôi</option>
-                        {exercises.map((exercise) => (
-                          <option key={exercise.id} value={exercise.id}>
-                            {exercise.name}
-                          </option>
-                        ))}
-                      </AppSelect>
-                      <AppButton className="w-full">Thêm bài</AppButton>
-                    </form>
-                  ) : (
-                    <AppCard className="space-y-2 bg-[#1F2937]">
-                      <p className="text-[15px] font-semibold text-[#F9FAFB]">Cần thêm bài vào thư viện trước.</p>
-                      <Link
-                        href="/exercises"
-                        className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[12px] bg-[#22C55E] px-3 py-2 text-[14px] font-bold text-white"
-                      >
-                        Chọn từ kho bài tập
-                      </Link>
+                  <form action={addCatalogItemToDayAction} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
+                    <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
+                    <AppSelect name="catalogItemId" defaultValue="">
+                      <option value="">Thêm bài từ metadata chung</option>
+                      {catalogItems.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </AppSelect>
+                    <AppButton className="w-full">Thêm bài</AppButton>
+                  </form>
+
+                  {day.exercises.length === 0 ? (
+                    <AppCard className="bg-[#111827]">
+                      <p className="text-[14px] text-[#9CA3AF]">Ngày này chưa có bài nào. Áp mẫu hoặc thêm bài metadata trực tiếp.</p>
                     </AppCard>
-                  )}
+                  ) : null}
 
                   {day.exercises.map((entry) => (
                     <AppCard key={entry.id} className="space-y-3 bg-[#111827]">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="truncate text-[18px] font-bold text-[#F9FAFB]">{entry.exercise.name}</h3>
-                          <p className="text-[13px] text-[#9CA3AF]">{entry.exercise.muscleGroup || "Chưa có nhóm cơ"}</p>
+                          <h3 className="truncate text-[18px] font-bold text-[#F9FAFB]">{entry.catalogItem.name}</h3>
+                          <p className="text-[13px] text-[#9CA3AF]">{entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"}</p>
                         </div>
                         <form action={removeExerciseFromDayAction}>
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
@@ -151,17 +179,23 @@ export default async function SchedulePage() {
                               <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="%" inputMode="numeric" />
                               <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="Reps" inputMode="numeric" />
                               <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="Kg" inputMode="decimal" />
-                              <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">Lưu set {set.setIndex + 1}</AppButton>
+                              <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">
+                                Lưu set {set.setIndex + 1}
+                              </AppButton>
                             </form>
                             <form action={removeWorkoutSetPlanAction}>
                               <input type="hidden" name="planSetId" value={set.id} />
-                              <button className="min-h-[40px] w-full rounded-[12px] border border-[#EF4444]/50 px-3 py-2 text-[13px] font-bold text-[#FCA5A5]">Xóa set</button>
+                              <button className="min-h-[40px] w-full rounded-[12px] border border-[#EF4444]/50 px-3 py-2 text-[13px] font-bold text-[#FCA5A5]">
+                                Xóa set
+                              </button>
                             </form>
                           </div>
                         ))}
                         <form action={addWorkoutSetPlanAction}>
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                          <button className="min-h-[44px] w-full rounded-[12px] border border-[#38BDF8]/60 px-3 py-2 text-[13px] font-bold text-[#38BDF8]">Thêm set</button>
+                          <button className="min-h-[44px] w-full rounded-[12px] border border-[#38BDF8]/60 px-3 py-2 text-[13px] font-bold text-[#38BDF8]">
+                            Thêm set
+                          </button>
                         </form>
                       </div>
                     </AppCard>
@@ -171,7 +205,7 @@ export default async function SchedulePage() {
             </ScheduleCard>
           );
         })}
-      </div>
+      </section>
     </AppShell>
   );
 }

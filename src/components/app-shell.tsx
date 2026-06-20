@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 const navItems = [
   { href: "/today", label: "Hôm nay" },
   { href: "/schedule", label: "Lịch" },
-  { href: "/exercises", label: "Bài tập" },
+  { href: "/history", label: "Lịch sử" },
   { href: "/profile", label: "Cá nhân" },
 ] as const;
 
@@ -21,6 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="grid grid-cols-4 gap-1.5">
           {navItems.map((item) => {
             const active = pathname === item.href;
+
             return (
               <Link
                 key={item.href}

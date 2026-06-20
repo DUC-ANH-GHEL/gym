@@ -4,10 +4,132 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { workoutDaySchema, workoutSetSchema } from "@/lib/validators";
+import { ensureDefaultWorkoutDays } from "@/lib/setup";
 import { buildDefaultPlanSets } from "@/lib/workout";
+import { workoutDaySchema, workoutSetSchema } from "@/lib/validators";
 
-export async function updateWorkoutDayAction(formData: FormData) {
+const DAY_CONFIG = [
+  { dayOfWeek: 1, title: "Thứ 2" },
+  { dayOfWeek: 2, title: "Thứ 3" },
+  { dayOfWeek: 3, title: "Thứ 4" },
+  { dayOfWeek: 4, title: "Thứ 5" },
+  { dayOfWeek: 5, title: "Thứ 6" },
+  { dayOfWeek: 6, title: "Thứ 7" },
+  { dayOfWeek: 0, title: "Chủ nhật" },
+] as const;
+
+export async function applyWorkoutTemplateAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const templateId = String(formData.get("templateId") || "");
+
+  const template = await prisma.workoutTemplate.findFirst({
+    where: { id: templateId, isActive: true },
+    include: {
+      days: {
+        orderBy: { dayOfWeek: "asc" },
+        include: {
+          exercises: {
+            orderBy: { orderIndex: "asc" },
+            include: {
+              catalogItem: true,
+              sets: { orderBy: { setIndex: "asc" } },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!template) {
+    redirect("/schedule");
+  }
+
+  await ensureDefaultWorkoutDays(user.id);
+
+  await prisma.$transaction(async (tx) => {
+    const workoutDays = await tx.workoutDay.findMany({
+      where: { userId: user.id },
+      orderBy: { dayOfWeek: "asc" },
+    });
+
+    await tx.workoutPlanSet.deleteMany({
+      where: { workoutDayExercise: { workoutDay: { userId: user.id } } },
+    });
+
+    await tx.workoutDayExercise.deleteMany({
+      where: { workoutDay: { userId: user.id } },
+    });
+
+    for (const config of DAY_CONFIG) {
+      const templateDay = template.days.find((day) => day.dayOfWeek === config.dayOfWeek);
+      const workoutDay = workoutDays.find((day) => day.dayOfWeek === config.dayOfWeek);
+
+      const resolvedDay =
+        workoutDay ??
+        (await tx.workoutDay.create({
+          data: {
+            userId: user.id,
+            dayOfWeek: config.dayOfWeek,
+            title: config.title,
+            isRestDay: true,
+          },
+        }));
+
+      await tx.workoutDay.update({
+        where: { id: resolvedDay.id },
+        data: {
+          title: templateDay?.title || config.title,
+          isRestDay: templateDay?.isRestDay ?? true,
+        },
+      });
+
+      if (!templateDay || templateDay.isRestDay) {
+        continue;
+      }
+
+      for (const [orderIndex, templateExercise] of templateDay.exercises.entries()) {
+        await tx.workoutDayExercise.create({
+          data: {
+            workoutDayId: resolvedDay.id,
+            catalogItemId: templateExercise.catalogItemId,
+            orderIndex,
+            note: templateExercise.note || null,
+            sets: {
+              create:
+                templateExercise.sets.length > 0
+                  ? templateExercise.sets.map((set) => ({
+                      setIndex: set.setIndex,
+                      intensityPercent: set.intensityPercent,
+                      targetReps: set.targetReps,
+                      targetWeightKg: set.targetWeightKg,
+                    }))
+                  : buildDefaultPlanSets(templateExercise.catalogItem.defaultWeightKg ?? null),
+            },
+          },
+        });
+      }
+    }
+
+    await tx.gymProfile.upsert({
+      where: { userId: user.id },
+      update: {
+        appliedWorkoutTemplateId: template.id,
+        appliedWorkoutTemplateAt: new Date(),
+      },
+      create: {
+        userId: user.id,
+        timezone: "Asia/Bangkok",
+        appliedWorkoutTemplateId: template.id,
+        appliedWorkoutTemplateAt: new Date(),
+      },
+    });
+  });
+
+  revalidatePath("/schedule");
+  revalidatePath("/today");
+}
+
+export async function updateWorkoutDayAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const dayOfWeek = Number(formData.get("dayOfWeek"));
   const parsed = workoutDaySchema.safeParse({
@@ -28,12 +150,13 @@ export async function updateWorkoutDayAction(formData: FormData) {
   });
 
   revalidatePath("/schedule");
+  revalidatePath("/today");
 }
 
-export async function addExerciseToDayAction(formData: FormData) {
+export async function addCatalogItemToDayAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const dayOfWeek = Number(formData.get("dayOfWeek"));
-  const exerciseId = String(formData.get("exerciseId") || "");
+  const catalogItemId = String(formData.get("catalogItemId") || "");
 
   const workoutDay = await prisma.workoutDay.findUnique({
     where: { userId_dayOfWeek: { userId: user.id, dayOfWeek } },
@@ -44,27 +167,30 @@ export async function addExerciseToDayAction(formData: FormData) {
     redirect("/schedule");
   }
 
-  const exercise = await prisma.exercise.findFirst({ where: { id: exerciseId, userId: user.id } });
-  if (!exercise) {
+  const catalogItem = await prisma.exerciseCatalogItem.findFirst({
+    where: { id: catalogItemId, isActive: true },
+  });
+
+  if (!catalogItem) {
     return;
   }
 
-  const created = await prisma.workoutDayExercise.create({
+  await prisma.workoutDayExercise.create({
     data: {
       workoutDayId: workoutDay.id,
-      exerciseId: exercise.id,
+      catalogItemId: catalogItem.id,
       orderIndex: workoutDay.exercises.length,
       sets: {
-        create: buildDefaultPlanSets(exercise.currentWeightKg ?? null),
+        create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
       },
     },
   });
 
-  void created;
   revalidatePath("/schedule");
+  revalidatePath("/today");
 }
 
-export async function updateWorkoutSetPlanAction(formData: FormData) {
+export async function updateWorkoutSetPlanAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const workoutDayExerciseId = String(formData.get("workoutDayExerciseId") || "");
   const parsed = workoutSetSchema.safeParse({
@@ -120,14 +246,14 @@ export async function updateWorkoutSetPlanAction(formData: FormData) {
   revalidatePath("/schedule");
 }
 
-export async function addWorkoutSetPlanAction(formData: FormData) {
+export async function addWorkoutSetPlanAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const workoutDayExerciseId = String(formData.get("workoutDayExerciseId") || "");
 
   const workoutDayExercise = await prisma.workoutDayExercise.findFirst({
     where: { id: workoutDayExerciseId, workoutDay: { userId: user.id } },
     include: {
-      exercise: true,
+      catalogItem: true,
       sets: { orderBy: { setIndex: "asc" } },
     },
   });
@@ -143,14 +269,14 @@ export async function addWorkoutSetPlanAction(formData: FormData) {
       setIndex: nextSetIndex,
       intensityPercent: 90,
       targetReps: 8,
-      targetWeightKg: workoutDayExercise.exercise.currentWeightKg ?? null,
+      targetWeightKg: workoutDayExercise.catalogItem.defaultWeightKg ?? null,
     },
   });
 
   revalidatePath("/schedule");
 }
 
-export async function removeWorkoutSetPlanAction(formData: FormData) {
+export async function removeWorkoutSetPlanAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const planSetId = String(formData.get("planSetId") || "");
 
@@ -184,7 +310,7 @@ export async function removeWorkoutSetPlanAction(formData: FormData) {
   revalidatePath("/schedule");
 }
 
-export async function removeExerciseFromDayAction(formData: FormData) {
+export async function removeExerciseFromDayAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const workoutDayExerciseId = String(formData.get("workoutDayExerciseId") || "");
 
@@ -198,9 +324,10 @@ export async function removeExerciseFromDayAction(formData: FormData) {
 
   await prisma.workoutDayExercise.delete({ where: { id: workoutDayExerciseId } });
   revalidatePath("/schedule");
+  revalidatePath("/today");
 }
 
-export async function moveWorkoutDayExerciseAction(formData: FormData) {
+export async function moveWorkoutDayExerciseAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const workoutDayExerciseId = String(formData.get("workoutDayExerciseId") || "");
   const direction = String(formData.get("direction") || "");

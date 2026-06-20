@@ -85,7 +85,10 @@ export async function saveCatalogItemAction(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/admin/exercises");
+  revalidatePath("/admin/templates");
   revalidatePath("/exercises");
+  revalidatePath("/schedule");
+  revalidatePath("/today");
   redirect("/admin/exercises?created=1");
 }
 
@@ -108,5 +111,8 @@ export async function toggleCatalogItemActiveAction(formData: FormData): Promise
   }
 
   revalidatePath("/admin/exercises");
+  revalidatePath("/admin/templates");
   revalidatePath("/exercises");
+  revalidatePath("/schedule");
+  revalidatePath("/today");
 }

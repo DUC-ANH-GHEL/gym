@@ -35,6 +35,9 @@ model ExerciseCatalogItem {
   updatedAt       DateTime   @updatedAt
 
   exercises       Exercise[]
+  workoutDayExercises WorkoutDayExercise[]
+  workoutExerciseLogs WorkoutExerciseLog[]
+  workoutTemplateExercises WorkoutTemplateExercise[]
 
   @@index([isActive, sortOrder])
   @@index([muscleGroup, sortOrder])
@@ -50,6 +53,9 @@ model GymProfile {
   heightCm    Int?
   weightKg    Float?
   timezone    String   @default("Asia/Bangkok")
+  appliedWorkoutTemplateId String?
+  appliedWorkoutTemplate   WorkoutTemplate? @relation(fields: [appliedWorkoutTemplateId], references: [id], onDelete: SetNull)
+  appliedWorkoutTemplateAt DateTime?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -70,8 +76,6 @@ model Exercise {
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-
-  dayExercises    WorkoutDayExercise[]
 
   @@index([userId, muscleGroup])
   @@index([catalogItemId])
@@ -102,8 +106,8 @@ model WorkoutDayExercise {
   workoutDayId String
   workoutDay   WorkoutDay    @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
 
-  exerciseId   String
-  exercise     Exercise      @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  catalogItemId String
+  catalogItem   ExerciseCatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Restrict)
 
   orderIndex   Int           @default(0)
   note         String?
@@ -114,7 +118,7 @@ model WorkoutDayExercise {
   updatedAt    DateTime @updatedAt
 
   @@index([workoutDayId, orderIndex])
-  @@index([exerciseId])
+  @@index([catalogItemId])
 }
 
 model WorkoutPlanSet {
@@ -161,7 +165,8 @@ model WorkoutExerciseLog {
   workoutLogId  String
   workoutLog    WorkoutLog       @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
 
-  exerciseId    String
+  catalogItemId String?
+  catalogItem   ExerciseCatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
   exerciseName  String
   muscleGroup   String?
   imageUrl      String?
@@ -175,7 +180,7 @@ model WorkoutExerciseLog {
   updatedAt     DateTime @updatedAt
 
   @@index([workoutLogId, orderIndex])
-  @@index([exerciseId])
+  @@index([catalogItemId])
 }
 
 model WorkoutSetLog {
@@ -200,4 +205,67 @@ model WorkoutSetLog {
   updatedAt            DateTime @updatedAt
 
   @@index([workoutExerciseLogId, setIndex])
+}
+
+model WorkoutTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  sessionsPerWeek Int  @default(0)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  days        WorkoutTemplateDay[]
+  gymProfiles GymProfile[]
+
+  @@index([isActive, sortOrder])
+}
+
+model WorkoutTemplateDay {
+  id                String   @id @default(cuid())
+  workoutTemplateId String
+  workoutTemplate   WorkoutTemplate @relation(fields: [workoutTemplateId], references: [id], onDelete: Cascade)
+  dayOfWeek         Int
+  title             String
+  isRestDay         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  exercises         WorkoutTemplateExercise[]
+
+  @@unique([workoutTemplateId, dayOfWeek])
+  @@index([workoutTemplateId, dayOfWeek])
+}
+
+model WorkoutTemplateExercise {
+  id                   String   @id @default(cuid())
+  workoutTemplateDayId String
+  workoutTemplateDay   WorkoutTemplateDay @relation(fields: [workoutTemplateDayId], references: [id], onDelete: Cascade)
+  catalogItemId        String
+  catalogItem          ExerciseCatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Restrict)
+  orderIndex           Int      @default(0)
+  note                 String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  sets                 WorkoutTemplateSet[]
+
+  @@index([workoutTemplateDayId, orderIndex])
+  @@index([catalogItemId])
+}
+
+model WorkoutTemplateSet {
+  id                       String   @id @default(cuid())
+  workoutTemplateExerciseId String
+  workoutTemplateExercise  WorkoutTemplateExercise @relation(fields: [workoutTemplateExerciseId], references: [id], onDelete: Cascade)
+  setIndex                Int
+  intensityPercent        Int?
+  targetReps              Int?
+  targetWeightKg          Float?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([workoutTemplateExerciseId, setIndex])
 }

@@ -58,13 +58,13 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
         <AppCard className="space-y-3">
           <div>
             <h2 className="text-[18px] font-bold text-[#F9FAFB]">Admin</h2>
-            <p className="mt-1 text-[14px] text-[#9CA3AF]">Quản lý metadata bài tập chung.</p>
+            <p className="mt-1 text-[14px] text-[#9CA3AF]">Quản lý metadata bài tập và template lịch chung.</p>
           </div>
           <Link
-            href="/admin/exercises"
+            href="/admin"
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#38BDF8] px-4 py-3 text-[15px] font-bold text-[#0B0F14]"
           >
-            Mở admin bài tập
+            Mở admin
           </Link>
         </AppCard>
       ) : null}

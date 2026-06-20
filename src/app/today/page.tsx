@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { dayLabel, getDayOfWeekInTimeZone, getDateKeyInTimeZone, todayLabel } from "@/lib/date";
+import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, todayLabel } from "@/lib/date";
 import { AppCard, EmptyState, PageHeader } from "@/components/ui";
 import { ExerciseCard } from "@/components/exercise-card";
 import { AppShell } from "@/components/app-shell";
@@ -20,7 +20,7 @@ export default async function TodayPage() {
       exercises: {
         orderBy: { orderIndex: "asc" },
         include: {
-          exercise: true,
+          catalogItem: true,
           sets: { orderBy: { setIndex: "asc" } },
         },
       },
@@ -47,11 +47,16 @@ export default async function TodayPage() {
 
   return (
     <AppShell>
-      <PageHeader title={`Xin chào, ${displayName}`} description={`Hôm nay: ${todayLabel(todayDayOfWeek, workoutDay?.title || dayLabel(todayDayOfWeek))}`} />
+      <PageHeader
+        title={`Xin chào, ${displayName}`}
+        description={`Hôm nay: ${todayLabel(todayDayOfWeek, workoutDay?.title || dayLabel(todayDayOfWeek))}`}
+      />
 
       <AppCard>
         <p className="text-[13px] font-semibold text-[#9CA3AF]">Tiến độ hôm nay</p>
-        <p className="mt-1 text-[28px] font-bold text-[#F9FAFB]">{completedSets}/{totalSets} set</p>
+        <p className="mt-1 text-[28px] font-bold text-[#F9FAFB]">
+          {completedSets}/{totalSets} set
+        </p>
         <p className="text-[13px] text-[#9CA3AF]">đã hoàn thành</p>
         {!isRestDay ? (
           <form action={startTodayWorkoutAction} className="mt-4">
@@ -63,11 +68,21 @@ export default async function TodayPage() {
       </AppCard>
 
       {!workoutDay ? (
-        <EmptyState title="Chưa có lịch hôm nay" description="Thiết lập lịch tập để dashboard tự hiện bài đúng ngày." actionHref="/schedule" actionLabel="Thiết lập lịch tập" />
+        <EmptyState
+          title="Chưa có lịch hôm nay"
+          description="Chọn template lịch hoặc chỉnh lịch tập để dashboard hiện đúng bài theo ngày."
+          actionHref="/schedule"
+          actionLabel="Mở lịch tập"
+        />
       ) : workoutDay.isRestDay ? (
         <EmptyState title="Hôm nay nghỉ, phục hồi thôi" description="Nghỉ ngơi và sẵn sàng cho buổi tập tiếp theo." />
       ) : workoutDay.exercises.length === 0 ? (
-        <EmptyState title="Chưa có bài tập nào" description="Thêm bài từ thư viện vào lịch hôm nay." actionHref="/schedule" actionLabel="Thêm bài tập" />
+        <EmptyState
+          title="Chưa có bài nào trong lịch"
+          description="Áp template hoặc thêm bài metadata trực tiếp vào ngày hôm nay trong lịch."
+          actionHref="/schedule"
+          actionLabel="Chỉnh lịch hôm nay"
+        />
       ) : (
         <div className="space-y-4">
           {workoutDay.exercises.map((entry) => (
@@ -76,11 +91,11 @@ export default async function TodayPage() {
               href={todayLog ? `/workout/${todayLog.id}` : undefined}
               action={todayLog ? undefined : startTodayWorkoutAction}
               exercise={{
-                id: entry.exercise.id,
-                name: entry.exercise.name,
-                muscleGroup: entry.exercise.muscleGroup,
-                imageUrl: entry.exercise.imageUrl,
-                currentWeightKg: entry.exercise.currentWeightKg,
+                id: entry.catalogItem.id,
+                name: entry.catalogItem.name,
+                muscleGroup: entry.catalogItem.muscleGroup,
+                imageUrl: entry.catalogItem.imageUrl,
+                currentWeightKg: entry.catalogItem.defaultWeightKg,
                 setsCount: entry.sets.length,
               }}
               ctaLabel={todayLog ? "Tiếp tục" : "Bắt đầu"}

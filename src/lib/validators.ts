@@ -48,6 +48,15 @@ export const exerciseCatalogItemSchema = z.object({
   isActive: z.coerce.boolean().optional(),
 });
 
+export const workoutTemplateSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().trim().min(2).max(120),
+  description: z.string().trim().max(500).optional().or(z.literal("")),
+  sessionsPerWeek: optionalNumberField(z.number().int().min(0).max(7)),
+  sortOrder: optionalNumberField(z.number().int().min(0).max(100000)),
+  isActive: z.coerce.boolean().optional(),
+});
+
 export const workoutDaySchema = z.object({
   title: z.string().trim().min(1).max(120),
   isRestDay: z.coerce.boolean(),

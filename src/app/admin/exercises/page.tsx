@@ -14,6 +14,7 @@ export default async function AdminExercisesPage({
 }) {
   const params = await searchParams;
   await requireAdminUser();
+
   const catalogItems = await prisma.exerciseCatalogItem.findMany({
     orderBy: [{ isActive: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
   });
@@ -22,10 +23,10 @@ export default async function AdminExercisesPage({
     <AppShell>
       <PageHeader
         title="Admin bài tập"
-        description="Thêm metadata vào kho bài tập chung."
+        description="Quản lý metadata bài tập chung dùng cho lịch và template."
         action={
-          <Link href="/exercises" className="shrink-0 rounded-[14px] bg-[#1F2937] px-4 py-3 text-[15px] font-bold text-[#F9FAFB]">
-            Kho
+          <Link href="/admin/templates" className="shrink-0 rounded-[14px] bg-[#1F2937] px-4 py-3 text-[15px] font-bold text-[#F9FAFB]">
+            Template lịch
           </Link>
         }
       />
@@ -85,7 +86,11 @@ export default async function AdminExercisesPage({
                     {item.muscleGroup || "Chưa có nhóm cơ"} · {item.defaultWeightKg ?? 0}kg · #{item.sortOrder}
                   </p>
                 </div>
-                <span className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-bold ${item.isActive ? "bg-[#22C55E]/15 text-[#86EFAC]" : "bg-[#EF4444]/15 text-[#FCA5A5]"}`}>
+                <span
+                  className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-bold ${
+                    item.isActive ? "bg-[#22C55E]/15 text-[#86EFAC]" : "bg-[#EF4444]/15 text-[#FCA5A5]"
+                  }`}
+                >
                   {item.isActive ? "Đang hiện" : "Đã ẩn"}
                 </span>
               </div>
