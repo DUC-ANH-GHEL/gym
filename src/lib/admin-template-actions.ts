@@ -21,6 +21,22 @@ function countSessionsFromDays(days: { isRestDay: boolean }[]) {
   return days.filter((day) => !day.isRestDay).length;
 }
 
+function getSelectedCatalogItemIds(formData: FormData) {
+  return Array.from(
+    new Set(
+      formData
+        .getAll("catalogItemIds")
+        .map((value) => String(value))
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
 export async function saveWorkoutTemplateAction(formData: FormData): Promise<void> {
   await requireAdminUser();
   const templateId = String(formData.get("templateId") || "");
@@ -131,49 +147,56 @@ export async function updateWorkoutTemplateDayAction(formData: FormData): Promis
 export async function addCatalogItemToTemplateDayAction(formData: FormData): Promise<void> {
   await requireAdminUser();
   const templateDayId = String(formData.get("templateDayId") || "");
-  const catalogItemId = String(formData.get("catalogItemId") || "");
+  const catalogItemIds = getSelectedCatalogItemIds(formData);
 
-  const [templateDay, catalogItem] = await Promise.all([
-    prisma.workoutTemplateDay.findUnique({
-      where: { id: templateDayId },
-      include: { exercises: { orderBy: { orderIndex: "asc" } } },
-    }),
-    prisma.exerciseCatalogItem.findFirst({
-      where: { id: catalogItemId, isActive: true },
-    }),
-  ]);
+  if (catalogItemIds.length === 0) {
+    return;
+  }
 
-  if (!templateDay || !catalogItem) {
+  const templateDay = await prisma.workoutTemplateDay.findUnique({
+    where: { id: templateDayId },
+    include: { exercises: { orderBy: { orderIndex: "asc" } } },
+  });
+
+  if (!templateDay) {
     redirect("/admin/templates?error=invalid");
   }
 
-  await prisma.workoutTemplateExercise.create({
-    data: {
-      workoutTemplateDayId: templateDay.id,
-      catalogItemId: catalogItem.id,
-      orderIndex: templateDay.exercises.length,
-      sets: {
-        create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
-      },
+  const existingIds = new Set(templateDay.exercises.map((exercise) => exercise.catalogItemId));
+  const allowedIds = catalogItemIds.filter((id) => !existingIds.has(id));
+
+  if (allowedIds.length === 0) {
+    return;
+  }
+
+  const catalogItems = await prisma.exerciseCatalogItem.findMany({
+    where: {
+      id: { in: allowedIds },
+      isActive: true,
     },
   });
 
-  if (templateDay.isRestDay) {
-    await prisma.workoutTemplateDay.update({
-      where: { id: templateDay.id },
-      data: { isRestDay: false },
-    });
+  const catalogItemMap = new Map(catalogItems.map((item) => [item.id, item]));
+  const orderedCatalogItems = allowedIds.map((id) => catalogItemMap.get(id)).filter(isDefined);
 
-    const allDays = await prisma.workoutTemplateDay.findMany({
-      where: { workoutTemplateId: templateDay.workoutTemplateId },
-      select: { isRestDay: true },
-    });
-
-    await prisma.workoutTemplate.update({
-      where: { id: templateDay.workoutTemplateId },
-      data: { sessionsPerWeek: countSessionsFromDays(allDays) },
-    });
+  if (orderedCatalogItems.length === 0) {
+    return;
   }
+
+  await prisma.$transaction(async (tx) => {
+    for (const [index, catalogItem] of orderedCatalogItems.entries()) {
+      await tx.workoutTemplateExercise.create({
+        data: {
+          workoutTemplateDayId: templateDay.id,
+          catalogItemId: catalogItem.id,
+          orderIndex: templateDay.exercises.length + index,
+          sets: {
+            create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
+          },
+        },
+      });
+    }
+  });
 
   revalidatePath("/admin/templates");
 }
@@ -216,7 +239,6 @@ export async function removeWorkoutTemplateExerciseAction(formData: FormData): P
 
   const templateExercise = await prisma.workoutTemplateExercise.findUnique({
     where: { id: templateExerciseId },
-    include: { workoutTemplateDay: true },
   });
 
   if (!templateExercise) {

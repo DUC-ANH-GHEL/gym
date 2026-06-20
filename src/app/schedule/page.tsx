@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { AppButton, AppCard, AppInput, AppSelect, PageHeader } from "@/components/ui";
+import { AppButton, AppCard, AppInput, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ScheduleCard } from "@/components/schedule-card";
+import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
 import {
   addCatalogItemToDayAction,
   addWorkoutSetPlanAction,
@@ -55,44 +56,43 @@ export default async function SchedulePage() {
 
   return (
     <AppShell>
-      <PageHeader title="Lịch tập" description="Chọn mẫu có sẵn rồi chỉnh tiếp từng buổi theo ý bạn." />
+      <PageHeader title="Lịch tập" description="Áp mẫu sẵn rồi chỉnh từng buổi theo đúng nhịp tập của bạn." />
 
       <section className="space-y-3">
         <div>
-          <h2 className="text-[18px] font-bold text-[#F9FAFB]">Mẫu lịch từ admin</h2>
-          <p className="mt-1 text-[13px] text-[#9CA3AF]">
-            Chọn một mẫu sẽ ghi đè toàn bộ lịch hiện tại của bạn.
+          <h2 className="text-[18px] font-bold text-[#F8FAFC]">Mẫu lịch từ admin</h2>
+          <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">
+            Chọn một mẫu sẽ ghi đè toàn bộ lịch hiện tại.
             {profile?.appliedWorkoutTemplate ? ` Đang dùng: ${profile.appliedWorkoutTemplate.name}.` : ""}
           </p>
         </div>
+
         <div className="space-y-3">
           {templates.map((template) => {
             const activeDays = template.days.filter((day) => !day.isRestDay).length;
             const exerciseCount = template.days.reduce((sum, day) => sum + day.exercises.length, 0);
 
             return (
-              <AppCard key={template.id} className="space-y-3">
-                <div>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="text-[18px] font-bold text-[#F9FAFB]">{template.name}</h3>
-                      <p className="text-[13px] text-[#9CA3AF]">
-                        {template.sessionsPerWeek || activeDays} buổi/tuần · {exerciseCount} bài trong mẫu
-                      </p>
-                    </div>
-                    {profile?.appliedWorkoutTemplateId === template.id ? (
-                      <span className="rounded-full bg-[#22C55E]/15 px-3 py-1 text-[12px] font-bold text-[#86EFAC]">
-                        Đang áp dụng
-                      </span>
-                    ) : null}
+              <AppCard key={template.id} className="space-y-3 border-[#243041] bg-[#121A2B]">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-[18px] font-bold text-[#F8FAFC]">{template.name}</h3>
+                    <p className="mt-1 text-[13px] text-[#94A3B8]">
+                      {template.sessionsPerWeek || activeDays} buổi/tuần · {exerciseCount} bài trong mẫu
+                    </p>
                   </div>
-                  {template.description ? (
-                    <p className="mt-2 text-[14px] leading-5 text-[#D1D5DB]">{template.description}</p>
+                  {profile?.appliedWorkoutTemplateId === template.id ? (
+                    <span className="rounded-full border border-[#0EA5E9]/30 bg-[#0EA5E9]/10 px-3 py-1 text-[12px] font-semibold text-[#7DD3FC]">
+                      Đang áp dụng
+                    </span>
                   ) : null}
                 </div>
+
+                {template.description ? <p className="text-[14px] leading-6 text-[#CBD5E1]">{template.description}</p> : null}
+
                 <form action={applyWorkoutTemplateAction}>
                   <input type="hidden" name="templateId" value={template.id} />
-                  <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">Áp mẫu này</AppButton>
+                  <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Áp mẫu này</AppButton>
                 </form>
               </AppCard>
             );
@@ -102,8 +102,10 @@ export default async function SchedulePage() {
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-[18px] font-bold text-[#F9FAFB]">Lịch của tôi</h2>
-          <p className="mt-1 text-[13px] text-[#9CA3AF]">Bạn có thể thêm bài trực tiếp vào từng ngày, kể cả ngày đang để nghỉ.</p>
+          <h2 className="text-[18px] font-bold text-[#F8FAFC]">Lịch của tôi</h2>
+          <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">
+            Chỉ khi một ngày là ngày tập thì mới hiện khu vực thêm bài. Một lần có thể chọn nhiều bài rồi thêm cùng lúc.
+          </p>
         </div>
 
         {days.map((dayOfWeek) => {
@@ -114,106 +116,115 @@ export default async function SchedulePage() {
 
           return (
             <ScheduleCard key={day.id} day={day}>
-              <form action={updateWorkoutDayAction} className="space-y-3 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
+              <form action={updateWorkoutDayAction} className="space-y-3 rounded-[18px] border border-[#243041] bg-[#0F172A] p-4">
                 <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
-                <AppInput name="title" defaultValue={day.title} placeholder="Tên ngày" />
-                <label className="flex min-h-[48px] items-center gap-3 rounded-[12px] bg-[#0B0F14] px-3 text-[14px] font-bold text-[#F9FAFB]">
-                  <input type="checkbox" name="isRestDay" defaultChecked={day.isRestDay} className="h-6 w-6 accent-[#22C55E]" />
-                  Ngày nghỉ
+                <AppInput name="title" defaultValue={day.title} placeholder="Tên buổi tập" className="border-[#314155] bg-[#111C2E]" />
+                <label className="flex min-h-[52px] items-center gap-3 rounded-[16px] border border-[#243041] bg-[#0B1220] px-4 text-[14px] font-semibold text-[#F8FAFC]">
+                  <input type="checkbox" name="isRestDay" defaultChecked={day.isRestDay} className="h-5 w-5 accent-[#0EA5E9]" />
+                  Đánh dấu là ngày nghỉ
                 </label>
-                <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">Lưu ngày</AppButton>
+                <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu ngày</AppButton>
               </form>
 
-              <div className="space-y-3">
-                <form action={addCatalogItemToDayAction} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
+              {day.isRestDay ? (
+                <div className="rounded-[18px] border border-dashed border-[#243041] bg-[#0F172A] px-4 py-5">
+                  <p className="text-[14px] font-semibold text-[#E2E8F0]">Ngày này đang là ngày nghỉ.</p>
+                  <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">
+                    Bỏ tick “Đánh dấu là ngày nghỉ”, lưu lại, rồi khu vực thêm bài sẽ hiện ra.
+                  </p>
+                  {day.exercises.length > 0 ? (
+                    <p className="mt-3 text-[13px] text-[#7DD3FC]">Buổi này đang có sẵn {day.exercises.length} bài đã lưu, hiện tạm ẩn vì đang bật ngày nghỉ.</p>
+                  ) : null}
+                </div>
+              ) : (
+                <form action={addCatalogItemToDayAction}>
                   <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
-                  <AppSelect name="catalogItemId" defaultValue="">
-                    <option value="">
-                      {catalogItems.length > 0 ? "Chọn bài tập cho ngày này" : "Chưa có metadata bài tập"}
-                    </option>
-                    {catalogItems.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </AppSelect>
-                  {day.isRestDay ? (
-                    <p className="text-[12px] text-[#9CA3AF]">Thêm bài đầu tiên sẽ tự đổi ngày này thành ngày tập.</p>
-                  ) : null}
-                  {catalogItems.length === 0 ? (
-                    <p className="text-[12px] text-[#FCA5A5]">Hiện chưa có metadata bài tập để chọn.</p>
-                  ) : null}
-                  <AppButton className="w-full" disabled={catalogItems.length === 0}>
-                    Thêm bài
-                  </AppButton>
+                  <CatalogPickerPanel
+                    items={catalogItems}
+                    existingIds={day.exercises.map((entry) => entry.catalogItemId)}
+                    title="Thêm bài vào buổi này"
+                    description="Chạm chọn nhiều bài theo nhóm cơ rồi thêm một lần."
+                    submitLabel="Thêm bài đã chọn"
+                    emptyLabel="Không còn bài phù hợp để thêm cho buổi này."
+                  />
                 </form>
+              )}
 
-                {day.exercises.length === 0 ? (
-                  <AppCard className="bg-[#111827]">
-                    <p className="text-[14px] text-[#9CA3AF]">
-                      {day.isRestDay
-                        ? "Ngày này đang để nghỉ. Chọn bài ở trên nếu muốn chuyển nó thành buổi tập."
-                        : "Ngày này chưa có bài nào. Chọn bài ở trên để thêm vào lịch."}
-                    </p>
-                  </AppCard>
-                ) : null}
-
-                {day.exercises.map((entry) => (
-                  <AppCard key={entry.id} className="space-y-3 bg-[#111827]">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3 className="truncate text-[18px] font-bold text-[#F9FAFB]">{entry.catalogItem.name}</h3>
-                        <p className="text-[13px] text-[#9CA3AF]">{entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"}</p>
-                      </div>
-                      <form action={removeExerciseFromDayAction}>
-                        <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                        <button className="min-h-[40px] rounded-[12px] bg-[#EF4444] px-3 py-2 text-[13px] font-bold text-white">Xóa</button>
-                      </form>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <form action={moveWorkoutDayExerciseAction}>
-                        <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                        <input type="hidden" name="direction" value="up" />
-                        <button className="min-h-[44px] w-full rounded-[12px] bg-[#1F2937] px-3 py-2 text-[13px] font-bold text-[#F9FAFB]">Lên</button>
-                      </form>
-                      <form action={moveWorkoutDayExerciseAction}>
-                        <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                        <input type="hidden" name="direction" value="down" />
-                        <button className="min-h-[44px] w-full rounded-[12px] bg-[#1F2937] px-3 py-2 text-[13px] font-bold text-[#F9FAFB]">Xuống</button>
-                      </form>
-                    </div>
-
-                    <div className="space-y-2">
-                      {entry.sets.map((set) => (
-                        <div key={set.id} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
-                          <form action={updateWorkoutSetPlanAction} className="grid grid-cols-2 gap-2">
-                            <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                            <input type="hidden" name="planSetId" value={set.id} />
-                            <input type="hidden" name="setIndex" value={set.setIndex} />
-                            <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="%" inputMode="numeric" />
-                            <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="Reps" inputMode="numeric" />
-                            <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="Kg" inputMode="decimal" />
-                            <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">Lưu set {set.setIndex + 1}</AppButton>
-                          </form>
-                          <form action={removeWorkoutSetPlanAction}>
-                            <input type="hidden" name="planSetId" value={set.id} />
-                            <button className="min-h-[40px] w-full rounded-[12px] border border-[#EF4444]/50 px-3 py-2 text-[13px] font-bold text-[#FCA5A5]">
-                              Xóa set
-                            </button>
-                          </form>
+              {day.exercises.length === 0 ? (
+                <AppCard className="border-[#243041] bg-[#0F172A]">
+                  <p className="text-[14px] leading-6 text-[#94A3B8]">
+                    {day.isRestDay ? "Chưa có bài nào trong ngày nghỉ này." : "Buổi này chưa có bài nào. Chọn từ panel phía trên để thêm nhanh nhiều bài cùng lúc."}
+                  </p>
+                </AppCard>
+              ) : (
+                <div className="space-y-3">
+                  {day.exercises.map((entry, exerciseIndex) => (
+                    <AppCard key={entry.id} className="space-y-3 border-[#243041] bg-[#0F172A]">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-[#0EA5E9]/12 px-2.5 py-1 text-[11px] font-semibold text-[#7DD3FC]">#{exerciseIndex + 1}</span>
+                            <p className="truncate text-[18px] font-bold text-[#F8FAFC]">{entry.catalogItem.name}</p>
+                          </div>
+                          <p className="mt-2 text-[13px] text-[#94A3B8]">{entry.catalogItem.muscleGroup || "Chưa phân nhóm cơ"}</p>
                         </div>
-                      ))}
-                      <form action={addWorkoutSetPlanAction}>
-                        <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                        <button className="min-h-[44px] w-full rounded-[12px] border border-[#38BDF8]/60 px-3 py-2 text-[13px] font-bold text-[#38BDF8]">
-                          Thêm set
-                        </button>
-                      </form>
-                    </div>
-                  </AppCard>
-                ))}
-              </div>
+                        <form action={removeExerciseFromDayAction}>
+                          <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
+                          <button className="min-h-[40px] rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 py-2 text-[13px] font-semibold text-[#FCA5A5]">
+                            Xóa
+                          </button>
+                        </form>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <form action={moveWorkoutDayExerciseAction}>
+                          <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
+                          <input type="hidden" name="direction" value="up" />
+                          <button className="min-h-[44px] w-full rounded-[14px] border border-[#243041] bg-[#111827] px-3 py-2 text-[13px] font-semibold text-[#E2E8F0]">
+                            Đưa lên
+                          </button>
+                        </form>
+                        <form action={moveWorkoutDayExerciseAction}>
+                          <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
+                          <input type="hidden" name="direction" value="down" />
+                          <button className="min-h-[44px] w-full rounded-[14px] border border-[#243041] bg-[#111827] px-3 py-2 text-[13px] font-semibold text-[#E2E8F0]">
+                            Đưa xuống
+                          </button>
+                        </form>
+                      </div>
+
+                      <div className="space-y-2">
+                        {entry.sets.map((set) => (
+                          <div key={set.id} className="space-y-2 rounded-[16px] border border-[#243041] bg-[#111827] p-3">
+                            <p className="text-[13px] font-semibold text-[#CBD5E1]">Set {set.setIndex + 1}</p>
+                            <form action={updateWorkoutSetPlanAction} className="grid grid-cols-2 gap-2">
+                              <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
+                              <input type="hidden" name="planSetId" value={set.id} />
+                              <input type="hidden" name="setIndex" value={set.setIndex} />
+                              <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="% nặng" inputMode="numeric" className="border-[#314155] bg-[#0F172A]" />
+                              <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="Reps" inputMode="numeric" className="border-[#314155] bg-[#0F172A]" />
+                              <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="Kg" inputMode="decimal" className="border-[#314155] bg-[#0F172A]" />
+                              <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu set</AppButton>
+                            </form>
+                            <form action={removeWorkoutSetPlanAction}>
+                              <input type="hidden" name="planSetId" value={set.id} />
+                              <button className="min-h-[40px] w-full rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 py-2 text-[13px] font-semibold text-[#FCA5A5]">
+                                Xóa set
+                              </button>
+                            </form>
+                          </div>
+                        ))}
+                        <form action={addWorkoutSetPlanAction}>
+                          <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
+                          <button className="min-h-[44px] w-full rounded-[14px] border border-[#0EA5E9]/40 bg-[#0C2537] px-3 py-2 text-[13px] font-semibold text-[#7DD3FC]">
+                            Thêm set mới
+                          </button>
+                        </form>
+                      </div>
+                    </AppCard>
+                  ))}
+                </div>
+              )}
             </ScheduleCard>
           );
         })}

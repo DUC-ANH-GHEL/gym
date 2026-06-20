@@ -18,6 +18,22 @@ const DAY_CONFIG = [
   { dayOfWeek: 0, title: "Chủ nhật" },
 ] as const;
 
+function getSelectedCatalogItemIds(formData: FormData) {
+  return Array.from(
+    new Set(
+      formData
+        .getAll("catalogItemIds")
+        .map((value) => String(value))
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
 export async function applyWorkoutTemplateAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const templateId = String(formData.get("templateId") || "");
@@ -156,7 +172,11 @@ export async function updateWorkoutDayAction(formData: FormData): Promise<void> 
 export async function addCatalogItemToDayAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const dayOfWeek = Number(formData.get("dayOfWeek"));
-  const catalogItemId = String(formData.get("catalogItemId") || "");
+  const catalogItemIds = getSelectedCatalogItemIds(formData);
+
+  if (catalogItemIds.length === 0) {
+    return;
+  }
 
   const workoutDay = await prisma.workoutDay.findUnique({
     where: { userId_dayOfWeek: { userId: user.id, dayOfWeek } },
@@ -167,31 +187,41 @@ export async function addCatalogItemToDayAction(formData: FormData): Promise<voi
     redirect("/schedule");
   }
 
-  const catalogItem = await prisma.exerciseCatalogItem.findFirst({
-    where: { id: catalogItemId, isActive: true },
-  });
+  const existingIds = new Set(workoutDay.exercises.map((exercise) => exercise.catalogItemId));
+  const allowedIds = catalogItemIds.filter((id) => !existingIds.has(id));
 
-  if (!catalogItem) {
+  if (allowedIds.length === 0) {
     return;
   }
 
-  await prisma.workoutDayExercise.create({
-    data: {
-      workoutDayId: workoutDay.id,
-      catalogItemId: catalogItem.id,
-      orderIndex: workoutDay.exercises.length,
-      sets: {
-        create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
-      },
+  const catalogItems = await prisma.exerciseCatalogItem.findMany({
+    where: {
+      id: { in: allowedIds },
+      isActive: true,
     },
   });
 
-  if (workoutDay.isRestDay) {
-    await prisma.workoutDay.update({
-      where: { id: workoutDay.id },
-      data: { isRestDay: false },
-    });
+  const catalogItemMap = new Map(catalogItems.map((item) => [item.id, item]));
+  const orderedCatalogItems = allowedIds.map((id) => catalogItemMap.get(id)).filter(isDefined);
+
+  if (orderedCatalogItems.length === 0) {
+    return;
   }
+
+  await prisma.$transaction(async (tx) => {
+    for (const [index, catalogItem] of orderedCatalogItems.entries()) {
+      await tx.workoutDayExercise.create({
+        data: {
+          workoutDayId: workoutDay.id,
+          catalogItemId: catalogItem.id,
+          orderIndex: workoutDay.exercises.length + index,
+          sets: {
+            create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
+          },
+        },
+      });
+    }
+  });
 
   revalidatePath("/schedule");
   revalidatePath("/today");
