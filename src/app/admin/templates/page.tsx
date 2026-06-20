@@ -52,7 +52,7 @@ export default async function AdminTemplatesPage({
     <AppShell>
       <PageHeader
         title="Admin template lịch"
-        description="Tạo mẫu tập sẵn để user chỉ việc chọn và áp vào lịch cá nhân."
+        description="Tạo mẫu tập sẵn để user chọn và áp vào lịch cá nhân."
         action={
           <Link href="/admin/exercises" className="shrink-0 rounded-[14px] bg-[#1F2937] px-4 py-3 text-[15px] font-bold text-[#F9FAFB]">
             Metadata bài tập
@@ -69,7 +69,7 @@ export default async function AdminTemplatesPage({
       <AppCard>
         <div className="mb-4">
           <h2 className="text-[18px] font-bold text-[#F9FAFB]">Tạo mẫu mới</h2>
-          <p className="mt-1 text-[13px] text-[#9CA3AF]">Tạo trước khung template, rồi chỉnh từng ngày ngay bên dưới.</p>
+          <p className="mt-1 text-[13px] text-[#9CA3AF]">Tạo khung template trước, rồi gán bài vào từng ngày ngay bên dưới.</p>
         </div>
         <form action={saveWorkoutTemplateAction} className="space-y-4">
           <AppInput name="name" placeholder="Tên mẫu, ví dụ 5 buổi/tuần" required />
@@ -130,80 +130,94 @@ export default async function AdminTemplatesPage({
                     <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">Lưu ngày</AppButton>
                   </form>
 
-                  {!day.isRestDay ? (
-                    <div className="space-y-3">
-                      <form action={addCatalogItemToTemplateDayAction} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
-                        <input type="hidden" name="templateDayId" value={day.id} />
-                        <AppSelect name="catalogItemId" defaultValue="">
-                          <option value="">Thêm bài metadata vào ngày này</option>
-                          {catalogItems.map((item) => (
-                            <option key={item.id} value={item.id}>
-                              {item.name}
-                            </option>
-                          ))}
-                        </AppSelect>
-                        <AppButton className="w-full">Thêm bài</AppButton>
-                      </form>
+                  <div className="space-y-3">
+                    <form action={addCatalogItemToTemplateDayAction} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
+                      <input type="hidden" name="templateDayId" value={day.id} />
+                      <AppSelect name="catalogItemId" defaultValue="">
+                        <option value="">
+                          {catalogItems.length > 0 ? "Chọn bài tập cho buổi này" : "Chưa có metadata bài tập"}
+                        </option>
+                        {catalogItems.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </AppSelect>
+                      {day.isRestDay ? (
+                        <p className="text-[12px] text-[#9CA3AF]">Thêm bài đầu tiên sẽ tự đổi ngày này thành ngày tập.</p>
+                      ) : null}
+                      {catalogItems.length === 0 ? (
+                        <p className="text-[12px] text-[#FCA5A5]">Hãy tạo metadata bài tập trước rồi quay lại màn này.</p>
+                      ) : null}
+                      <AppButton className="w-full" disabled={catalogItems.length === 0}>
+                        Thêm bài
+                      </AppButton>
+                    </form>
 
-                      {day.exercises.map((exercise) => (
-                        <AppCard key={exercise.id} className="space-y-3 bg-[#111827]">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <h3 className="truncate text-[18px] font-bold text-[#F9FAFB]">{exercise.catalogItem.name}</h3>
-                              <p className="text-[13px] text-[#9CA3AF]">{exercise.catalogItem.muscleGroup || "Chưa có nhóm cơ"}</p>
+                    {day.exercises.length === 0 ? (
+                      <div className="rounded-[14px] border border-dashed border-[#374151] bg-[#111827] px-3 py-4 text-[13px] text-[#9CA3AF]">
+                        {day.isRestDay
+                          ? "Ngày này đang để nghỉ. Chọn bài ở trên nếu muốn biến nó thành buổi tập."
+                          : "Buổi này chưa có bài nào. Chọn metadata ở trên để thêm bài."}
+                      </div>
+                    ) : null}
+
+                    {day.exercises.map((exercise) => (
+                      <AppCard key={exercise.id} className="space-y-3 bg-[#111827]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h3 className="truncate text-[18px] font-bold text-[#F9FAFB]">{exercise.catalogItem.name}</h3>
+                            <p className="text-[13px] text-[#9CA3AF]">{exercise.catalogItem.muscleGroup || "Chưa có nhóm cơ"}</p>
+                          </div>
+                          <form action={removeWorkoutTemplateExerciseAction}>
+                            <input type="hidden" name="templateExerciseId" value={exercise.id} />
+                            <button className="min-h-[40px] rounded-[12px] bg-[#EF4444] px-3 py-2 text-[13px] font-bold text-white">Xóa</button>
+                          </form>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <form action={moveWorkoutTemplateExerciseAction}>
+                            <input type="hidden" name="templateExerciseId" value={exercise.id} />
+                            <input type="hidden" name="direction" value="up" />
+                            <button className="min-h-[44px] w-full rounded-[12px] bg-[#1F2937] px-3 py-2 text-[13px] font-bold text-[#F9FAFB]">Lên</button>
+                          </form>
+                          <form action={moveWorkoutTemplateExerciseAction}>
+                            <input type="hidden" name="templateExerciseId" value={exercise.id} />
+                            <input type="hidden" name="direction" value="down" />
+                            <button className="min-h-[44px] w-full rounded-[12px] bg-[#1F2937] px-3 py-2 text-[13px] font-bold text-[#F9FAFB]">Xuống</button>
+                          </form>
+                        </div>
+
+                        <div className="space-y-2">
+                          {exercise.sets.map((set) => (
+                            <div key={set.id} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
+                              <form action={updateWorkoutTemplateSetAction} className="grid grid-cols-2 gap-2">
+                                <input type="hidden" name="templateExerciseId" value={exercise.id} />
+                                <input type="hidden" name="templateSetId" value={set.id} />
+                                <input type="hidden" name="setIndex" value={set.setIndex} />
+                                <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="%" inputMode="numeric" />
+                                <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="Reps" inputMode="numeric" />
+                                <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="Kg" inputMode="decimal" />
+                                <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">Lưu set {set.setIndex + 1}</AppButton>
+                              </form>
+                              <form action={removeWorkoutTemplateSetAction}>
+                                <input type="hidden" name="templateSetId" value={set.id} />
+                                <button className="min-h-[40px] w-full rounded-[12px] border border-[#EF4444]/50 px-3 py-2 text-[13px] font-bold text-[#FCA5A5]">
+                                  Xóa set
+                                </button>
+                              </form>
                             </div>
-                            <form action={removeWorkoutTemplateExerciseAction}>
-                              <input type="hidden" name="templateExerciseId" value={exercise.id} />
-                              <button className="min-h-[40px] rounded-[12px] bg-[#EF4444] px-3 py-2 text-[13px] font-bold text-white">Xóa</button>
-                            </form>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <form action={moveWorkoutTemplateExerciseAction}>
-                              <input type="hidden" name="templateExerciseId" value={exercise.id} />
-                              <input type="hidden" name="direction" value="up" />
-                              <button className="min-h-[44px] w-full rounded-[12px] bg-[#1F2937] px-3 py-2 text-[13px] font-bold text-[#F9FAFB]">Lên</button>
-                            </form>
-                            <form action={moveWorkoutTemplateExerciseAction}>
-                              <input type="hidden" name="templateExerciseId" value={exercise.id} />
-                              <input type="hidden" name="direction" value="down" />
-                              <button className="min-h-[44px] w-full rounded-[12px] bg-[#1F2937] px-3 py-2 text-[13px] font-bold text-[#F9FAFB]">Xuống</button>
-                            </form>
-                          </div>
-
-                          <div className="space-y-2">
-                            {exercise.sets.map((set) => (
-                              <div key={set.id} className="space-y-2 rounded-[14px] border border-[#374151] bg-[#1F2937] p-3">
-                                <form action={updateWorkoutTemplateSetAction} className="grid grid-cols-2 gap-2">
-                                  <input type="hidden" name="templateExerciseId" value={exercise.id} />
-                                  <input type="hidden" name="templateSetId" value={set.id} />
-                                  <input type="hidden" name="setIndex" value={set.setIndex} />
-                                  <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="%" inputMode="numeric" />
-                                  <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="Reps" inputMode="numeric" />
-                                  <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="Kg" inputMode="decimal" />
-                                  <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">
-                                    Lưu set {set.setIndex + 1}
-                                  </AppButton>
-                                </form>
-                                <form action={removeWorkoutTemplateSetAction}>
-                                  <input type="hidden" name="templateSetId" value={set.id} />
-                                  <button className="min-h-[40px] w-full rounded-[12px] border border-[#EF4444]/50 px-3 py-2 text-[13px] font-bold text-[#FCA5A5]">
-                                    Xóa set
-                                  </button>
-                                </form>
-                              </div>
-                            ))}
-                            <form action={addWorkoutTemplateSetAction}>
-                              <input type="hidden" name="templateExerciseId" value={exercise.id} />
-                              <button className="min-h-[44px] w-full rounded-[12px] border border-[#38BDF8]/60 px-3 py-2 text-[13px] font-bold text-[#38BDF8]">
-                                Thêm set
-                              </button>
-                            </form>
-                          </div>
-                        </AppCard>
-                      ))}
-                    </div>
-                  ) : null}
+                          ))}
+                          <form action={addWorkoutTemplateSetAction}>
+                            <input type="hidden" name="templateExerciseId" value={exercise.id} />
+                            <button className="min-h-[44px] w-full rounded-[12px] border border-[#38BDF8]/60 px-3 py-2 text-[13px] font-bold text-[#38BDF8]">
+                              Thêm set
+                            </button>
+                          </form>
+                        </div>
+                      </AppCard>
+                    ))}
+                  </div>
                 </ScheduleCard>
               ))}
             </div>

@@ -186,6 +186,13 @@ export async function addCatalogItemToDayAction(formData: FormData): Promise<voi
     },
   });
 
+  if (workoutDay.isRestDay) {
+    await prisma.workoutDay.update({
+      where: { id: workoutDay.id },
+      data: { isRestDay: false },
+    });
+  }
+
   revalidatePath("/schedule");
   revalidatePath("/today");
 }
