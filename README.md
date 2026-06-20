@@ -63,6 +63,7 @@ ADMIN_IDENTIFIERS=admin,coach
 
 Admins can open `/admin/exercises` to add catalog exercises and hide or show existing catalog items.
 Tài khoản nằm trong `ADMIN_IDENTIFIERS` không thể tự đăng ký công khai. Hãy tạo sẵn tài khoản đó trong hệ thống rồi mới bật admin.
+Sau khi đổi environment variables trên Vercel, cần redeploy để app nhận giá trị mới.
 
 ## Verification
 
