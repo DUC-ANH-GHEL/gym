@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { isAdminIdentifier } from "@/lib/admin-config";
+import { ensureDefaultWorkoutDays } from "@/lib/setup";
 import { authSchema } from "@/lib/validators";
 
 const SESSION_COOKIE = "gym_session";
@@ -114,21 +115,6 @@ export async function getCurrentUser() {
   });
 }
 
-async function createDefaultWorkoutDays(userId: string) {
-  await prisma.workoutDay.createMany({
-    data: [
-      { userId, dayOfWeek: 1, title: "Ngày nghỉ", isRestDay: true },
-      { userId, dayOfWeek: 2, title: "Ngày nghỉ", isRestDay: true },
-      { userId, dayOfWeek: 3, title: "Ngày nghỉ", isRestDay: true },
-      { userId, dayOfWeek: 4, title: "Ngày nghỉ", isRestDay: true },
-      { userId, dayOfWeek: 5, title: "Ngày nghỉ", isRestDay: true },
-      { userId, dayOfWeek: 6, title: "Ngày nghỉ", isRestDay: true },
-      { userId, dayOfWeek: 0, title: "Ngày nghỉ", isRestDay: true },
-    ],
-    skipDuplicates: true,
-  });
-}
-
 export async function registerUser(formData: FormData) {
   const parsed = authSchema.safeParse({
     identifier: formData.get("identifier"),
@@ -168,7 +154,7 @@ export async function registerUser(formData: FormData) {
     },
   });
 
-  await createDefaultWorkoutDays(user.id);
+  await ensureDefaultWorkoutDays(user.id);
   await setSessionCookie(user.id);
 
   return { success: true };
