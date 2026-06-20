@@ -161,13 +161,24 @@ export default async function SchedulePage() {
                         {entry.sets.map((set) => (
                           <div key={set.id} className="space-y-2 rounded-[16px] border border-[#243041] bg-[#111827] p-3">
                             <p className="text-[13px] font-semibold text-[#CBD5E1]">Set {set.setIndex + 1}</p>
-                            <form action={updateWorkoutSetPlanAction} className="grid grid-cols-2 gap-2">
+                            <form action={updateWorkoutSetPlanAction} className="space-y-3">
                               <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
                               <input type="hidden" name="planSetId" value={set.id} />
                               <input type="hidden" name="setIndex" value={set.setIndex} />
-                              <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="% nặng" inputMode="numeric" className="border-[#314155] bg-[#0F172A]" />
-                              <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="Reps" inputMode="numeric" className="border-[#314155] bg-[#0F172A]" />
-                              <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="Kg" inputMode="decimal" className="border-[#314155] bg-[#0F172A]" />
+                              <div className="grid grid-cols-2 gap-2">
+                                <label className="space-y-1">
+                                  <span className="text-[12px] font-medium text-[#94A3B8]">Mức nặng (%)</span>
+                                  <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="Ví dụ 70" inputMode="numeric" className="border-[#314155] bg-[#0F172A]" />
+                                </label>
+                                <label className="space-y-1">
+                                  <span className="text-[12px] font-medium text-[#94A3B8]">Số reps mục tiêu</span>
+                                  <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="Ví dụ 12" inputMode="numeric" className="border-[#314155] bg-[#0F172A]" />
+                                </label>
+                              </div>
+                              <label className="space-y-1">
+                                <span className="text-[12px] font-medium text-[#94A3B8]">Tạ mục tiêu (kg)</span>
+                                <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="Ví dụ 40" inputMode="decimal" className="border-[#314155] bg-[#0F172A]" />
+                              </label>
                               <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu set</AppButton>
                             </form>
                             <form action={removeWorkoutSetPlanAction}>

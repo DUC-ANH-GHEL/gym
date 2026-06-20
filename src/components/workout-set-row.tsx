@@ -23,8 +23,8 @@ export function WorkoutSetRow({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[17px] font-bold text-[#F9FAFB]">Set {setLog.setIndex + 1}</p>
-          <p className="truncate text-[13px] text-[#9CA3AF]">
-            {setLog.intensityPercent ?? 0}% sức · {setLog.targetReps ?? 0} reps · {setLog.targetWeightKg ?? 0}kg
+          <p className="text-[13px] leading-5 text-[#9CA3AF]">
+            Kế hoạch: {setLog.intensityPercent ?? 0}% nặng, {setLog.targetReps ?? 0} reps, {setLog.targetWeightKg ?? 0} kg
           </p>
         </div>
         <label className="flex min-h-[48px] shrink-0 items-center gap-2 rounded-[14px] bg-[#0B0F14] px-3 text-[13px] font-bold text-[#F9FAFB]">
@@ -32,11 +32,23 @@ export function WorkoutSetRow({
           Xong
         </label>
       </div>
+
       <div className="grid grid-cols-2 gap-2">
-        <AppInput type="number" step="0.5" name="actualWeightKg" defaultValue={setLog.actualWeightKg ?? ""} placeholder="Kg thực tế" inputMode="decimal" />
-        <AppInput type="number" name="actualReps" defaultValue={setLog.actualReps ?? ""} placeholder="Reps" inputMode="numeric" />
+        <label className="space-y-1">
+          <span className="text-[12px] font-medium text-[#9CA3AF]">Tạ thực tế (kg)</span>
+          <AppInput type="number" step="0.5" name="actualWeightKg" defaultValue={setLog.actualWeightKg ?? ""} placeholder="Ví dụ 40" inputMode="decimal" />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[12px] font-medium text-[#9CA3AF]">Reps thực tế</span>
+          <AppInput type="number" name="actualReps" defaultValue={setLog.actualReps ?? ""} placeholder="Ví dụ 10" inputMode="numeric" />
+        </label>
       </div>
-      <AppInput name="note" defaultValue={setLog.note ?? ""} placeholder="Ghi chú nhanh" />
+
+      <label className="space-y-1">
+        <span className="text-[12px] font-medium text-[#9CA3AF]">Ghi chú</span>
+        <AppInput name="note" defaultValue={setLog.note ?? ""} placeholder="Ví dụ: set này khá nặng" />
+      </label>
+
       <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">Lưu set</AppButton>
     </form>
   );
