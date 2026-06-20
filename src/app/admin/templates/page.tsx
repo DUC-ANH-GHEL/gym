@@ -12,10 +12,9 @@ import {
   updateWorkoutTemplateDayAction,
   updateWorkoutTemplateSetAction,
 } from "@/lib/admin-template-actions";
-import { AppButton, AppCard, AppInput, AppTextarea, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
-import { ScheduleCard } from "@/components/schedule-card";
-import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
+import { AppButton, AppCard, AppInput, AppTextarea, PageHeader } from "@/components/ui";
+import { TemplateDayCard } from "@/components/template-day-card";
 
 export default async function AdminTemplatesPage({
   searchParams,
@@ -122,44 +121,13 @@ export default async function AdminTemplatesPage({
 
             <div className="space-y-4">
               {template.days.map((day) => (
-                <ScheduleCard key={day.id} day={day}>
-                  <form action={updateWorkoutTemplateDayAction} className="space-y-3 rounded-[18px] border border-[#243041] bg-[#0F172A] p-4">
-                    <input type="hidden" name="templateDayId" value={day.id} />
-                    <AppInput name="title" defaultValue={day.title} placeholder="Tên ngày" className="border-[#314155] bg-[#111C2E]" />
-                    <label className="flex min-h-[52px] items-center gap-3 rounded-[16px] border border-[#243041] bg-[#111827] px-4 text-[14px] font-semibold text-[#F8FAFC]">
-                      <input type="checkbox" name="isRestDay" defaultChecked={day.isRestDay} className="h-5 w-5 accent-[#0EA5E9]" />
-                      Đánh dấu là ngày nghỉ
-                    </label>
-                    <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu ngày</AppButton>
-                  </form>
-
-                  {day.isRestDay ? (
-                    <div className="rounded-[18px] border border-dashed border-[#243041] bg-[#0F172A] px-4 py-5">
-                      <p className="text-[14px] font-semibold text-[#E2E8F0]">Ngày này đang là ngày nghỉ.</p>
-                      <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">Bỏ tick, lưu lại rồi panel thêm bài sẽ hiện ra cho ngày này.</p>
-                      {day.exercises.length > 0 ? (
-                        <p className="mt-3 text-[13px] text-[#7DD3FC]">Hiện có {day.exercises.length} bài đã lưu cho ngày này, đang tạm ẩn vì bật ngày nghỉ.</p>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <form action={addCatalogItemToTemplateDayAction}>
-                      <input type="hidden" name="templateDayId" value={day.id} />
-                      <CatalogPickerPanel
-                        items={catalogItems}
-                        existingIds={day.exercises.map((exercise) => exercise.catalogItemId)}
-                        title="Gán bài cho ngày này"
-                        description="Chọn nhiều bài metadata theo nhóm cơ rồi thêm một lượt vào template."
-                        submitLabel="Thêm bài vào template"
-                        emptyLabel="Không còn metadata phù hợp để thêm cho ngày này."
-                      />
-                    </form>
-                  )}
-
-                  {day.exercises.length === 0 ? (
-                    <div className="rounded-[18px] border border-dashed border-[#243041] bg-[#0F172A] px-4 py-5 text-[13px] leading-5 text-[#94A3B8]">
-                      {day.isRestDay ? "Ngày nghỉ này chưa có bài nào." : "Ngày tập này chưa có bài nào. Dùng panel phía trên để chọn nhiều bài một lần."}
-                    </div>
-                  ) : (
+                <TemplateDayCard
+                  key={day.id}
+                  day={day}
+                  catalogItems={catalogItems}
+                  updateAction={updateWorkoutTemplateDayAction}
+                  addAction={addCatalogItemToTemplateDayAction}
+                  exercisesNode={
                     <div className="space-y-3">
                       {day.exercises.map((exercise, exerciseIndex) => (
                         <AppCard key={exercise.id} className="space-y-3 border-[#243041] bg-[#0F172A]">
@@ -227,8 +195,8 @@ export default async function AdminTemplatesPage({
                         </AppCard>
                       ))}
                     </div>
-                  )}
-                </ScheduleCard>
+                  }
+                />
               ))}
             </div>
           </AppCard>

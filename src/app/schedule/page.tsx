@@ -2,8 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { AppButton, AppCard, AppInput, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
-import { ScheduleCard } from "@/components/schedule-card";
-import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
+import { ScheduleDayCard } from "@/components/schedule-day-card";
 import {
   addCatalogItemToDayAction,
   addWorkoutSetPlanAction,
@@ -104,7 +103,7 @@ export default async function SchedulePage() {
         <div>
           <h2 className="text-[18px] font-bold text-[#F8FAFC]">Lịch của tôi</h2>
           <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">
-            Chỉ khi một ngày là ngày tập thì mới hiện khu vực thêm bài. Một lần có thể chọn nhiều bài rồi thêm cùng lúc.
+            Bỏ tick ngày nghỉ là vùng chọn bài hiện ra ngay. Không cần lưu trước chỉ để thấy UI.
           </p>
         </div>
 
@@ -115,48 +114,13 @@ export default async function SchedulePage() {
           }
 
           return (
-            <ScheduleCard key={day.id} day={day}>
-              <form action={updateWorkoutDayAction} className="space-y-3 rounded-[18px] border border-[#243041] bg-[#0F172A] p-4">
-                <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
-                <AppInput name="title" defaultValue={day.title} placeholder="Tên buổi tập" className="border-[#314155] bg-[#111C2E]" />
-                <label className="flex min-h-[52px] items-center gap-3 rounded-[16px] border border-[#243041] bg-[#0B1220] px-4 text-[14px] font-semibold text-[#F8FAFC]">
-                  <input type="checkbox" name="isRestDay" defaultChecked={day.isRestDay} className="h-5 w-5 accent-[#0EA5E9]" />
-                  Đánh dấu là ngày nghỉ
-                </label>
-                <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu ngày</AppButton>
-              </form>
-
-              {day.isRestDay ? (
-                <div className="rounded-[18px] border border-dashed border-[#243041] bg-[#0F172A] px-4 py-5">
-                  <p className="text-[14px] font-semibold text-[#E2E8F0]">Ngày này đang là ngày nghỉ.</p>
-                  <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">
-                    Bỏ tick “Đánh dấu là ngày nghỉ”, lưu lại, rồi khu vực thêm bài sẽ hiện ra.
-                  </p>
-                  {day.exercises.length > 0 ? (
-                    <p className="mt-3 text-[13px] text-[#7DD3FC]">Buổi này đang có sẵn {day.exercises.length} bài đã lưu, hiện tạm ẩn vì đang bật ngày nghỉ.</p>
-                  ) : null}
-                </div>
-              ) : (
-                <form action={addCatalogItemToDayAction}>
-                  <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
-                  <CatalogPickerPanel
-                    items={catalogItems}
-                    existingIds={day.exercises.map((entry) => entry.catalogItemId)}
-                    title="Thêm bài vào buổi này"
-                    description="Chạm chọn nhiều bài theo nhóm cơ rồi thêm một lần."
-                    submitLabel="Thêm bài đã chọn"
-                    emptyLabel="Không còn bài phù hợp để thêm cho buổi này."
-                  />
-                </form>
-              )}
-
-              {day.exercises.length === 0 ? (
-                <AppCard className="border-[#243041] bg-[#0F172A]">
-                  <p className="text-[14px] leading-6 text-[#94A3B8]">
-                    {day.isRestDay ? "Chưa có bài nào trong ngày nghỉ này." : "Buổi này chưa có bài nào. Chọn từ panel phía trên để thêm nhanh nhiều bài cùng lúc."}
-                  </p>
-                </AppCard>
-              ) : (
+            <ScheduleDayCard
+              key={day.id}
+              day={day}
+              catalogItems={catalogItems}
+              updateAction={updateWorkoutDayAction}
+              addAction={addCatalogItemToDayAction}
+              exercisesNode={
                 <div className="space-y-3">
                   {day.exercises.map((entry, exerciseIndex) => (
                     <AppCard key={entry.id} className="space-y-3 border-[#243041] bg-[#0F172A]">
@@ -224,8 +188,8 @@ export default async function SchedulePage() {
                     </AppCard>
                   ))}
                 </div>
-              )}
-            </ScheduleCard>
+              }
+            />
           );
         })}
       </section>

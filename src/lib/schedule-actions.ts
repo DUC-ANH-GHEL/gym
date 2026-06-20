@@ -209,6 +209,13 @@ export async function addCatalogItemToDayAction(formData: FormData): Promise<voi
   }
 
   await prisma.$transaction(async (tx) => {
+    if (workoutDay.isRestDay) {
+      await tx.workoutDay.update({
+        where: { id: workoutDay.id },
+        data: { isRestDay: false },
+      });
+    }
+
     for (const [index, catalogItem] of orderedCatalogItems.entries()) {
       await tx.workoutDayExercise.create({
         data: {

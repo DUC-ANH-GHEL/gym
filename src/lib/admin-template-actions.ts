@@ -184,6 +184,13 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
   }
 
   await prisma.$transaction(async (tx) => {
+    if (templateDay.isRestDay) {
+      await tx.workoutTemplateDay.update({
+        where: { id: templateDay.id },
+        data: { isRestDay: false },
+      });
+    }
+
     for (const [index, catalogItem] of orderedCatalogItems.entries()) {
       await tx.workoutTemplateExercise.create({
         data: {
@@ -194,6 +201,18 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
             create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
           },
         },
+        });
+      }
+
+    if (templateDay.isRestDay) {
+      const allDays = await tx.workoutTemplateDay.findMany({
+        where: { workoutTemplateId: templateDay.workoutTemplateId },
+        select: { isRestDay: true },
+      });
+
+      await tx.workoutTemplate.update({
+        where: { id: templateDay.workoutTemplateId },
+        data: { sessionsPerWeek: countSessionsFromDays(allDays) },
       });
     }
   });
