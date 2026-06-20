@@ -6,7 +6,7 @@ export async function requireAdminUser() {
   const user = await requireUser();
 
   if (!isAdminIdentifier(user.email)) {
-    redirect("/today");
+    redirect("/profile?error=admin-access");
   }
 
   return user;
