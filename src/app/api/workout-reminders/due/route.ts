@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWorkoutPush } from "@/lib/workout-push";
+import { cleanupWorkoutReminderCronJobIfIdle } from "@/lib/workout-cron-job-org";
 
 function isAuthorized(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -86,5 +87,7 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, checked: dueReminders.length, sent, skipped, failed });
+  const cron = await cleanupWorkoutReminderCronJobIfIdle().catch(() => ({ ok: false, reason: "cleanup_failed" }));
+
+  return NextResponse.json({ ok: true, checked: dueReminders.length, sent, skipped, failed, cron });
 }

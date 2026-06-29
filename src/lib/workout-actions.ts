@@ -6,6 +6,7 @@ import { ensureTodayWorkoutLog, parseNullableNumber, recalculateExerciseCompleti
 import { requireUser } from "@/lib/auth";
 import { getDayOfWeekInTimeZone } from "@/lib/date";
 import { getRestReminderPlan } from "@/lib/workout-rest";
+import { ensureWorkoutReminderCronJob } from "@/lib/workout-cron-job-org";
 
 export async function startWorkoutExerciseAction(formData: FormData) {
   const user = await requireUser();
@@ -126,6 +127,7 @@ export async function saveWorkoutSetAction(formData: FormData) {
         dueAt,
       },
     });
+    await ensureWorkoutReminderCronJob().catch(() => undefined);
 
     const params = new URLSearchParams({
       rest: String(restPlan.seconds),

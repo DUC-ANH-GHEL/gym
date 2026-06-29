@@ -22,6 +22,7 @@ Mobile-first gym planner and workout tracker built with Next.js App Router, Type
    VAPID_PRIVATE_KEY=
    VAPID_SUBJECT=mailto:you@example.com
    CRON_SECRET=
+   CRON_JOB_ORG_API_KEY=
    ```
 
    `NEXTAUTH_SECRET` must be set. The app does not use a weak fallback secret.
@@ -88,9 +89,12 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=mailto:you@example.com
 CRON_SECRET=
+CRON_JOB_ORG_API_KEY=
 ```
 
-Lịch chạy nền nên gọi ít nhất mỗi phút:
+`CRON_JOB_ORG_API_KEY` lấy trong cron-job.org Console, mục Settings. App không tạo cron cố định sẵn. Khi có nhắc nghỉ đang chờ, app tự tạo một cron-job.org job gọi API mỗi phút. Khi đã gửi hết nhắc nghỉ đang chờ, app tự xóa job đó.
+
+Job được app tạo sẽ gọi:
 
 ```bash
 curl -X POST https://your-domain.com/api/workout-reminders/due \

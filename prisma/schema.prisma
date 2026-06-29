@@ -253,6 +253,17 @@ model WorkoutRestReminder {
   @@index([dueAt, sentAt])
 }
 
+model WorkoutCronJob {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  provider      String   @default("cron-job.org")
+  providerJobId Int?
+  lastError     String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 model WorkoutTemplate {
   id          String   @id @default(cuid())
   name        String
