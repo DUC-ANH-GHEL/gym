@@ -42,6 +42,7 @@ export const exerciseCatalogItemSchema = z.object({
   name: z.string().trim().min(2).max(120),
   muscleGroup: z.string().trim().optional().or(z.literal("")),
   imageUrl: z.string().trim().max(2048).optional().or(z.literal("")),
+  animationUrl: z.string().trim().max(2048).optional().or(z.literal("")),
   defaultWeightKg: optionalNumberField(z.number().positive().max(1000)),
   note: z.string().trim().max(500).optional().or(z.literal("")),
   sortOrder: optionalNumberField(z.number().int().min(0).max(100000)),

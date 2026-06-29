@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
 import { exerciseCatalogItemSchema } from "@/lib/validators";
+import { isAllowedExerciseAnimationUrl } from "@/lib/exercise-media";
 
 function slugify(value: string) {
   return value
@@ -49,6 +50,16 @@ function normalizeCatalogImageUrl(value: string | null | undefined) {
   }
 }
 
+function normalizeCatalogAnimationUrl(value: string | null | undefined) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  return isAllowedExerciseAnimationUrl(trimmed) ? trimmed : null;
+}
+
 export async function saveCatalogItemAction(formData: FormData): Promise<void> {
   await requireAdminUser();
 
@@ -56,6 +67,7 @@ export async function saveCatalogItemAction(formData: FormData): Promise<void> {
     name: formData.get("name"),
     muscleGroup: formData.get("muscleGroup"),
     imageUrl: formData.get("imageUrl"),
+    animationUrl: formData.get("animationUrl"),
     defaultWeightKg: formData.get("defaultWeightKg"),
     note: formData.get("note"),
     sortOrder: formData.get("sortOrder"),
@@ -71,12 +83,18 @@ export async function saveCatalogItemAction(formData: FormData): Promise<void> {
     redirect("/admin/exercises?error=image");
   }
 
+  const animationUrl = normalizeCatalogAnimationUrl(parsed.data.animationUrl);
+  if (parsed.data.animationUrl && !animationUrl) {
+    redirect("/admin/exercises?error=animation");
+  }
+
   await prisma.exerciseCatalogItem.create({
     data: {
       slug: await buildUniqueSlug(parsed.data.name),
       name: parsed.data.name,
       muscleGroup: parsed.data.muscleGroup || null,
       imageUrl,
+      animationUrl,
       defaultWeightKg: parsed.data.defaultWeightKg ?? null,
       note: parsed.data.note || null,
       sortOrder: parsed.data.sortOrder ?? 999,

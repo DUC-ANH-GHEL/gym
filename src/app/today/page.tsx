@@ -8,6 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
 import { buildLastSetHint } from "@/lib/workout-rest";
+import { getExerciseMedia, type ExerciseMediaContext } from "@/lib/exercise-media";
 
 type SearchParams = {
   exercise?: string;
@@ -20,6 +21,7 @@ type ExerciseRow = {
   name: string;
   muscleGroup: string | null;
   imageUrl: string | null;
+  animationUrl: string | null;
   currentWeightKg: number | null;
   setCount: number;
   completedSets: number;
@@ -39,10 +41,21 @@ function getExerciseStatus(row: ExerciseRow) {
   return { label: "Chưa tập", className: "border-[#4B5563] bg-[#1F2937] text-[#D1D5DB]", cta: "Tập" };
 }
 
-function ExerciseImage({ src, alt, size = "normal" }: { src: string | null; alt: string; size?: "normal" | "large" }) {
+function ExerciseImage({
+  exercise,
+  alt,
+  size = "normal",
+  context = "list",
+}: {
+  exercise: { imageUrl?: string | null; animationUrl?: string | null };
+  alt: string;
+  size?: "normal" | "large";
+  context?: ExerciseMediaContext;
+}) {
   const className = size === "large" ? "h-16 w-16" : "h-12 w-12";
+  const media = getExerciseMedia(exercise, context);
 
-  if (!src) {
+  if (media.isPlaceholder) {
     return (
       <div className={`${className} flex shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] font-bold text-[#9CA3AF]`}>
         Ảnh
@@ -50,7 +63,7 @@ function ExerciseImage({ src, alt, size = "normal" }: { src: string | null; alt:
     );
   }
 
-  return <Image src={src} alt={alt} width={96} height={96} className={`${className} shrink-0 rounded-[14px] object-cover`} />;
+  return <Image src={media.src} alt={alt} width={96} height={96} className={`${className} shrink-0 rounded-[14px] object-cover`} unoptimized={media.kind === "animation"} />;
 }
 
 function StartExerciseButton({ row, wide = false }: { row: ExerciseRow; wide?: boolean }) {
@@ -86,7 +99,7 @@ function FocusExerciseCard({ row }: { row: ExerciseRow }) {
   return (
     <AppCard className="space-y-4 border-[#22C55E]/50 bg-[#0F1F18]">
       <div className="flex min-w-0 items-start gap-3">
-        <ExerciseImage src={row.imageUrl} alt={row.name} size="large" />
+        <ExerciseImage exercise={row} alt={row.name} size="large" context="workout" />
         <div className="min-w-0 flex-1">
           <p className="text-[14px] font-bold text-[#86EFAC]">{title}</p>
           <h2 className="mt-1 line-clamp-2 text-[22px] font-bold leading-tight text-[#F9FAFB]">{row.name}</h2>
@@ -114,7 +127,7 @@ function ExerciseListRow({ row }: { row: ExerciseRow }) {
 
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-[16px] border border-[#263241] bg-[#111827] p-3">
-      <ExerciseImage src={row.imageUrl} alt={row.name} />
+      <ExerciseImage exercise={row} alt={row.name} />
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 items-center gap-2">
           <h3 className="min-w-0 flex-1 truncate text-[17px] font-bold text-[#F9FAFB]">{row.name}</h3>
@@ -139,6 +152,7 @@ function SetPickerModal({
     exerciseName: string;
     muscleGroup: string | null;
     imageUrl: string | null;
+    animationUrl: string | null;
     setLogs: Array<{
       id: string;
       setIndex: number;
@@ -164,7 +178,7 @@ function SetPickerModal({
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))] sm:items-center">
       <div className="w-full max-w-[480px] rounded-[22px] border border-[#374151] bg-[#0B0F14] shadow-2xl">
         <div className="flex min-w-0 items-start gap-3 border-b border-[#263241] p-4">
-          <ExerciseImage src={exercise.imageUrl} alt={exercise.exerciseName} size="large" />
+          <ExerciseImage exercise={exercise} alt={exercise.exerciseName} size="large" context="workout" />
           <div className="min-w-0 flex-1">
             <h2 className="line-clamp-2 text-[22px] font-bold leading-tight text-[#F9FAFB]">{exercise.exerciseName}</h2>
             <p className="mt-1 text-[15px] text-[#9CA3AF]">{exercise.muscleGroup || "Chưa có nhóm cơ"}</p>
@@ -318,6 +332,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
         name: entry.catalogItem.name,
         muscleGroup: entry.catalogItem.muscleGroup,
         imageUrl: entry.catalogItem.imageUrl,
+        animationUrl: entry.catalogItem.animationUrl,
         currentWeightKg: entry.catalogItem.defaultWeightKg,
         setCount,
         completedSets,

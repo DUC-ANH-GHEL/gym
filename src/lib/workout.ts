@@ -68,6 +68,7 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
           exerciseName: workoutDayExercise.catalogItem.name,
           muscleGroup: workoutDayExercise.catalogItem.muscleGroup,
           imageUrl: workoutDayExercise.catalogItem.imageUrl,
+          animationUrl: workoutDayExercise.catalogItem.animationUrl,
           orderIndex,
           setLogs: {
             create: workoutDayExercise.sets.map((set) => ({

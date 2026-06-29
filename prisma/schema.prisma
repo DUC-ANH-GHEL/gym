@@ -29,6 +29,7 @@ model ExerciseCatalogItem {
   name            String
   muscleGroup     String?
   imageUrl        String?
+  animationUrl    String?
   defaultWeightKg Float?
   note            String?
   sortOrder       Int        @default(0)
@@ -172,6 +173,7 @@ model WorkoutExerciseLog {
   exerciseName  String
   muscleGroup   String?
   imageUrl      String?
+  animationUrl  String?
 
   orderIndex    Int              @default(0)
   startedAt     DateTime?

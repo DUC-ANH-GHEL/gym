@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { AppCard } from "@/components/ui";
+import { getExerciseMedia } from "@/lib/exercise-media";
 
 export function ExerciseCard({
   exercise,
@@ -13,6 +14,7 @@ export function ExerciseCard({
     name: string;
     muscleGroup: string | null;
     imageUrl: string | null;
+    animationUrl?: string | null;
     currentWeightKg: number | null;
     setsCount?: number;
   };
@@ -20,10 +22,12 @@ export function ExerciseCard({
   action?: () => Promise<void>;
   ctaLabel?: string;
 }) {
+  const media = getExerciseMedia(exercise, "list");
+
   return (
     <AppCard className="overflow-hidden p-0">
-      {exercise.imageUrl ? (
-        <Image src={exercise.imageUrl} alt={exercise.name} width={640} height={320} className="h-40 w-full object-cover" />
+      {!media.isPlaceholder ? (
+        <Image src={media.src} alt={exercise.name} width={640} height={320} className="h-40 w-full object-cover" unoptimized={media.kind === "animation"} />
       ) : (
         <div className="flex h-40 items-center justify-center bg-[#1F2937] text-[13px] font-semibold text-[#9CA3AF]">
           Chưa có ảnh

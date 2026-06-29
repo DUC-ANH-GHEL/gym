@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
@@ -33,9 +34,11 @@ export default async function AdminExercisesPage({
 
       {params?.error ? (
         <p className="rounded-[12px] border border-[#EF4444]/50 bg-[#EF4444]/10 px-3 py-2 text-[13px] font-semibold text-[#FCA5A5]">
-          {params.error === "image"
-            ? "Ảnh chỉ nhận đường dẫn nội bộ bắt đầu bằng / hoặc link Cloudinary https://res.cloudinary.com/..."
-            : "Metadata chưa hợp lệ. Kiểm tra tên, ảnh URL, mức tạ và thứ tự."}
+          {params.error === "animation"
+            ? "GIF chỉ nhận đường dẫn nội bộ bắt đầu bằng / hoặc link Cloudinary https://res.cloudinary.com/..."
+            : params.error === "image"
+              ? "Ảnh chỉ nhận đường dẫn nội bộ bắt đầu bằng / hoặc link Cloudinary https://res.cloudinary.com/..."
+              : "Metadata chưa hợp lệ. Kiểm tra tên, ảnh URL, GIF URL, mức tạ và thứ tự."}
         </p>
       ) : null}
 
@@ -61,6 +64,7 @@ export default async function AdminExercisesPage({
             <AppInput name="sortOrder" type="number" placeholder="Thứ tự" inputMode="numeric" />
           </div>
           <AppInput name="imageUrl" placeholder="Ảnh nội bộ /... hoặc link Cloudinary" />
+          <AppInput name="animationUrl" placeholder="GIF động /... hoặc link Cloudinary" />
           <AppTextarea name="note" rows={4} placeholder="Ghi chú kỹ thuật" />
           <label className="flex min-h-[48px] items-center gap-3 rounded-[12px] bg-[#1F2937] px-3 text-[14px] font-bold text-[#F9FAFB]">
             <input type="checkbox" name="isActive" defaultChecked className="h-6 w-6 accent-[#22C55E]" />
@@ -94,6 +98,22 @@ export default async function AdminExercisesPage({
                   {item.isActive ? "Đang hiện" : "Đã ẩn"}
                 </span>
               </div>
+              {item.imageUrl || item.animationUrl ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {item.imageUrl ? (
+                    <div className="min-w-0">
+                      <p className="mb-1 text-[12px] font-bold text-[#9CA3AF]">Ảnh</p>
+                      <Image src={item.imageUrl} alt={item.name} width={320} height={180} className="h-24 w-full rounded-[12px] object-cover" />
+                    </div>
+                  ) : null}
+                  {item.animationUrl ? (
+                    <div className="min-w-0">
+                      <p className="mb-1 text-[12px] font-bold text-[#9CA3AF]">GIF</p>
+                      <Image src={item.animationUrl} alt={`${item.name} GIF`} width={320} height={180} className="h-24 w-full rounded-[12px] object-cover" unoptimized />
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
               {item.note ? <p className="text-[14px] leading-5 text-[#D1D5DB]">{item.note}</p> : null}
               <form action={toggleCatalogItemActiveAction} className="flex gap-2">
                 <input type="hidden" name="id" value={item.id} />

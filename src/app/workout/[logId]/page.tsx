@@ -7,6 +7,7 @@ import { AppShell } from "@/components/app-shell";
 import { WorkoutProgressBar } from "@/components/workout-progress-bar";
 import { WorkoutSetRow } from "@/components/workout-set-row";
 import { finishWorkoutAction, saveWorkoutSetAction } from "@/lib/workout-actions";
+import { getExerciseMedia } from "@/lib/exercise-media";
 
 export default async function WorkoutPage({ params }: { params: Promise<{ logId: string }> }) {
   const { logId } = await params;
@@ -38,16 +39,20 @@ export default async function WorkoutPage({ params }: { params: Promise<{ logId:
     <AppShell>
       <PageHeader title={workoutLog.title || "Buổi tập"} description="Tick set, nhập tạ, lưu nhanh." />
       <WorkoutProgressBar completed={completedSets} total={totalSets} />
-      {workoutLog.exerciseLogs.map((exercise) => (
+      {workoutLog.exerciseLogs.map((exercise) => {
+        const media = getExerciseMedia(exercise, "workout");
+
+        return (
         <AppCard key={exercise.id} className="space-y-3">
           <div className="flex items-start gap-3">
-            {exercise.imageUrl ? (
+            {!media.isPlaceholder ? (
               <Image
-                src={exercise.imageUrl}
+                src={media.src}
                 alt={exercise.exerciseName}
                 width={160}
                 height={160}
                 className="h-20 w-20 rounded-[14px] object-cover"
+                unoptimized={media.kind === "animation"}
               />
             ) : (
               <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] text-[#9CA3AF]">
@@ -68,7 +73,8 @@ export default async function WorkoutPage({ params }: { params: Promise<{ logId:
             ))}
           </div>
         </AppCard>
-      ))}
+        );
+      })}
       <form action={finishWorkoutAction}>
         <input type="hidden" name="workoutLogId" value={workoutLog.id} />
         <AppButton className="w-full">Hoàn thành buổi tập</AppButton>
