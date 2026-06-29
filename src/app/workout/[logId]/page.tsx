@@ -63,8 +63,8 @@ export default async function WorkoutPage({ params }: { params: Promise<{ logId:
             </div>
           </div>
           <div className="space-y-3">
-            {exercise.setLogs.map((setLog) => (
-              <WorkoutSetRow key={setLog.id} setLog={setLog} action={saveWorkoutSetAction} />
+            {exercise.setLogs.map((setLog, index) => (
+              <WorkoutSetRow key={setLog.id} setLog={setLog} displayIndex={index + 1} action={saveWorkoutSetAction} />
             ))}
           </div>
         </AppCard>

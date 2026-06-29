@@ -2,6 +2,7 @@ import { AppButton, AppInput } from "@/components/ui";
 
 export function WorkoutSetRow({
   setLog,
+  displayIndex,
   action,
 }: {
   setLog: {
@@ -15,14 +16,17 @@ export function WorkoutSetRow({
     note: string | null;
     isCompleted: boolean;
   };
+  displayIndex?: number;
   action: (formData: FormData) => Promise<void>;
 }) {
+  const setNumber = displayIndex ?? setLog.setIndex + 1;
+
   return (
     <form action={action} className={`space-y-3 rounded-[16px] border p-3 ${setLog.isCompleted ? "border-[#22C55E]/60 bg-[#12301f]" : "border-[#374151] bg-[#1F2937]"}`}>
       <input type="hidden" name="setLogId" value={setLog.id} />
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[17px] font-bold text-[#F9FAFB]">Set {setLog.setIndex + 1}</p>
+          <p className="text-[17px] font-bold text-[#F9FAFB]">Set {setNumber}</p>
           <p className="text-[13px] leading-5 text-[#9CA3AF]">
             Kế hoạch: {setLog.intensityPercent ?? 0}% nặng, {setLog.targetReps ?? 0} reps, {setLog.targetWeightKg ?? 0} kg
           </p>

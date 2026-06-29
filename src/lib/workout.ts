@@ -27,7 +27,8 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
     orderBy: { startedAt: "desc" },
     include: {
       exerciseLogs: {
-        include: { setLogs: true },
+        orderBy: { orderIndex: "asc" },
+        include: { setLogs: { orderBy: { setIndex: "asc" } } },
       },
     },
   });
@@ -81,7 +82,8 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
     },
     include: {
       exerciseLogs: {
-        include: { setLogs: true },
+        orderBy: { orderIndex: "asc" },
+        include: { setLogs: { orderBy: { setIndex: "asc" } } },
       },
     },
   });

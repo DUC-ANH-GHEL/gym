@@ -172,6 +172,7 @@ model WorkoutExerciseLog {
   imageUrl      String?
 
   orderIndex    Int              @default(0)
+  startedAt     DateTime?
   isCompleted   Boolean          @default(false)
 
   setLogs       WorkoutSetLog[]
