@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureTodayWorkoutLog, parseNullableNumber, recalculateExerciseCompletion, updateWorkoutLogCompletion } from "@/lib/workout";
 import { requireUser } from "@/lib/auth";
 import { getDayOfWeekInTimeZone } from "@/lib/date";
+import { getRestReminderPlan } from "@/lib/workout-rest";
 
 export async function startWorkoutExerciseAction(formData: FormData) {
   const user = await requireUser();
@@ -80,6 +81,67 @@ export async function saveWorkoutSetAction(formData: FormData) {
 
   await recalculateExerciseCompletion(prisma, setLog.workoutExerciseLogId);
   await updateWorkoutLogCompletion(prisma, setLog.workoutExerciseLog.workoutLogId);
+
+  const updatedExercise = await prisma.workoutExerciseLog.findUnique({
+    where: { id: setLog.workoutExerciseLogId },
+    select: {
+      id: true,
+      isCompleted: true,
+      orderIndex: true,
+      workoutLogId: true,
+    },
+  });
+
+  const nextExercise = updatedExercise?.isCompleted
+    ? await prisma.workoutExerciseLog.findFirst({
+        where: {
+          workoutLogId: updatedExercise.workoutLogId,
+          orderIndex: { gt: updatedExercise.orderIndex },
+          isCompleted: false,
+        },
+        orderBy: { orderIndex: "asc" },
+        select: { exerciseName: true },
+      })
+    : null;
+
+  const restPlan = getRestReminderPlan({
+    setWasCompleted: isCompleted,
+    exerciseIsCompleted: Boolean(updatedExercise?.isCompleted),
+    nextExerciseName: nextExercise?.exerciseName ?? null,
+  });
+
+  if (restPlan && updatedExercise) {
+    const dueAt = new Date(Date.now() + restPlan.seconds * 1000);
+    const reminderUrl = restPlan.kind === "exercise" ? "/today" : `/today?exercise=${setLog.workoutExerciseLogId}`;
+
+    await prisma.workoutRestReminder.create({
+      data: {
+        userId: user.id,
+        workoutSetLogId: setLogId,
+        workoutExerciseLogId: setLog.workoutExerciseLogId,
+        kind: restPlan.kind,
+        title: restPlan.title,
+        body: restPlan.body,
+        url: reminderUrl,
+        dueAt,
+      },
+    });
+
+    const params = new URLSearchParams({
+      rest: String(restPlan.seconds),
+      restKind: restPlan.kind,
+      restTitle: restPlan.title,
+      restBody: restPlan.body,
+      restDueAt: String(dueAt.getTime()),
+    });
+
+    if (restPlan.kind === "set") {
+      params.set("exercise", setLog.workoutExerciseLogId);
+    }
+
+    redirect(`/today?${params.toString()}`);
+  }
+
   redirect(`/today?exercise=${setLog.workoutExerciseLogId}`);
 }
 

@@ -18,6 +18,10 @@ Mobile-first gym planner and workout tracker built with Next.js App Router, Type
    NEXTAUTH_URL=http://localhost:3000
    CLOUDINARY_URL=
    ADMIN_IDENTIFIERS=
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY=
+   VAPID_PRIVATE_KEY=
+   VAPID_SUBJECT=mailto:you@example.com
+   CRON_SECRET=
    ```
 
    `NEXTAUTH_SECRET` must be set. The app does not use a weak fallback secret.
@@ -64,6 +68,34 @@ ADMIN_IDENTIFIERS=admin,coach
 Admins can open `/admin/exercises` to add catalog exercises and hide or show existing catalog items.
 Tài khoản nằm trong `ADMIN_IDENTIFIERS` không thể tự đăng ký công khai. Hãy tạo sẵn tài khoản đó trong hệ thống rồi mới bật admin.
 Sau khi đổi environment variables trên Vercel, cần redeploy để app nhận giá trị mới.
+
+## Workout Rest Reminders
+
+Sau khi người dùng lưu một set đã xong, app tự đếm 30 giây để nhắc sang set tiếp theo. Khi xong cả bài, app tự đếm 90 giây để nhắc sang bài tiếp theo.
+
+Thông báo khi app còn mở dùng service worker ở `/sw.js`. Muốn PWA vẫn báo khi người dùng đã thoát app, cần cấu hình Web Push và một lịch chạy nền gọi API nhắc giờ.
+
+Tạo VAPID keys:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Biến môi trường cần có:
+
+```env
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=mailto:you@example.com
+CRON_SECRET=
+```
+
+Lịch chạy nền nên gọi ít nhất mỗi phút:
+
+```bash
+curl -X POST https://your-domain.com/api/workout-reminders/due \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
 
 ## Verification
 

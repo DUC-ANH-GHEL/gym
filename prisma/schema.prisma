@@ -19,6 +19,8 @@ model User {
   exercises    Exercise[]
   workoutDays  WorkoutDay[]
   workoutLogs  WorkoutLog[]
+  pushSubscriptions PushSubscription[]
+  workoutRestReminders WorkoutRestReminder[]
 }
 
 model ExerciseCatalogItem {
@@ -176,6 +178,7 @@ model WorkoutExerciseLog {
   isCompleted   Boolean          @default(false)
 
   setLogs       WorkoutSetLog[]
+  restReminders WorkoutRestReminder[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -201,11 +204,53 @@ model WorkoutSetLog {
   note                 String?
 
   completedAt          DateTime?
+  restReminders        WorkoutRestReminder[]
 
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
   @@index([workoutExerciseLogId, setIndex])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model WorkoutRestReminder {
+  id                   String              @id @default(cuid())
+  userId               String
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workoutSetLogId      String?
+  workoutSetLog        WorkoutSetLog?      @relation(fields: [workoutSetLogId], references: [id], onDelete: SetNull)
+  workoutExerciseLogId String?
+  workoutExerciseLog   WorkoutExerciseLog? @relation(fields: [workoutExerciseLogId], references: [id], onDelete: SetNull)
+
+  kind                 String
+  title                String
+  body                 String
+  url                  String              @default("/today")
+  dueAt                DateTime
+  sentAt               DateTime?
+  lastError            String?
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@index([userId, dueAt])
+  @@index([dueAt, sentAt])
 }
 
 model WorkoutTemplate {

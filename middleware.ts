@@ -10,16 +10,18 @@ const publicAssetPaths = new Set([
   "/icon.svg",
   "/manifest.webmanifest",
   "/maskable-icon-512.png",
+  "/sw.js",
 ]);
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic = publicPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   const isApiUpload = pathname === "/api/upload" || pathname.startsWith("/api/upload/");
+  const isWorkoutReminderCron = pathname === "/api/workout-reminders/due";
   const isAsset = pathname.startsWith("/_next") || pathname.startsWith("/favicon");
   const isPublicAsset = publicAssetPaths.has(pathname);
 
-  if (isPublic || isAsset || isApiUpload || isPublicAsset) {
+  if (isPublic || isAsset || isApiUpload || isWorkoutReminderCron || isPublicAsset) {
     return NextResponse.next();
   }
 

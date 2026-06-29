@@ -5,7 +5,9 @@ import { requireUser } from "@/lib/auth";
 import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, todayLabel } from "@/lib/date";
 import { AppButton, AppCard, AppInput, EmptyState } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
+import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
+import { buildLastSetHint } from "@/lib/workout-rest";
 
 type SearchParams = {
   exercise?: string;
@@ -147,6 +149,9 @@ function SetPickerModal({
       actualWeightKg: number | null;
       note: string | null;
       isCompleted: boolean;
+      lastHint?: string | null;
+      lastActualReps?: number | null;
+      lastActualWeightKg?: number | null;
     }>;
   };
   selectedSetId?: string;
@@ -194,6 +199,7 @@ function SetPickerModal({
                 <span className="mt-1 block text-[13px] font-semibold text-[#D1D5DB]">
                   {setLog.isCompleted ? "Đã xong" : "Chưa nhập"}
                 </span>
+                {setLog.lastHint ? <span className="mt-1 block text-[12px] leading-4 text-[#86EFAC]">{setLog.lastHint}</span> : null}
               </Link>
             ))}
           </div>
@@ -206,6 +212,7 @@ function SetPickerModal({
                 <p className="mt-1 text-[14px] leading-5 text-[#D1D5DB]">
                   Mục tiêu: {selectedSet.targetReps ?? 0} lần, {selectedSet.targetWeightKg ?? 0} kg
                 </p>
+                {selectedSet.lastHint ? <p className="mt-2 rounded-[12px] bg-[#0B0F14] p-2 text-[14px] font-bold text-[#86EFAC]">{selectedSet.lastHint}</p> : null}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <label className="min-w-0 space-y-1">
@@ -215,13 +222,19 @@ function SetPickerModal({
                     step="0.5"
                     name="actualWeightKg"
                     defaultValue={selectedSet.actualWeightKg ?? ""}
-                    placeholder="40"
+                    placeholder={selectedSet.lastActualWeightKg ? String(selectedSet.lastActualWeightKg) : "40"}
                     inputMode="decimal"
                   />
                 </label>
                 <label className="min-w-0 space-y-1">
                   <span className="text-[14px] font-bold text-[#D1D5DB]">Số lần</span>
-                  <AppInput type="number" name="actualReps" defaultValue={selectedSet.actualReps ?? ""} placeholder="10" inputMode="numeric" />
+                  <AppInput
+                    type="number"
+                    name="actualReps"
+                    defaultValue={selectedSet.actualReps ?? ""}
+                    placeholder={selectedSet.lastActualReps ? String(selectedSet.lastActualReps) : "10"}
+                    inputMode="numeric"
+                  />
                 </label>
               </div>
               <label className="block space-y-1">
@@ -317,6 +330,48 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
   const completedSets = rows.reduce((sum, row) => sum + row.completedSets, 0);
   const activeRow = rows.find((row) => row.isStarted && !row.isCompleted) ?? rows.find((row) => !row.isCompleted) ?? rows[0] ?? null;
   const activeExercise = todayLog?.exerciseLogs.find((exercise) => exercise.id === params.exercise) ?? null;
+  const previousSetLogs = activeExercise
+    ? await prisma.workoutSetLog.findMany({
+        where: {
+          workoutExerciseLogId: { not: activeExercise.id },
+          OR: [{ actualReps: { not: null } }, { actualWeightKg: { not: null } }],
+          workoutExerciseLog: {
+            workoutLog: { userId: user.id },
+            ...(activeExercise.catalogItemId ? { catalogItemId: activeExercise.catalogItemId } : { exerciseName: activeExercise.exerciseName }),
+          },
+        },
+        orderBy: [{ completedAt: "desc" }, { updatedAt: "desc" }],
+        select: {
+          setIndex: true,
+          actualReps: true,
+          actualWeightKg: true,
+        },
+        take: 50,
+      })
+    : [];
+  const lastSetByIndex = new Map<number, (typeof previousSetLogs)[number]>();
+
+  for (const previousSet of previousSetLogs) {
+    if (!lastSetByIndex.has(previousSet.setIndex)) {
+      lastSetByIndex.set(previousSet.setIndex, previousSet);
+    }
+  }
+
+  const activeExerciseWithHistory = activeExercise
+    ? {
+        ...activeExercise,
+        setLogs: activeExercise.setLogs.map((setLog) => {
+          const lastSet = lastSetByIndex.get(setLog.setIndex) ?? null;
+
+          return {
+            ...setLog,
+            lastHint: buildLastSetHint(lastSet),
+            lastActualReps: lastSet?.actualReps ?? null,
+            lastActualWeightKg: lastSet?.actualWeightKg ?? null,
+          };
+        }),
+      }
+    : null;
 
   return (
     <AppShell>
@@ -345,6 +400,8 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
           </div>
         </AppCard>
       </div>
+
+      <WorkoutRestTimer />
 
       {!workoutDay ? (
         <EmptyState
@@ -377,7 +434,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
         </>
       )}
 
-      {activeExercise ? <SetPickerModal exercise={activeExercise} selectedSetId={params.set} /> : null}
+      {activeExerciseWithHistory ? <SetPickerModal exercise={activeExerciseWithHistory} selectedSetId={params.set} /> : null}
     </AppShell>
   );
 }
