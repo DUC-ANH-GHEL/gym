@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { AppCard } from "@/components/ui";
+import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { getExerciseMedia } from "@/lib/exercise-media";
 
 export function ExerciseCard({
@@ -26,13 +26,17 @@ export function ExerciseCard({
 
   return (
     <AppCard className="overflow-hidden p-0">
-      {!media.isPlaceholder ? (
-        <Image src={media.src} alt={exercise.name} width={640} height={320} className="h-40 w-full object-cover" unoptimized={media.kind === "animation"} />
-      ) : (
-        <div className="flex h-40 items-center justify-center bg-[#1F2937] text-[13px] font-semibold text-[#9CA3AF]">
-          Chưa có ảnh
-        </div>
-      )}
+      <ExerciseMediaPreview
+        media={media}
+        alt={exercise.name}
+        width={640}
+        height={320}
+        imageClassName="h-40 w-full object-cover"
+        placeholderClassName="flex h-40 items-center justify-center bg-[#1F2937] text-[13px] font-semibold text-[#9CA3AF]"
+        placeholderLabel="Chưa có ảnh"
+        buttonClassName="block w-full"
+        sizes="(max-width: 768px) 100vw, 640px"
+      />
       <div className="space-y-2 p-4">
         <div>
           <h3 className="text-[18px] font-bold text-[#F9FAFB]">{exercise.name}</h3>

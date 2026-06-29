@@ -7,7 +7,13 @@ export type ExerciseMediaInput = {
   animationUrl?: string | null;
 };
 
-export function getExerciseMedia(exercise: ExerciseMediaInput, context: ExerciseMediaContext) {
+export type ExerciseMedia = {
+  src: string;
+  kind: "image" | "animation" | "placeholder";
+  isPlaceholder: boolean;
+};
+
+export function getExerciseMedia(exercise: ExerciseMediaInput, context: ExerciseMediaContext): ExerciseMedia {
   const imageUrl = exercise.imageUrl?.trim() || null;
   const animationUrl = exercise.animationUrl?.trim() || null;
   const selected =
@@ -55,4 +61,16 @@ export function isAllowedExerciseAnimationUrl(value: string) {
   } catch {
     return false;
   }
+}
+
+export function getExerciseMediaViewerTarget(media: ExerciseMedia, alt: string) {
+  if (media.isPlaceholder) {
+    return null;
+  }
+
+  return {
+    src: media.src,
+    alt,
+    kind: media.kind === "animation" ? ("animation" as const) : ("image" as const),
+  };
 }

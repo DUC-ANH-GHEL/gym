@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, todayLabel } from "@/lib/date";
 import { AppButton, AppCard, AppInput, EmptyState } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
+import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
 import { buildLastSetHint } from "@/lib/workout-rest";
@@ -55,15 +55,19 @@ function ExerciseImage({
   const className = size === "large" ? "h-16 w-16" : "h-12 w-12";
   const media = getExerciseMedia(exercise, context);
 
-  if (media.isPlaceholder) {
-    return (
-      <div className={`${className} flex shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] font-bold text-[#9CA3AF]`}>
-        Ảnh
-      </div>
-    );
-  }
-
-  return <Image src={media.src} alt={alt} width={96} height={96} className={`${className} shrink-0 rounded-[14px] object-cover`} unoptimized={media.kind === "animation"} />;
+  return (
+    <ExerciseMediaPreview
+      media={media}
+      alt={alt}
+      width={96}
+      height={96}
+      imageClassName={`${className} shrink-0 rounded-[14px] object-cover`}
+      placeholderClassName={`${className} flex shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] font-bold text-[#9CA3AF]`}
+      placeholderLabel="Ảnh"
+      buttonClassName="shrink-0 rounded-[14px]"
+      sizes="96px"
+    />
+  );
 }
 
 function StartExerciseButton({ row, wide = false }: { row: ExerciseRow; wide?: boolean }) {

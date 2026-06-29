@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
 import { saveCatalogItemAction, toggleCatalogItemActiveAction } from "@/lib/catalog-admin-actions";
 import { AppButton, AppCard, AppInput, AppSelect, AppTextarea, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
+import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 
 const muscleGroups = ["Ngực", "Lưng", "Vai", "Tay trước", "Tay sau", "Chân", "Bụng", "Full body"];
 
@@ -103,13 +103,31 @@ export default async function AdminExercisesPage({
                   {item.imageUrl ? (
                     <div className="min-w-0">
                       <p className="mb-1 text-[12px] font-bold text-[#9CA3AF]">Ảnh</p>
-                      <Image src={item.imageUrl} alt={item.name} width={320} height={180} className="h-24 w-full rounded-[12px] object-cover" />
+                      <ExerciseMediaPreview
+                        media={{ src: item.imageUrl, kind: "image", isPlaceholder: false }}
+                        alt={item.name}
+                        width={320}
+                        height={180}
+                        imageClassName="h-24 w-full rounded-[12px] object-cover"
+                        placeholderClassName="hidden"
+                        buttonClassName="block w-full rounded-[12px]"
+                        sizes="320px"
+                      />
                     </div>
                   ) : null}
                   {item.animationUrl ? (
                     <div className="min-w-0">
                       <p className="mb-1 text-[12px] font-bold text-[#9CA3AF]">GIF</p>
-                      <Image src={item.animationUrl} alt={`${item.name} GIF`} width={320} height={180} className="h-24 w-full rounded-[12px] object-cover" unoptimized />
+                      <ExerciseMediaPreview
+                        media={{ src: item.animationUrl, kind: "animation", isPlaceholder: false }}
+                        alt={`${item.name} GIF`}
+                        width={320}
+                        height={180}
+                        imageClassName="h-24 w-full rounded-[12px] object-cover"
+                        placeholderClassName="hidden"
+                        buttonClassName="block w-full rounded-[12px]"
+                        sizes="320px"
+                      />
                     </div>
                   ) : null}
                 </div>

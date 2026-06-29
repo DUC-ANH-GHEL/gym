@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getExerciseMedia, isAllowedExerciseAnimationUrl } from "./exercise-media.ts";
+import { getExerciseMedia, getExerciseMediaViewerTarget, isAllowedExerciseAnimationUrl } from "./exercise-media.ts";
 
 test("uses image first for list media to avoid loading many GIFs", () => {
   const media = getExerciseMedia(
@@ -53,4 +53,16 @@ test("allows Cloudinary GIF or image URLs for animation metadata", () => {
   assert.equal(isAllowedExerciseAnimationUrl("https://res.cloudinary.com/demo/video/upload/move.gif"), true);
   assert.equal(isAllowedExerciseAnimationUrl("/exercise-placeholder.png"), true);
   assert.equal(isAllowedExerciseAnimationUrl("https://example.com/move.gif"), false);
+});
+
+test("opens viewer only for real exercise media", () => {
+  const realMedia = getExerciseMedia({ imageUrl: "/bench.jpg", animationUrl: null }, "list");
+  const placeholderMedia = getExerciseMedia({ imageUrl: null, animationUrl: null }, "list");
+
+  assert.deepEqual(getExerciseMediaViewerTarget(realMedia, "Bench Press"), {
+    src: "/bench.jpg",
+    alt: "Bench Press",
+    kind: "image",
+  });
+  assert.equal(getExerciseMediaViewerTarget(placeholderMedia, "Bench Press"), null);
 });

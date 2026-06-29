@@ -1,9 +1,9 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { AppButton, AppCard, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
+import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { WorkoutProgressBar } from "@/components/workout-progress-bar";
 import { WorkoutSetRow } from "@/components/workout-set-row";
 import { finishWorkoutAction, saveWorkoutSetAction } from "@/lib/workout-actions";
@@ -45,20 +45,17 @@ export default async function WorkoutPage({ params }: { params: Promise<{ logId:
         return (
         <AppCard key={exercise.id} className="space-y-3">
           <div className="flex items-start gap-3">
-            {!media.isPlaceholder ? (
-              <Image
-                src={media.src}
-                alt={exercise.exerciseName}
-                width={160}
-                height={160}
-                className="h-20 w-20 rounded-[14px] object-cover"
-                unoptimized={media.kind === "animation"}
-              />
-            ) : (
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] text-[#9CA3AF]">
-                Ảnh
-              </div>
-            )}
+            <ExerciseMediaPreview
+              media={media}
+              alt={exercise.exerciseName}
+              width={160}
+              height={160}
+              imageClassName="h-20 w-20 rounded-[14px] object-cover"
+              placeholderClassName="flex h-20 w-20 shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] text-[#9CA3AF]"
+              placeholderLabel="Ảnh"
+              buttonClassName="shrink-0 rounded-[14px]"
+              sizes="160px"
+            />
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-[18px] font-bold text-[#F9FAFB]">{exercise.exerciseName}</h2>
               <p className="text-[13px] text-[#9CA3AF]">{exercise.muscleGroup || "Chưa có nhóm cơ"}</p>
