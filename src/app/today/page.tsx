@@ -5,6 +5,7 @@ import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, todayLabel } fr
 import { AppCard, EmptyState } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
+import { RestCountdownPill } from "@/components/rest-countdown-pill";
 import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodaySetControls } from "@/components/today-set-controls";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
@@ -25,6 +26,7 @@ const TEXT = {
   today: "H\u00f4m nay",
   finish: "Ho\u00e0n th\u00e0nh",
   progress: "ti\u1ebfn \u0111\u1ed9",
+  resting: "\u0110ang ngh\u1ec9",
   completedExercise: "B\u00e0i \u0111\u00e3 xong",
   nextExercise: "B\u00e0i ti\u1ebfp theo",
   noMuscleGroup: "Ch\u01b0a c\u00f3 nh\u00f3m c\u01a1",
@@ -152,10 +154,12 @@ function StartExerciseButton({ restLock, row, wide = false }: { restLock: RestLo
 
 function ProgressCard({
   completedSets,
+  restLock,
   totalSets,
   todayLogId,
 }: {
   completedSets: number;
+  restLock: RestLock | null;
   totalSets: number;
   todayLogId: string | null;
 }) {
@@ -170,7 +174,9 @@ function ProgressCard({
             {completedSets}/{totalSets} set
           </p>
         </div>
-        {todayLogId && totalSets > 0 && completedSets === totalSets ? (
+        {restLock ? (
+          <RestCountdownPill dueAtMs={restLock.dueAtMs} />
+        ) : todayLogId && totalSets > 0 && completedSets === totalSets ? (
           <form action={finishWorkoutAction} className="shrink-0">
             <input type="hidden" name="workoutLogId" value={todayLogId} />
             <button className="min-h-[50px] rounded-[16px] bg-[#22C55E] px-5 py-2 text-[15px] font-black text-white active:scale-[0.98]">
@@ -184,6 +190,12 @@ function ProgressCard({
           </div>
         )}
       </div>
+      {restLock ? (
+        <div className="mt-3 border-t border-[#263241] pt-3">
+          <p className="text-[14px] font-black text-[#86EFAC]">{TEXT.resting}</p>
+          <p className="mt-1 break-words text-[15px] leading-5 text-[#F9FAFB]">{restLock.body}</p>
+        </div>
+      ) : null}
     </AppCard>
   );
 }
@@ -469,7 +481,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
           <h1 className="mt-1 break-words text-[25px] font-black leading-tight text-[#F9FAFB]">{pageTitle}</h1>
         </div>
 
-        <ProgressCard completedSets={completedSets} totalSets={totalSets} todayLogId={todayLogId} />
+        <ProgressCard completedSets={completedSets} restLock={restLock} totalSets={totalSets} todayLogId={todayLogId} />
       </div>
 
       {!workoutDay ? (
@@ -497,11 +509,9 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
 
           <WorkoutRestTimer
             body={restLock?.body ?? null}
-            completedSets={completedSets}
             dueAtMs={restLock?.dueAtMs ?? null}
             restSeconds={restLock?.restSeconds ?? null}
             title={restLock?.title ?? null}
-            totalSets={totalSets}
           />
 
           <section className="space-y-2">

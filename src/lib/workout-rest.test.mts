@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildLastSetHint,
+  getRestCountdownParts,
   getRestLockFromSearchParams,
   getRestReminderPlan,
   isRestLocked,
@@ -83,4 +84,17 @@ test("does not show a stale local rest notification long after the due time", ()
 
   assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:00:31.000Z")), true);
   assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:06:00.000Z")), false);
+});
+
+test("formats a rest countdown for the progress card", () => {
+  assert.deepEqual(getRestCountdownParts(Date.parse("2026-06-30T09:00:05.000Z"), Date.parse("2026-06-30T09:00:00.000Z")), {
+    minutes: 0,
+    seconds: 5,
+    label: "0:05",
+  });
+  assert.deepEqual(getRestCountdownParts(Date.parse("2026-06-30T09:01:30.000Z"), Date.parse("2026-06-30T09:00:00.000Z")), {
+    minutes: 1,
+    seconds: 30,
+    label: "1:30",
+  });
 });

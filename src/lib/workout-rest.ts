@@ -50,6 +50,18 @@ export function shouldShowLocalRestNotification(dueAtMs: number, nowMs = Date.no
   return Number.isFinite(dueAtMs) && nowMs >= dueAtMs && nowMs - dueAtMs <= LOCAL_NOTIFICATION_GRACE_MS;
 }
 
+export function getRestCountdownParts(dueAtMs: number, nowMs = Date.now()) {
+  const secondsLeft = Math.max(0, Math.ceil((dueAtMs - nowMs) / 1000));
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+
+  return {
+    minutes,
+    seconds,
+    label: `${minutes}:${String(seconds).padStart(2, "0")}`,
+  };
+}
+
 export function getRestReminderPlan({
   setWasCompleted,
   exerciseIsCompleted,
