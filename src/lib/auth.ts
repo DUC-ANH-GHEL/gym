@@ -10,6 +10,8 @@ import { authSchema } from "@/lib/validators";
 const SESSION_COOKIE = "gym_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 400;
 
+export type RegisterErrorCode = "invalid" | "admin" | "exists" | "server";
+
 function getSecret() {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) {
@@ -123,11 +125,17 @@ export async function registerUser(formData: FormData) {
   });
 
   if (!parsed.success) {
-    return { error: "Vui lòng nhập tài khoản và mật khẩu hợp lệ." };
+    return {
+      error: "Vui l\u00f2ng nh\u1eadp t\u00ean \u0111\u0103ng nh\u1eadp t\u1eeb 3 k\u00fd t\u1ef1 v\u00e0 m\u1eadt kh\u1ea9u t\u1eeb 8 k\u00fd t\u1ef1.",
+      errorCode: "invalid" as RegisterErrorCode,
+    };
   }
 
   if (isAdminIdentifier(parsed.data.identifier)) {
-    return { error: "Tài khoản admin không thể đăng ký công khai." };
+    return {
+      error: "T\u00e0i kho\u1ea3n admin kh\u00f4ng th\u1ec3 \u0111\u0103ng k\u00fd c\u00f4ng khai.",
+      errorCode: "admin" as RegisterErrorCode,
+    };
   }
 
   const existingUser = await prisma.user.findUnique({
@@ -135,24 +143,42 @@ export async function registerUser(formData: FormData) {
   });
 
   if (existingUser) {
-    return { error: "Tài khoản này đã được sử dụng." };
+    return {
+      error: "T\u00ean \u0111\u0103ng nh\u1eadp n\u00e0y \u0111\u00e3 \u0111\u01b0\u1ee3c s\u1eed d\u1ee5ng.",
+      errorCode: "exists" as RegisterErrorCode,
+    };
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
+  let user;
 
-  const user = await prisma.user.create({
-    data: {
-      email: parsed.data.identifier,
-      name: parsed.data.name || null,
-      passwordHash,
-      gymProfile: {
-        create: {
-          displayName: parsed.data.name || null,
-          timezone: "Asia/Bangkok",
+  try {
+    user = await prisma.user.create({
+      data: {
+        email: parsed.data.identifier,
+        name: parsed.data.name || null,
+        passwordHash,
+        gymProfile: {
+          create: {
+            displayName: parsed.data.name || null,
+            timezone: "Asia/Bangkok",
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+      return {
+        error: "T\u00ean \u0111\u0103ng nh\u1eadp n\u00e0y \u0111\u00e3 \u0111\u01b0\u1ee3c s\u1eed d\u1ee5ng.",
+        errorCode: "exists" as RegisterErrorCode,
+      };
+    }
+
+    return {
+      error: "Ch\u01b0a t\u1ea1o \u0111\u01b0\u1ee3c t\u00e0i kho\u1ea3n. Th\u1eed l\u1ea1i sau.",
+      errorCode: "server" as RegisterErrorCode,
+    };
+  }
 
   await ensureDefaultWorkoutDays(user.id);
   await setSessionCookie(user.id);
@@ -168,7 +194,7 @@ export async function loginUser(formData: FormData) {
   });
 
   if (!parsed.success) {
-    return { error: "Tài khoản hoặc mật khẩu không hợp lệ." };
+    return { error: "T\u00ean \u0111\u0103ng nh\u1eadp ho\u1eb7c m\u1eadt kh\u1ea9u kh\u00f4ng h\u1ee3p l\u1ec7." };
   }
 
   const user = await prisma.user.findUnique({
@@ -176,12 +202,12 @@ export async function loginUser(formData: FormData) {
   });
 
   if (!user) {
-    return { error: "Tài khoản hoặc mật khẩu không đúng." };
+    return { error: "T\u00ean \u0111\u0103ng nh\u1eadp ho\u1eb7c m\u1eadt kh\u1ea9u kh\u00f4ng \u0111\u00fang." };
   }
 
   const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
   if (!valid) {
-    return { error: "Tài khoản hoặc mật khẩu không đúng." };
+    return { error: "T\u00ean \u0111\u0103ng nh\u1eadp ho\u1eb7c m\u1eadt kh\u1ea9u kh\u00f4ng \u0111\u00fang." };
   }
 
   await setSessionCookie(user.id);

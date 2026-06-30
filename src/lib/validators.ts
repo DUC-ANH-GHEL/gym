@@ -15,7 +15,13 @@ const optionalNumberField = (schema: z.ZodNumber) =>
   }, schema.optional());
 
 export const authSchema = z.object({
-  identifier: z.string().trim().min(3).max(60).regex(/^[A-Za-z0-9._-]+$/),
+  identifier: z
+    .string()
+    .trim()
+    .min(3)
+    .max(60)
+    .regex(/^[^\p{C}<>"'`\\/]+$/u)
+    .transform((value) => value.toLowerCase()),
   password: z.string().min(8),
   name: z.string().trim().optional(),
 });
