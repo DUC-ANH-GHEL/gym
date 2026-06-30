@@ -2,13 +2,46 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, todayLabel } from "@/lib/date";
-import { AppButton, AppCard, AppInput, EmptyState } from "@/components/ui";
+import { AppCard, EmptyState } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
+import { TodaySetControls } from "@/components/today-set-controls";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
 import { buildLastSetHint } from "@/lib/workout-rest";
-import { getExerciseMedia, type ExerciseMediaContext } from "@/lib/exercise-media";
+import { getExerciseMedia } from "@/lib/exercise-media";
+import { getNextSetToFill, getSetEntryDefaults } from "@/lib/workout-today-flow";
+
+const TEXT = {
+  done: "Xong",
+  view: "Xem",
+  active: "\u0110ang t\u1eadp",
+  continue: "Ti\u1ebfp",
+  notStarted: "Ch\u01b0a t\u1eadp",
+  start: "T\u1eadp",
+  noImage: "Ch\u01b0a c\u00f3 \u1ea3nh",
+  image: "\u1ea2nh",
+  today: "H\u00f4m nay",
+  finish: "Ho\u00e0n th\u00e0nh",
+  progress: "ti\u1ebfn \u0111\u1ed9",
+  completedExercise: "B\u00e0i \u0111\u00e3 xong",
+  nextExercise: "B\u00e0i ti\u1ebfp theo",
+  noMuscleGroup: "Ch\u01b0a c\u00f3 nh\u00f3m c\u01a1",
+  preparing: "\u0110ang chu\u1ea9n b\u1ecb",
+  reviewExercise: "Xem l\u1ea1i b\u00e0i n\u00e0y",
+  fallbackName: "b\u1ea1n",
+  hello: "Xin ch\u00e0o",
+  noScheduleTitle: "Ch\u01b0a c\u00f3 l\u1ecbch h\u00f4m nay",
+  chooseSchedule: "M\u1edf l\u1ecbch t\u1eadp \u0111\u1ec3 ch\u1ecdn b\u00e0i cho h\u00f4m nay.",
+  openSchedule: "M\u1edf l\u1ecbch t\u1eadp",
+  restTitle: "H\u00f4m nay ngh\u1ec9",
+  restDescription: "Ngh\u1ec9 ng\u01a1i v\u00e0 chu\u1ea9n b\u1ecb cho bu\u1ed5i t\u1eadp ti\u1ebfp theo.",
+  noExerciseTitle: "Ch\u01b0a c\u00f3 b\u00e0i t\u1eadp",
+  addExercise: "M\u1edf l\u1ecbch t\u1eadp \u0111\u1ec3 th\u00eam b\u00e0i cho h\u00f4m nay.",
+  editSchedule: "Ch\u1ec9nh l\u1ecbch",
+  todayExercises: "C\u00e1c b\u00e0i h\u00f4m nay",
+  exerciseUnit: "b\u00e0i",
+};
 
 type SearchParams = {
   exercise?: string;
@@ -29,56 +62,72 @@ type ExerciseRow = {
   isCompleted: boolean;
 };
 
+type ActiveExercise = NonNullable<Awaited<ReturnType<typeof getTodayPageData>>["activeExerciseWithHistory"]>;
+type ActiveSet = ActiveExercise["setLogs"][number];
+
 function getExerciseStatus(row: ExerciseRow) {
   if (row.isCompleted) {
-    return { label: "Xong", className: "border-[#22C55E]/40 bg-[#12301f] text-[#86EFAC]", cta: "Xem" };
+    return { label: TEXT.done, className: "border-[#22C55E]/40 bg-[#12301f] text-[#86EFAC]", cta: TEXT.view };
   }
 
   if (row.isStarted) {
-    return { label: "Đang tập", className: "border-[#38BDF8]/40 bg-[#082f49] text-[#7DD3FC]", cta: "Tiếp tục" };
+    return { label: TEXT.active, className: "border-[#38BDF8]/40 bg-[#082f49] text-[#7DD3FC]", cta: TEXT.continue };
   }
 
-  return { label: "Chưa tập", className: "border-[#4B5563] bg-[#1F2937] text-[#D1D5DB]", cta: "Tập" };
+  return { label: TEXT.notStarted, className: "border-[#4B5563] bg-[#1F2937] text-[#D1D5DB]", cta: TEXT.start };
 }
 
-function ExerciseImage({
+function ExerciseMediaFrame({
   exercise,
   alt,
-  size = "normal",
-  context = "list",
+  variant = "row",
 }: {
   exercise: { imageUrl?: string | null; animationUrl?: string | null };
   alt: string;
-  size?: "normal" | "large";
-  context?: ExerciseMediaContext;
+  variant?: "hero" | "row";
 }) {
-  const className = size === "large" ? "h-16 w-16" : "h-12 w-12";
-  const media = getExerciseMedia(exercise, context);
+  const media = getExerciseMedia(exercise, "workout");
+
+  if (variant === "hero") {
+    return (
+      <ExerciseMediaPreview
+        media={media}
+        alt={alt}
+        width={720}
+        height={420}
+        imageClassName="h-full w-full object-cover"
+        placeholderClassName="flex aspect-video w-full items-center justify-center rounded-[18px] bg-[#0B0F14] text-[15px] font-bold text-[#9CA3AF]"
+        placeholderLabel={TEXT.noImage}
+        buttonClassName="block aspect-video w-full rounded-[18px] bg-black"
+        sizes="(max-width: 480px) 100vw, 480px"
+      />
+    );
+  }
 
   return (
     <ExerciseMediaPreview
       media={media}
       alt={alt}
-      width={96}
-      height={96}
-      imageClassName={`${className} shrink-0 rounded-[14px] object-cover`}
-      placeholderClassName={`${className} flex shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] font-bold text-[#9CA3AF]`}
-      placeholderLabel="Ảnh"
-      buttonClassName="shrink-0 rounded-[14px]"
-      sizes="96px"
+      width={180}
+      height={180}
+      imageClassName="h-[92px] w-[92px] rounded-[16px] object-cover"
+      placeholderClassName="flex h-[92px] w-[92px] shrink-0 items-center justify-center rounded-[16px] bg-[#1F2937] text-[12px] font-bold text-[#9CA3AF]"
+      placeholderLabel={TEXT.image}
+      buttonClassName="shrink-0 rounded-[16px]"
+      sizes="92px"
     />
   );
 }
 
 function StartExerciseButton({ row, wide = false }: { row: ExerciseRow; wide?: boolean }) {
   const status = getExerciseStatus(row);
-  const className = `inline-flex min-h-[44px] items-center justify-center rounded-[14px] px-4 py-2 text-[15px] font-bold transition active:scale-[0.98] ${
+  const className = `inline-flex min-h-[48px] items-center justify-center rounded-[14px] px-4 py-2 text-[15px] font-black transition active:scale-[0.98] ${
     row.isCompleted
       ? "border border-[#374151] bg-[#111827] text-[#F9FAFB]"
       : row.isStarted
         ? "bg-[#38BDF8] text-[#0B0F14]"
         : "bg-[#22C55E] text-white"
-  } ${wide ? "w-full" : "w-[92px] shrink-0"}`;
+  } ${wide ? "w-full" : "w-[82px] shrink-0"}`;
 
   if (row.exerciseLogId && (row.isStarted || row.isCompleted)) {
     return (
@@ -96,33 +145,114 @@ function StartExerciseButton({ row, wide = false }: { row: ExerciseRow; wide?: b
   );
 }
 
-function FocusExerciseCard({ row }: { row: ExerciseRow }) {
-  const status = getExerciseStatus(row);
-  const title = row.isStarted && !row.isCompleted ? "Đang tập" : row.isCompleted ? "Bài đã xong" : "Bài tiếp theo";
+function ProgressCard({
+  completedSets,
+  totalSets,
+  todayLogId,
+}: {
+  completedSets: number;
+  totalSets: number;
+  todayLogId: string | null;
+}) {
+  const percent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
   return (
-    <AppCard className="space-y-4 border-[#22C55E]/50 bg-[#0F1F18]">
-      <div className="flex min-w-0 items-start gap-3">
-        <ExerciseImage exercise={row} alt={row.name} size="large" context="workout" />
-        <div className="min-w-0 flex-1">
-          <p className="text-[14px] font-bold text-[#86EFAC]">{title}</p>
-          <h2 className="mt-1 line-clamp-2 text-[22px] font-bold leading-tight text-[#F9FAFB]">{row.name}</h2>
-          <p className="mt-1 text-[15px] leading-5 text-[#D1D5DB]">{row.muscleGroup || "Chưa có nhóm cơ"}</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+    <AppCard className="border-[#263241] bg-[#111827] p-3">
+      <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[15px] font-bold text-[#F9FAFB]">
-            {row.completedSets}/{row.setCount} set
-          </p>
-          <p className="mt-1 text-[13px] text-[#9CA3AF]">
-            Tạ gợi ý: {row.currentWeightKg ?? 0} kg
+          <p className="text-[13px] font-bold text-[#9CA3AF]">{TEXT.today}</p>
+          <p className="mt-1 text-[32px] font-black leading-none text-[#F9FAFB]">
+            {completedSets}/{totalSets} set
           </p>
         </div>
-        <span className={`rounded-full border px-3 py-2 text-[13px] font-bold ${status.className}`}>{status.label}</span>
+        {todayLogId && totalSets > 0 && completedSets === totalSets ? (
+          <form action={finishWorkoutAction} className="shrink-0">
+            <input type="hidden" name="workoutLogId" value={todayLogId} />
+            <button className="min-h-[50px] rounded-[16px] bg-[#22C55E] px-5 py-2 text-[15px] font-black text-white active:scale-[0.98]">
+              {TEXT.finish}
+            </button>
+          </form>
+        ) : (
+          <div className="shrink-0 rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-2 text-right">
+            <p className="text-[22px] font-black text-[#38BDF8]">{percent}%</p>
+            <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.progress}</p>
+          </div>
+        )}
       </div>
-      <StartExerciseButton row={row} wide />
     </AppCard>
+  );
+}
+
+function CurrentExerciseCard({
+  row,
+  exercise,
+  selectedSet,
+  setDefaults,
+}: {
+  row: ExerciseRow;
+  exercise: ActiveExercise | null;
+  selectedSet: ActiveSet | null;
+  setDefaults: { weightKg: number | null; reps: number | null };
+}) {
+  const status = getExerciseStatus(row);
+  const setNumber = selectedSet ? selectedSet.setIndex + 1 : Math.min(row.completedSets + 1, row.setCount || 1);
+  const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
+
+  return (
+    <section className="overflow-hidden rounded-[22px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
+      <div className="p-3">
+        <div className="overflow-hidden rounded-[18px] border border-[#263241] bg-black">
+          <ExerciseMediaFrame exercise={row} alt={row.name} variant="hero" />
+        </div>
+      </div>
+
+      <div className="space-y-3 px-4 pb-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-black text-[#86EFAC]">
+              {row.isCompleted ? TEXT.completedExercise : row.isStarted ? TEXT.active : TEXT.nextExercise}
+            </p>
+            <h2 className="mt-1 break-words text-[24px] font-black leading-tight text-[#F9FAFB]">{row.name}</h2>
+            <p className="mt-1 break-words text-[15px] font-semibold leading-5 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
+          </div>
+          <span className={`shrink-0 rounded-full border px-3 py-2 text-[13px] font-black ${status.className}`}>{status.label}</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-2">
+            <p className="text-[12px] font-bold text-[#9CA3AF]">Set</p>
+            <p className="mt-1 text-[19px] font-black text-[#F9FAFB]">
+              {row.completedSets}/{row.setCount}
+            </p>
+          </div>
+          <div className="rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-2">
+            <p className="text-[12px] font-bold text-[#9CA3AF]">{TEXT.preparing}</p>
+            <p className="mt-1 text-[19px] font-black text-[#F9FAFB]">Set {setNumber}</p>
+          </div>
+        </div>
+
+        {selectedSet?.lastHint ? <p className="rounded-[14px] bg-[#0B0F14] px-3 py-2 text-[14px] font-bold leading-5 text-[#86EFAC]">{selectedSet.lastHint}</p> : null}
+
+        {canSubmitSet && selectedSet ? (
+          <TodaySetControls
+            setLogId={selectedSet.id}
+            setNumber={setNumber}
+            defaultWeightKg={setDefaults.weightKg}
+            defaultReps={setDefaults.reps}
+            action={saveWorkoutSetAction}
+          />
+        ) : row.isCompleted ? (
+          <Link
+            href={row.exerciseLogId ? `/today?exercise=${row.exerciseLogId}` : "/today"}
+            className="flex min-h-[54px] w-full items-center justify-center rounded-[16px] border border-[#374151] bg-[#0B0F14] px-4 py-3 text-[17px] font-black text-[#F9FAFB]"
+          >
+            {TEXT.reviewExercise}
+          </Link>
+        ) : (
+          <StartExerciseButton row={row} wide />
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -130,15 +260,15 @@ function ExerciseListRow({ row }: { row: ExerciseRow }) {
   const status = getExerciseStatus(row);
 
   return (
-    <div className="flex min-w-0 items-center gap-3 rounded-[16px] border border-[#263241] bg-[#111827] p-3">
-      <ExerciseImage exercise={row} alt={row.name} />
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-center gap-2">
-          <h3 className="min-w-0 flex-1 truncate text-[17px] font-bold text-[#F9FAFB]">{row.name}</h3>
-          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[12px] font-bold ${status.className}`}>{status.label}</span>
+    <div className="grid min-w-0 grid-cols-[92px_1fr_auto] items-center gap-3 rounded-[18px] border border-[#263241] bg-[#111827] p-3">
+      <ExerciseMediaFrame exercise={row} alt={row.name} />
+      <div className="min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <h3 className="min-w-0 break-words text-[17px] font-black leading-5 text-[#F9FAFB]">{row.name}</h3>
+          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[12px] font-black ${status.className}`}>{status.label}</span>
         </div>
-        <p className="mt-1 truncate text-[14px] text-[#9CA3AF]">{row.muscleGroup || "Chưa có nhóm cơ"}</p>
-        <p className="mt-1 text-[13px] font-semibold text-[#D1D5DB]">
+        <p className="mt-1 break-words text-[14px] font-semibold leading-5 text-[#9CA3AF]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
+        <p className="mt-1 text-[13px] font-bold text-[#D1D5DB]">
           {row.completedSets}/{row.setCount} set
         </p>
       </div>
@@ -147,144 +277,7 @@ function ExerciseListRow({ row }: { row: ExerciseRow }) {
   );
 }
 
-function SetPickerModal({
-  exercise,
-  selectedSetId,
-}: {
-  exercise: {
-    id: string;
-    exerciseName: string;
-    muscleGroup: string | null;
-    imageUrl: string | null;
-    animationUrl: string | null;
-    setLogs: Array<{
-      id: string;
-      setIndex: number;
-      intensityPercent: number | null;
-      targetReps: number | null;
-      targetWeightKg: number | null;
-      actualReps: number | null;
-      actualWeightKg: number | null;
-      note: string | null;
-      isCompleted: boolean;
-      lastHint?: string | null;
-      lastActualReps?: number | null;
-      lastActualWeightKg?: number | null;
-    }>;
-  };
-  selectedSetId?: string;
-}) {
-  const selectedSetIndex = exercise.setLogs.findIndex((setLog) => setLog.id === selectedSetId);
-  const selectedSet = selectedSetIndex >= 0 ? exercise.setLogs[selectedSetIndex] : null;
-  const completedSets = exercise.setLogs.filter((setLog) => setLog.isCompleted).length;
-
-  return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))] sm:items-center">
-      <div className="w-full max-w-[480px] rounded-[22px] border border-[#374151] bg-[#0B0F14] shadow-2xl">
-        <div className="flex min-w-0 items-start gap-3 border-b border-[#263241] p-4">
-          <ExerciseImage exercise={exercise} alt={exercise.exerciseName} size="large" context="workout" />
-          <div className="min-w-0 flex-1">
-            <h2 className="line-clamp-2 text-[22px] font-bold leading-tight text-[#F9FAFB]">{exercise.exerciseName}</h2>
-            <p className="mt-1 text-[15px] text-[#9CA3AF]">{exercise.muscleGroup || "Chưa có nhóm cơ"}</p>
-            <p className="mt-2 text-[14px] font-bold text-[#86EFAC]">
-              {completedSets}/{exercise.setLogs.length} set xong
-            </p>
-          </div>
-          <Link
-            href="/today"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#374151] bg-[#111827] text-[20px] font-bold text-[#F9FAFB]"
-            aria-label="Đóng"
-          >
-            ×
-          </Link>
-        </div>
-
-        <div className="max-h-[70dvh] space-y-4 overflow-y-auto p-4">
-          <div className="grid grid-cols-2 gap-2">
-            {exercise.setLogs.map((setLog, index) => (
-              <Link
-                key={setLog.id}
-                href={`/today?exercise=${exercise.id}&set=${setLog.id}`}
-                className={`min-h-[58px] rounded-[14px] border px-3 py-2 text-left transition active:scale-[0.98] ${
-                  setLog.id === selectedSet?.id
-                    ? "border-[#38BDF8] bg-[#082f49]"
-                    : setLog.isCompleted
-                      ? "border-[#22C55E]/50 bg-[#12301f]"
-                      : "border-[#374151] bg-[#111827]"
-                }`}
-              >
-                <span className="block text-[16px] font-bold text-[#F9FAFB]">Set {index + 1}</span>
-                <span className="mt-1 block text-[13px] font-semibold text-[#D1D5DB]">
-                  {setLog.isCompleted ? "Đã xong" : "Chưa nhập"}
-                </span>
-                {setLog.lastHint ? <span className="mt-1 block text-[12px] leading-4 text-[#86EFAC]">{setLog.lastHint}</span> : null}
-              </Link>
-            ))}
-          </div>
-
-          {selectedSet ? (
-            <form action={saveWorkoutSetAction} className="space-y-4 rounded-[18px] border border-[#38BDF8]/50 bg-[#101B27] p-4">
-              <input type="hidden" name="setLogId" value={selectedSet.id} />
-              <div>
-                <h3 className="text-[20px] font-bold text-[#F9FAFB]">Set {selectedSetIndex + 1}</h3>
-                <p className="mt-1 text-[14px] leading-5 text-[#D1D5DB]">
-                  Mục tiêu: {selectedSet.targetReps ?? 0} lần, {selectedSet.targetWeightKg ?? 0} kg
-                </p>
-                {selectedSet.lastHint ? <p className="mt-2 rounded-[12px] bg-[#0B0F14] p-2 text-[14px] font-bold text-[#86EFAC]">{selectedSet.lastHint}</p> : null}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="min-w-0 space-y-1">
-                  <span className="text-[14px] font-bold text-[#D1D5DB]">Nhập tạ</span>
-                  <AppInput
-                    type="number"
-                    step="0.5"
-                    name="actualWeightKg"
-                    defaultValue={selectedSet.actualWeightKg ?? ""}
-                    placeholder={selectedSet.lastActualWeightKg ? String(selectedSet.lastActualWeightKg) : "40"}
-                    inputMode="decimal"
-                  />
-                </label>
-                <label className="min-w-0 space-y-1">
-                  <span className="text-[14px] font-bold text-[#D1D5DB]">Số lần</span>
-                  <AppInput
-                    type="number"
-                    name="actualReps"
-                    defaultValue={selectedSet.actualReps ?? ""}
-                    placeholder={selectedSet.lastActualReps ? String(selectedSet.lastActualReps) : "10"}
-                    inputMode="numeric"
-                  />
-                </label>
-              </div>
-              <label className="block space-y-1">
-                <span className="text-[14px] font-bold text-[#D1D5DB]">Ghi chú</span>
-                <AppInput name="note" defaultValue={selectedSet.note ?? ""} placeholder="Ví dụ: hơi nặng" />
-              </label>
-              <label className="flex min-h-[52px] items-center gap-3 rounded-[14px] border border-[#374151] bg-[#0B0F14] px-3 text-[16px] font-bold text-[#F9FAFB]">
-                <input type="checkbox" name="isCompleted" defaultChecked={selectedSet.isCompleted} className="h-6 w-6 accent-[#22C55E]" />
-                Set này đã xong
-              </label>
-              <AppButton className="w-full bg-[#38BDF8] text-[#0B0F14] hover:bg-[#0ea5e9]">Lưu set</AppButton>
-            </form>
-          ) : (
-            <p className="rounded-[14px] border border-[#374151] bg-[#111827] p-3 text-[15px] leading-6 text-[#D1D5DB]">
-              Chọn set cần nhập. Bạn có thể nhập set nào trước cũng được.
-            </p>
-          )}
-
-          <Link
-            href="/today"
-            className="flex min-h-[48px] w-full items-center justify-center rounded-[14px] border border-[#374151] bg-[#111827] px-4 py-3 text-[15px] font-bold text-[#F9FAFB]"
-          >
-            Để sau
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default async function TodayPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
-  const params = (await searchParams) ?? {};
+async function getTodayPageData(params: SearchParams) {
   const user = await requireUser();
   const profile = user.gymProfile ?? (await prisma.gymProfile.findUnique({ where: { userId: user.id } }));
   const timezone = profile?.timezone || "Asia/Bangkok";
@@ -317,7 +310,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
   });
 
   const todayLog = workoutLogs.find((log) => getDateKeyInTimeZone(log.workoutDate, timezone) === todayKey) ?? null;
-  const displayName = profile?.displayName || user.name || "bạn";
+  const displayName = profile?.displayName || user.name || TEXT.fallbackName;
   const pageTitle = todayLabel(todayDayOfWeek, workoutDay?.title || dayLabel(todayDayOfWeek));
   const isRestDay = Boolean(workoutDay?.isRestDay);
 
@@ -348,7 +341,8 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
   const totalSets = rows.reduce((sum, row) => sum + row.setCount, 0);
   const completedSets = rows.reduce((sum, row) => sum + row.completedSets, 0);
   const activeRow = rows.find((row) => row.isStarted && !row.isCompleted) ?? rows.find((row) => !row.isCompleted) ?? rows[0] ?? null;
-  const activeExercise = todayLog?.exerciseLogs.find((exercise) => exercise.id === params.exercise) ?? null;
+  const activeExerciseId = params.exercise ?? activeRow?.exerciseLogId ?? null;
+  const activeExercise = activeExerciseId ? todayLog?.exerciseLogs.find((exercise) => exercise.id === activeExerciseId) ?? null : null;
   const previousSetLogs = activeExercise
     ? await prisma.workoutSetLog.findMany({
         where: {
@@ -392,56 +386,87 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
       }
     : null;
 
+  const selectedSet =
+    activeExerciseWithHistory?.setLogs.find((setLog) => setLog.id === params.set) ??
+    (activeExerciseWithHistory ? getNextSetToFill(activeExerciseWithHistory.setLogs) : null);
+  const selectedPreviousSet = selectedSet ? lastSetByIndex.get(selectedSet.setIndex) ?? null : null;
+  const setDefaults = selectedSet ? getSetEntryDefaults(selectedSet, activeExerciseWithHistory?.setLogs ?? [], selectedPreviousSet) : { weightKg: null, reps: null };
+
+  return {
+    activeExerciseWithHistory,
+    activeRow,
+    completedSets,
+    displayName,
+    isRestDay,
+    pageTitle,
+    rows,
+    selectedSet,
+    setDefaults,
+    todayLogId: todayLog?.id ?? null,
+    totalSets,
+    workoutDay,
+  };
+}
+
+export default async function TodayPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
+  const params = (await searchParams) ?? {};
+  const {
+    activeExerciseWithHistory,
+    activeRow,
+    completedSets,
+    displayName,
+    isRestDay,
+    pageTitle,
+    rows,
+    selectedSet,
+    setDefaults,
+    todayLogId,
+    totalSets,
+    workoutDay,
+  } = await getTodayPageData(params);
+
   return (
     <AppShell>
       <div className="space-y-3">
         <div className="min-w-0">
-          <p className="text-[15px] font-bold text-[#86EFAC]">Xin chào, {displayName}</p>
-          <h1 className="mt-1 text-[24px] font-bold leading-tight text-[#F9FAFB]">{pageTitle}</h1>
+          <p className="text-[15px] font-black text-[#86EFAC]">
+            {TEXT.hello}, {displayName}
+          </p>
+          <h1 className="mt-1 break-words text-[25px] font-black leading-tight text-[#F9FAFB]">{pageTitle}</h1>
         </div>
 
-        <AppCard className="p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[14px] font-bold text-[#9CA3AF]">Hôm nay</p>
-              <p className="mt-1 text-[28px] font-bold text-[#F9FAFB]">
-                {completedSets}/{totalSets} set
-              </p>
-            </div>
-            {todayLog && totalSets > 0 && completedSets === totalSets ? (
-              <form action={finishWorkoutAction} className="shrink-0">
-                <input type="hidden" name="workoutLogId" value={todayLog.id} />
-                <button className="min-h-[44px] rounded-[14px] bg-[#22C55E] px-4 py-2 text-[15px] font-bold text-white">Hoàn thành</button>
-              </form>
-            ) : (
-              <p className="max-w-[150px] text-right text-[14px] leading-5 text-[#D1D5DB]">Chọn bài muốn tập trước</p>
-            )}
-          </div>
-        </AppCard>
+        <ProgressCard completedSets={completedSets} totalSets={totalSets} todayLogId={todayLogId} />
       </div>
-
-      <WorkoutRestTimer />
 
       {!workoutDay ? (
         <EmptyState
-          title="Chưa có lịch hôm nay"
-          description="Mở lịch tập để chọn bài cho hôm nay."
+          title={TEXT.noScheduleTitle}
+          description={TEXT.chooseSchedule}
           actionHref="/schedule"
-          actionLabel="Mở lịch tập"
+          actionLabel={TEXT.openSchedule}
         />
       ) : isRestDay ? (
-        <EmptyState title="Hôm nay nghỉ" description="Nghỉ ngơi và chuẩn bị cho buổi tập tiếp theo." />
+        <EmptyState title={TEXT.restTitle} description={TEXT.restDescription} />
       ) : rows.length === 0 ? (
-        <EmptyState title="Chưa có bài tập" description="Mở lịch tập để thêm bài cho hôm nay." actionHref="/schedule" actionLabel="Chỉnh lịch" />
+        <EmptyState title={TEXT.noExerciseTitle} description={TEXT.addExercise} actionHref="/schedule" actionLabel={TEXT.editSchedule} />
       ) : (
         <>
-          {activeRow ? <FocusExerciseCard row={activeRow} /> : null}
+          {activeRow ? (
+            <CurrentExerciseCard
+              row={activeRow}
+              exercise={activeExerciseWithHistory}
+              selectedSet={selectedSet}
+              setDefaults={setDefaults}
+            />
+          ) : null}
+
+          <WorkoutRestTimer />
 
           <section className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[18px] font-bold text-[#F9FAFB]">Các bài hôm nay</h2>
-              <span className="text-[14px] font-bold text-[#9CA3AF]">
-                {rows.filter((row) => row.isCompleted).length}/{rows.length} bài
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-[19px] font-black text-[#F9FAFB]">{TEXT.todayExercises}</h2>
+              <span className="shrink-0 text-[14px] font-black text-[#9CA3AF]">
+                {rows.filter((row) => row.isCompleted).length}/{rows.length} {TEXT.exerciseUnit}
               </span>
             </div>
             <div className="space-y-2">
@@ -452,8 +477,6 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
           </section>
         </>
       )}
-
-      {activeExerciseWithHistory ? <SetPickerModal exercise={activeExerciseWithHistory} selectedSetId={params.set} /> : null}
     </AppShell>
   );
 }

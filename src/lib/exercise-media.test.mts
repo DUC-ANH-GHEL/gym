@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getExerciseMedia, getExerciseMediaViewerTarget, isAllowedExerciseAnimationUrl } from "./exercise-media.ts";
 
-test("uses image first for list media to avoid loading many GIFs", () => {
+test("uses animation first for list media so every visible exercise can show motion", () => {
   const media = getExerciseMedia(
     {
       imageUrl: "https://res.cloudinary.com/demo/image/upload/photo.jpg",
@@ -11,12 +11,12 @@ test("uses image first for list media to avoid loading many GIFs", () => {
     "list",
   );
 
-  assert.equal(media.src, "https://res.cloudinary.com/demo/image/upload/photo.jpg");
-  assert.equal(media.kind, "image");
+  assert.equal(media.src, "https://res.cloudinary.com/demo/image/upload/move.gif");
+  assert.equal(media.kind, "animation");
   assert.equal(media.isPlaceholder, false);
 });
 
-test("marks list media as image when image and animation URLs match", () => {
+test("marks matching list media as animation when animation is present", () => {
   const media = getExerciseMedia(
     {
       imageUrl: "/exercise-placeholder.png",
@@ -26,7 +26,7 @@ test("marks list media as image when image and animation URLs match", () => {
   );
 
   assert.equal(media.src, "/exercise-placeholder.png");
-  assert.equal(media.kind, "image");
+  assert.equal(media.kind, "animation");
 });
 
 test("uses animation first for workout and detail media", () => {

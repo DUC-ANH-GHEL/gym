@@ -4,6 +4,12 @@ import Image from "next/image";
 import { useId, useState } from "react";
 import { getExerciseMediaViewerTarget, type ExerciseMedia } from "@/lib/exercise-media";
 
+const TEXT = {
+  image: "\u1ea2nh",
+  viewImagePrefix: "Xem \u1ea3nh",
+  close: "\u0110\u00f3ng",
+};
+
 type ExerciseMediaPreviewProps = {
   media: ExerciseMedia;
   alt: string;
@@ -23,7 +29,7 @@ export function ExerciseMediaPreview({
   height,
   imageClassName,
   placeholderClassName,
-  placeholderLabel = "Ảnh",
+  placeholderLabel = TEXT.image,
   buttonClassName = "block shrink-0 rounded-[14px]",
   sizes,
 }: ExerciseMediaPreviewProps) {
@@ -40,7 +46,7 @@ export function ExerciseMediaPreview({
       <button
         type="button"
         className={`${buttonClassName} overflow-hidden p-0 text-left outline-none ring-offset-2 ring-offset-[#0B0F14] transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#38BDF8]`}
-        aria-label={`Xem ảnh ${alt}`}
+        aria-label={`${TEXT.viewImagePrefix} ${alt}`}
         onClick={() => setIsOpen(true)}
       >
         <Image
@@ -67,7 +73,7 @@ export function ExerciseMediaPreview({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex min-w-0 items-center gap-3 border-b border-[#263241] px-3 py-3">
-              <h2 id={titleId} className="min-w-0 flex-1 truncate text-[17px] font-bold text-[#F9FAFB]">
+              <h2 id={titleId} className="min-w-0 flex-1 break-words text-[17px] font-bold leading-5 text-[#F9FAFB]">
                 {alt}
               </h2>
               <button
@@ -75,7 +81,7 @@ export function ExerciseMediaPreview({
                 className="flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-[#374151] bg-[#111827] px-3 text-[15px] font-bold text-[#F9FAFB]"
                 onClick={() => setIsOpen(false)}
               >
-                Đóng
+                {TEXT.close}
               </button>
             </div>
             <div className="relative aspect-[4/3] max-h-[74dvh] w-full min-w-0 bg-black">

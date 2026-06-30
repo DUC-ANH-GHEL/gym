@@ -17,13 +17,7 @@ export function getExerciseMedia(exercise: ExerciseMediaInput, context: Exercise
   const imageUrl = exercise.imageUrl?.trim() || null;
   const animationUrl = exercise.animationUrl?.trim() || null;
   const selected =
-    context === "list"
-      ? imageUrl
-        ? { src: imageUrl, kind: "image" as const }
-        : animationUrl
-          ? { src: animationUrl, kind: "animation" as const }
-          : null
-      : animationUrl
+    animationUrl
         ? { src: animationUrl, kind: "animation" as const }
         : imageUrl
           ? { src: imageUrl, kind: "image" as const }
