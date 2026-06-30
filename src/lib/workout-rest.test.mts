@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildLastSetHint, getRestLockFromSearchParams, getRestReminderPlan, isRestLocked } from "./workout-rest.ts";
+import {
+  buildLastSetHint,
+  getRestLockFromSearchParams,
+  getRestReminderPlan,
+  isRestLocked,
+  shouldShowLocalRestNotification,
+} from "./workout-rest.ts";
 
 test("starts a 30 second rest after a completed set when the exercise is not done", () => {
   const plan = getRestReminderPlan({
@@ -70,4 +76,11 @@ test("reads an active rest lock from search params", () => {
     title: "T\u1edbi set ti\u1ebfp theo",
     body: "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp set ti\u1ebfp theo nh\u00e9.",
   });
+});
+
+test("does not show a stale local rest notification long after the due time", () => {
+  const dueAtMs = Date.parse("2026-06-30T09:00:30.000Z");
+
+  assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:00:31.000Z")), true);
+  assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:06:00.000Z")), false);
 });

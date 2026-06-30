@@ -1,7 +1,15 @@
+self.addEventListener("install", (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   const data = event.data?.json?.() || {};
-  const title = data.title || "Tới giờ tập";
-  const body = data.body || "Nghỉ xong rồi. Vào tập tiếp nhé.";
+  const title = data.title || "T\u1edbi gi\u1edd t\u1eadp";
+  const body = data.body || "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp ti\u1ebfp nh\u00e9.";
   const url = data.url || "/today";
 
   event.waitUntil(
@@ -12,6 +20,8 @@ self.addEventListener("push", (event) => {
       data: { url },
       tag: "workout-rest",
       renotify: true,
+      requireInteraction: true,
+      vibrate: [220, 90, 220, 90, 320],
     }),
   );
 });

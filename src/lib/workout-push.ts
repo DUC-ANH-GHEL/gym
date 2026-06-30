@@ -1,4 +1,5 @@
 import webPush, { type PushSubscription as WebPushSubscription } from "web-push";
+import { buildWorkoutPushSendOptions } from "./workout-notification-options";
 
 let configured = false;
 
@@ -46,6 +47,6 @@ export async function sendWorkoutPush(
     return { ok: false as const, reason: "missing_vapid" };
   }
 
-  await webPush.sendNotification(toWebPushSubscription(subscription), JSON.stringify(payload));
+  await webPush.sendNotification(toWebPushSubscription(subscription), JSON.stringify(payload), buildWorkoutPushSendOptions());
   return { ok: true as const };
 }

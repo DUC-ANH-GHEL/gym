@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { buildWorkoutNotificationOptions, shouldSyncPushSubscription } from "@/lib/workout-notification-options";
+import { shouldShowLocalRestNotification } from "@/lib/workout-rest";
 
 const TEXT = {
   defaultTitle: "T\u1edbi gi\u1edd t\u1eadp",
@@ -68,11 +70,8 @@ async function showLocalNotification(title: string, body: string) {
   const registration = await ensureServiceWorker();
   if (registration) {
     await registration.showNotification(title, {
+      ...buildWorkoutNotificationOptions({ url: "/today" }),
       body,
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
-      tag: "workout-rest",
-      data: { url: "/today" },
     });
   }
 }
@@ -104,6 +103,7 @@ export function WorkoutRestTimer({
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported",
   );
   const [message, setMessage] = useState("");
+  const [pushSynced, setPushSynced] = useState(false);
 
   const timerKey = useMemo(() => (dueAt > now ? `${dueAt}:${title}` : ""), [dueAt, now, title]);
   const secondsLeft = Math.max(0, Math.ceil((dueAt - now) / 1000));
@@ -115,6 +115,25 @@ export function WorkoutRestTimer({
   useEffect(() => {
     ensureServiceWorker().catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    if (!shouldSyncPushSubscription(permission) || pushSynced) {
+      return;
+    }
+
+    let cancelled = false;
+    subscribeForPush()
+      .then((subscribed) => {
+        if (!cancelled) {
+          setPushSynced(subscribed);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [permission, pushSynced]);
 
   useEffect(() => {
     if (!hasTimer) {
@@ -136,6 +155,10 @@ export function WorkoutRestTimer({
     }
 
     const timeout = window.setTimeout(() => {
+      if (!shouldShowLocalRestNotification(dueAt, Date.now())) {
+        return;
+      }
+
       const notifiedKey = `workout-rest-notified:${timerKey}`;
       if (window.sessionStorage.getItem(notifiedKey)) {
         return;
@@ -169,6 +192,7 @@ export function WorkoutRestTimer({
     }
 
     const subscribed = await subscribeForPush().catch(() => false);
+    setPushSynced(subscribed);
     setMessage(subscribed ? TEXT.subscribed : TEXT.localOnly);
   }
 
