@@ -9,8 +9,43 @@ import { getRestReminderPlan } from "@/lib/workout-rest";
 import { ensureWorkoutReminderCronJob } from "@/lib/workout-cron-job-org";
 import { getNextExerciseAfterSetSave, getNextSetToFill } from "@/lib/workout-today-flow";
 
+async function redirectIfRestIsActive(userId: string): Promise<void> {
+  const reminder = await prisma.workoutRestReminder.findFirst({
+    where: {
+      userId,
+      sentAt: null,
+      dueAt: { gt: new Date() },
+    },
+    orderBy: { dueAt: "desc" },
+    select: {
+      dueAt: true,
+      kind: true,
+      title: true,
+      body: true,
+      url: true,
+    },
+  });
+
+  if (!reminder) {
+    return;
+  }
+
+  const params = new URLSearchParams({
+    rest: String(Math.max(1, Math.ceil((reminder.dueAt.getTime() - Date.now()) / 1000))),
+    restKind: reminder.kind,
+    restTitle: reminder.title,
+    restBody: reminder.body,
+    restDueAt: String(reminder.dueAt.getTime()),
+  });
+  const targetUrl = reminder.url || "/today";
+  const separator = targetUrl.includes("?") ? "&" : "?";
+
+  redirect(`${targetUrl}${separator}${params.toString()}`);
+}
+
 export async function startWorkoutExerciseAction(formData: FormData) {
   const user = await requireUser();
+  await redirectIfRestIsActive(user.id);
   const profile = user.gymProfile ?? (await prisma.gymProfile.findUnique({ where: { userId: user.id } }));
   const timezone = profile?.timezone || "Asia/Bangkok";
   const workoutDayExerciseId = String(formData.get("workoutDayExerciseId") || "");
@@ -58,6 +93,7 @@ export async function startWorkoutExerciseAction(formData: FormData) {
 
 export async function saveWorkoutSetAction(formData: FormData) {
   const user = await requireUser();
+  await redirectIfRestIsActive(user.id);
   const setLogId = String(formData.get("setLogId") || "");
   const isCompleted = formData.get("isCompleted") === "on";
 

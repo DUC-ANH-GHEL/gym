@@ -5,10 +5,11 @@ import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, todayLabel } fr
 import { AppCard, EmptyState } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
+import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodaySetControls } from "@/components/today-set-controls";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
-import { buildLastSetHint } from "@/lib/workout-rest";
+import { buildLastSetHint, getRestLockFromSearchParams, isRestLocked } from "@/lib/workout-rest";
 import { getExerciseMedia } from "@/lib/exercise-media";
 import { getCurrentExerciseRow, getSelectedSetToFill, getSetDisplayNumber, getSetEntryDefaults } from "@/lib/workout-today-flow";
 
@@ -46,6 +47,10 @@ const TEXT = {
 type SearchParams = {
   exercise?: string;
   set?: string;
+  rest?: string;
+  restTitle?: string;
+  restBody?: string;
+  restDueAt?: string;
 };
 
 type ExerciseRow = {
@@ -64,6 +69,7 @@ type ExerciseRow = {
 
 type ActiveExercise = NonNullable<Awaited<ReturnType<typeof getTodayPageData>>["activeExerciseWithHistory"]>;
 type ActiveSet = ActiveExercise["setLogs"][number];
+type RestLock = NonNullable<Awaited<ReturnType<typeof getTodayPageData>>["restLock"]>;
 
 function getExerciseStatus(row: ExerciseRow) {
   if (row.isCompleted) {
@@ -119,7 +125,7 @@ function ExerciseMediaFrame({
   );
 }
 
-function StartExerciseButton({ row, wide = false }: { row: ExerciseRow; wide?: boolean }) {
+function StartExerciseButton({ restLock, row, wide = false }: { restLock: RestLock | null; row: ExerciseRow; wide?: boolean }) {
   const status = getExerciseStatus(row);
   const className = `inline-flex min-h-[48px] items-center justify-center rounded-[14px] px-4 py-2 text-[15px] font-black transition active:scale-[0.98] ${
     row.isCompleted
@@ -129,19 +135,18 @@ function StartExerciseButton({ row, wide = false }: { row: ExerciseRow; wide?: b
         : "bg-[#22C55E] text-white"
   } ${wide ? "w-full" : "w-[82px] shrink-0"}`;
 
-  if (row.exerciseLogId && (row.isStarted || row.isCompleted)) {
-    return (
-      <Link href={`/today?exercise=${row.exerciseLogId}`} className={className}>
-        {status.cta}
-      </Link>
-    );
-  }
-
   return (
-    <form action={startWorkoutExerciseAction} className={wide ? "w-full" : "shrink-0"}>
-      <input type="hidden" name="workoutDayExerciseId" value={row.workoutDayExerciseId} />
-      <button className={className}>{status.cta}</button>
-    </form>
+    <TodayExerciseAction
+      action={startWorkoutExerciseAction}
+      className={className}
+      cta={status.cta}
+      exerciseLogId={row.exerciseLogId}
+      isCompleted={row.isCompleted}
+      isStarted={row.isStarted}
+      restDueAtMs={restLock?.dueAtMs ?? null}
+      wide={wide}
+      workoutDayExerciseId={row.workoutDayExerciseId}
+    />
   );
 }
 
@@ -186,11 +191,13 @@ function ProgressCard({
 function CurrentExerciseCard({
   row,
   exercise,
+  restLock,
   selectedSet,
   setDefaults,
 }: {
   row: ExerciseRow;
   exercise: ActiveExercise | null;
+  restLock: RestLock | null;
   selectedSet: ActiveSet | null;
   setDefaults: { weightKg: number | null; reps: number | null };
 }) {
@@ -240,6 +247,7 @@ function CurrentExerciseCard({
             setNumber={setNumber}
             defaultWeightKg={setDefaults.weightKg}
             defaultReps={setDefaults.reps}
+            restDueAtMs={restLock?.dueAtMs ?? null}
             action={saveWorkoutSetAction}
           />
         ) : row.isCompleted ? (
@@ -250,14 +258,14 @@ function CurrentExerciseCard({
             {TEXT.reviewExercise}
           </Link>
         ) : (
-          <StartExerciseButton row={row} wide />
+          <StartExerciseButton row={row} restLock={restLock} wide />
         )}
       </div>
     </section>
   );
 }
 
-function ExerciseListRow({ row }: { row: ExerciseRow }) {
+function ExerciseListRow({ restLock, row }: { restLock: RestLock | null; row: ExerciseRow }) {
   const status = getExerciseStatus(row);
 
   return (
@@ -273,7 +281,7 @@ function ExerciseListRow({ row }: { row: ExerciseRow }) {
           {row.completedSets}/{row.setCount} set
         </p>
       </div>
-      <StartExerciseButton row={row} />
+      <StartExerciseButton row={row} restLock={restLock} />
     </div>
   );
 }
@@ -283,6 +291,7 @@ async function getTodayPageData(params: SearchParams) {
   const profile = user.gymProfile ?? (await prisma.gymProfile.findUnique({ where: { userId: user.id } }));
   const timezone = profile?.timezone || "Asia/Bangkok";
   const today = new Date();
+  const nowMs = today.getTime();
   const todayDayOfWeek = getDayOfWeekInTimeZone(today, timezone);
   const todayKey = getDateKeyInTimeZone(today, timezone);
 
@@ -387,6 +396,30 @@ async function getTodayPageData(params: SearchParams) {
       }
     : null;
 
+  const urlRestLock = getRestLockFromSearchParams(params, nowMs);
+  const activeRestReminder = await prisma.workoutRestReminder.findFirst({
+    where: {
+      userId: user.id,
+      sentAt: null,
+      dueAt: { gt: today },
+    },
+    orderBy: { dueAt: "desc" },
+    select: {
+      dueAt: true,
+      title: true,
+      body: true,
+    },
+  });
+  const dbRestLock =
+    activeRestReminder && isRestLocked(activeRestReminder.dueAt.getTime(), nowMs)
+      ? {
+          dueAtMs: activeRestReminder.dueAt.getTime(),
+          restSeconds: Math.ceil((activeRestReminder.dueAt.getTime() - nowMs) / 1000),
+          title: activeRestReminder.title,
+          body: activeRestReminder.body,
+        }
+      : null;
+  const restLock = dbRestLock && (!urlRestLock || dbRestLock.dueAtMs >= urlRestLock.dueAtMs) ? dbRestLock : urlRestLock;
   const selectedSet = activeExerciseWithHistory ? getSelectedSetToFill(activeExerciseWithHistory.setLogs, params.set) : null;
   const selectedPreviousSet = selectedSet ? lastSetByIndex.get(selectedSet.setIndex) ?? null : null;
   const setDefaults = selectedSet ? getSetEntryDefaults(selectedSet, activeExerciseWithHistory?.setLogs ?? [], selectedPreviousSet) : { weightKg: null, reps: null };
@@ -399,6 +432,7 @@ async function getTodayPageData(params: SearchParams) {
     isRestDay,
     pageTitle,
     rows,
+    restLock,
     selectedSet,
     setDefaults,
     todayLogId: todayLog?.id ?? null,
@@ -417,6 +451,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
     isRestDay,
     pageTitle,
     rows,
+    restLock,
     selectedSet,
     setDefaults,
     todayLogId,
@@ -454,12 +489,18 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
             <CurrentExerciseCard
               row={activeRow}
               exercise={activeExerciseWithHistory}
+              restLock={restLock}
               selectedSet={selectedSet}
               setDefaults={setDefaults}
             />
           ) : null}
 
-          <WorkoutRestTimer />
+          <WorkoutRestTimer
+            body={restLock?.body ?? null}
+            dueAtMs={restLock?.dueAtMs ?? null}
+            restSeconds={restLock?.restSeconds ?? null}
+            title={restLock?.title ?? null}
+          />
 
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-3">
@@ -470,7 +511,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
             </div>
             <div className="space-y-2">
               {rows.map((row) => (
-                <ExerciseListRow key={row.workoutDayExerciseId} row={row} />
+                <ExerciseListRow key={row.workoutDayExerciseId} row={row} restLock={restLock} />
               ))}
             </div>
           </section>

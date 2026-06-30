@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const TEXT = {
   weight: "T\u1ea1",
@@ -12,6 +12,7 @@ const TEXT = {
   resetReps: "\u0110\u1eb7t l\u1ea1i s\u1ed1 l\u1ea7n",
   increaseReps: "T\u0103ng s\u1ed1 l\u1ea7n",
   repUnit: "l\u1ea7n",
+  waitRest: "\u0110ang ngh\u1ec9",
 };
 
 function formatNumber(value: number | null) {
@@ -27,16 +28,29 @@ export function TodaySetControls({
   setNumber,
   defaultWeightKg,
   defaultReps,
+  restDueAtMs,
   action,
 }: {
   setLogId: string;
   setNumber: number;
   defaultWeightKg: number | null;
   defaultReps: number | null;
+  restDueAtMs: number | null;
   action: (formData: FormData) => void | Promise<void>;
 }) {
   const [weightKg, setWeightKg] = useState(() => defaultWeightKg ?? 0);
   const [reps, setReps] = useState(() => defaultReps ?? 0);
+  const [now, setNow] = useState(() => Date.now());
+  const restLocked = typeof restDueAtMs === "number" && restDueAtMs > now;
+
+  useEffect(() => {
+    if (!restLocked) {
+      return;
+    }
+
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, [restLocked]);
 
   return (
     <form action={action} className="space-y-3">
@@ -107,8 +121,11 @@ export function TodaySetControls({
         </div>
       </div>
 
-      <button className="min-h-[56px] w-full rounded-[16px] bg-[#22C55E] px-4 py-3 text-[18px] font-black text-white shadow-[0_14px_28px_rgba(34,197,94,0.18)] transition active:scale-[0.98]">
-        Xong set {setNumber}
+      <button
+        disabled={restLocked}
+        className="min-h-[56px] w-full rounded-[16px] bg-[#22C55E] px-4 py-3 text-[18px] font-black text-white shadow-[0_14px_28px_rgba(34,197,94,0.18)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#334155] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
+      >
+        {restLocked ? TEXT.waitRest : `Xong set ${setNumber}`}
       </button>
     </form>
   );

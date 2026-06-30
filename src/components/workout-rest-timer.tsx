@@ -3,6 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+const TEXT = {
+  defaultTitle: "T\u1edbi gi\u1edd t\u1eadp",
+  defaultBody: "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp ti\u1ebfp nh\u00e9.",
+  unsupported: "M\u00e1y n\u00e0y ch\u01b0a h\u1ed7 tr\u1ee3 th\u00f4ng b\u00e1o.",
+  denied: "B\u1ea1n \u0111ang ch\u1eb7n th\u00f4ng b\u00e1o. M\u1edf c\u00e0i \u0111\u1eb7t tr\u00ecnh duy\u1ec7t \u0111\u1ec3 b\u1eadt l\u1ea1i.",
+  notEnabled: "Ch\u01b0a b\u1eadt th\u00f4ng b\u00e1o, app v\u1eabn \u0111\u1ebfm gi\u1edd khi \u0111ang m\u1edf.",
+  subscribed: "\u0110\u00e3 b\u1eadt nh\u1eafc ngh\u1ec9 cho m\u00e1y n\u00e0y.",
+  localOnly: "\u0110\u00e3 b\u1eadt th\u00f4ng b\u00e1o tr\u00ean m\u00e1y n\u00e0y. Push n\u1ec1n c\u1ea7n c\u1ea5u h\u00ecnh VAPID tr\u00ean server.",
+  resting: "\u0110ang ngh\u1ec9",
+  left: "c\u00f2n l\u1ea1i",
+  enable: "B\u1eadt nh\u1eafc ngh\u1ec9",
+  help: "Khi b\u1eadt th\u00f4ng b\u00e1o, app s\u1ebd b\u00e1o l\u00fac t\u1edbi set ho\u1eb7c b\u00e0i ti\u1ebfp theo. N\u1ebfu \u0111\u00e3 ch\u1eb7n th\u00f4ng b\u00e1o, c\u1ea7n b\u1eadt l\u1ea1i trong c\u00e0i \u0111\u1eb7t tr\u00ecnh duy\u1ec7t.",
+};
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -61,21 +75,33 @@ async function showLocalNotification(title: string, body: string) {
   }
 }
 
-export function WorkoutRestTimer() {
+export function WorkoutRestTimer({
+  body: initialBody,
+  dueAtMs,
+  restSeconds: initialRestSeconds,
+  title: initialTitle,
+}: {
+  body?: string | null;
+  dueAtMs?: number | null;
+  restSeconds?: number | null;
+  title?: string | null;
+}) {
   const searchParams = useSearchParams();
-  const dueAt = Number(searchParams.get("restDueAt") || 0);
-  const title = searchParams.get("restTitle") || "Tới giờ tập";
-  const body = searchParams.get("restBody") || "Nghỉ xong rồi. Vào tập tiếp nhé.";
-  const restSeconds = Number(searchParams.get("rest") || 0);
+  const urlDueAt = Number(searchParams.get("restDueAt") || 0);
+  const dueAt = dueAtMs || urlDueAt;
+  const title = initialTitle || searchParams.get("restTitle") || TEXT.defaultTitle;
+  const body = initialBody || searchParams.get("restBody") || TEXT.defaultBody;
+  const urlRestSeconds = Number(searchParams.get("rest") || 0);
+  const restSeconds = initialRestSeconds || urlRestSeconds;
   const [now, setNow] = useState(() => Date.now());
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">(() =>
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported",
   );
   const [message, setMessage] = useState("");
 
-  const timerKey = useMemo(() => (dueAt > 0 ? `${dueAt}:${title}` : ""), [dueAt, title]);
+  const timerKey = useMemo(() => (dueAt > now ? `${dueAt}:${title}` : ""), [dueAt, now, title]);
   const secondsLeft = Math.max(0, Math.ceil((dueAt - now) / 1000));
-  const hasTimer = dueAt > 0 && restSeconds > 0;
+  const hasTimer = dueAt > now && restSeconds > 0;
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
 
@@ -117,13 +143,13 @@ export function WorkoutRestTimer() {
 
   async function enableReminder() {
     if (!("Notification" in window)) {
-      setMessage("Máy này chưa hỗ trợ thông báo.");
+      setMessage(TEXT.unsupported);
       return;
     }
 
     if (Notification.permission === "denied") {
       setPermission("denied");
-      setMessage("Bạn đang chặn thông báo. Mở cài đặt trình duyệt để bật lại.");
+      setMessage(TEXT.denied);
       return;
     }
 
@@ -131,12 +157,12 @@ export function WorkoutRestTimer() {
     setPermission(nextPermission);
 
     if (nextPermission !== "granted") {
-      setMessage("Chưa bật thông báo, app vẫn đếm giờ khi đang mở.");
+      setMessage(TEXT.notEnabled);
       return;
     }
 
     const subscribed = await subscribeForPush().catch(() => false);
-    setMessage(subscribed ? "Đã bật nhắc nghỉ cho máy này." : "Đã bật thông báo trên máy này. Push nền cần cấu hình VAPID trên server.");
+    setMessage(subscribed ? TEXT.subscribed : TEXT.localOnly);
   }
 
   if (!hasTimer && permission === "granted") {
@@ -148,14 +174,14 @@ export function WorkoutRestTimer() {
       {hasTimer ? (
         <div className="flex min-w-0 items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[14px] font-bold text-[#86EFAC]">Đang nghỉ</p>
+            <p className="text-[14px] font-bold text-[#86EFAC]">{TEXT.resting}</p>
             <p className="mt-1 text-[15px] leading-5 text-[#F9FAFB]">{body}</p>
           </div>
           <div className="shrink-0 rounded-[16px] bg-[#0B0F14] px-3 py-2 text-center">
             <p className="text-[24px] font-bold tabular-nums text-[#F9FAFB]">
               {minutes}:{String(seconds).padStart(2, "0")}
             </p>
-            <p className="text-[12px] font-bold text-[#9CA3AF]">còn lại</p>
+            <p className="text-[12px] font-bold text-[#9CA3AF]">{TEXT.left}</p>
           </div>
         </div>
       ) : null}
@@ -167,11 +193,9 @@ export function WorkoutRestTimer() {
             onClick={enableReminder}
             className="min-h-[44px] w-full rounded-[14px] bg-[#38BDF8] px-4 py-2 text-[15px] font-bold text-[#0B0F14]"
           >
-            Bật nhắc nghỉ
+            {TEXT.enable}
           </button>
-          <p className="mt-2 text-[13px] leading-5 text-[#9CA3AF]">
-            Khi bật thông báo, app sẽ báo lúc tới set hoặc bài tiếp theo. Nếu đã chặn thông báo, cần bật lại trong cài đặt trình duyệt.
-          </p>
+          <p className="mt-2 text-[13px] leading-5 text-[#9CA3AF]">{TEXT.help}</p>
         </div>
       ) : null}
 
