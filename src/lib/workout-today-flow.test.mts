@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getNextExerciseAfterSetSave, getNextSetToFill, getSetEntryDefaults } from "./workout-today-flow.ts";
+import { getCurrentExerciseRow, getNextExerciseAfterSetSave, getNextSetToFill, getSetEntryDefaults } from "./workout-today-flow.ts";
 
 test("selects the first unfinished set for one tap entry", () => {
   const setLogs = [
@@ -41,4 +41,15 @@ test("auto jumps to next exercise after the current exercise is done", () => {
 
   assert.equal(getNextExerciseAfterSetSave(exercises, exercises[0])?.id, "ex-2");
   assert.equal(getNextExerciseAfterSetSave(exercises, exercises[1])?.id, "ex-2");
+});
+
+test("uses the exercise selected in the URL as the main current exercise", () => {
+  const rows = [
+    { exerciseLogId: "pull-up-log", isStarted: true, isCompleted: false },
+    { exerciseLogId: "barbell-row-log", isStarted: true, isCompleted: false },
+    { exerciseLogId: null, isStarted: false, isCompleted: false },
+  ];
+
+  assert.equal(getCurrentExerciseRow(rows, "barbell-row-log")?.exerciseLogId, "barbell-row-log");
+  assert.equal(getCurrentExerciseRow(rows, undefined)?.exerciseLogId, "pull-up-log");
 });

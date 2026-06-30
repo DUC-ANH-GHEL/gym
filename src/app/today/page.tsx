@@ -10,7 +10,7 @@ import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
 import { buildLastSetHint } from "@/lib/workout-rest";
 import { getExerciseMedia } from "@/lib/exercise-media";
-import { getNextSetToFill, getSetEntryDefaults } from "@/lib/workout-today-flow";
+import { getCurrentExerciseRow, getNextSetToFill, getSetEntryDefaults } from "@/lib/workout-today-flow";
 
 const TEXT = {
   done: "Xong",
@@ -340,7 +340,7 @@ async function getTodayPageData(params: SearchParams) {
 
   const totalSets = rows.reduce((sum, row) => sum + row.setCount, 0);
   const completedSets = rows.reduce((sum, row) => sum + row.completedSets, 0);
-  const activeRow = rows.find((row) => row.isStarted && !row.isCompleted) ?? rows.find((row) => !row.isCompleted) ?? rows[0] ?? null;
+  const activeRow = getCurrentExerciseRow(rows, params.exercise);
   const activeExerciseId = params.exercise ?? activeRow?.exerciseLogId ?? null;
   const activeExercise = activeExerciseId ? todayLog?.exerciseLogs.find((exercise) => exercise.id === activeExerciseId) ?? null : null;
   const previousSetLogs = activeExercise

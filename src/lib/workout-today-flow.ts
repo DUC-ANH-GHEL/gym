@@ -14,6 +14,12 @@ type ExerciseLike = {
   isCompleted: boolean;
 };
 
+type CurrentExerciseRowLike = {
+  exerciseLogId: string | null;
+  isStarted: boolean;
+  isCompleted: boolean;
+};
+
 type PreviousSetLike = {
   actualWeightKg: number | null;
   actualReps: number | null;
@@ -50,4 +56,15 @@ export function getNextExerciseAfterSetSave<TExercise extends ExerciseLike>(exer
       .filter((exercise) => exercise.orderIndex > currentExercise.orderIndex && !exercise.isCompleted)
       .sort((a, b) => a.orderIndex - b.orderIndex)[0] ?? null
   );
+}
+
+export function getCurrentExerciseRow<TRow extends CurrentExerciseRowLike>(rows: TRow[], selectedExerciseLogId?: string | null) {
+  if (selectedExerciseLogId) {
+    const selectedRow = rows.find((row) => row.exerciseLogId === selectedExerciseLogId);
+    if (selectedRow) {
+      return selectedRow;
+    }
+  }
+
+  return rows.find((row) => row.isStarted && !row.isCompleted) ?? rows.find((row) => !row.isCompleted) ?? rows[0] ?? null;
 }
