@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getCurrentExerciseRow, getNextExerciseAfterSetSave, getNextSetToFill, getSetEntryDefaults } from "./workout-today-flow.ts";
+import { getCurrentExerciseRow, getNextExerciseAfterSetSave, getNextSetToFill, getSelectedSetToFill, getSetEntryDefaults } from "./workout-today-flow.ts";
 
 test("selects the first unfinished set for one tap entry", () => {
   const setLogs = [
@@ -10,6 +10,17 @@ test("selects the first unfinished set for one tap entry", () => {
   ];
 
   assert.equal(getNextSetToFill(setLogs)?.id, "set-2");
+});
+
+test("does not let a stale set URL skip earlier unfinished sets", () => {
+  const setLogs = [
+    { id: "set-1", setIndex: 0, isCompleted: false },
+    { id: "set-2", setIndex: 1, isCompleted: false },
+    { id: "set-3", setIndex: 2, isCompleted: false },
+  ];
+
+  assert.equal(getSelectedSetToFill(setLogs, "set-2")?.id, "set-1");
+  assert.equal(getSelectedSetToFill([{ ...setLogs[0], isCompleted: true }, setLogs[1], setLogs[2]], "set-2")?.id, "set-2");
 });
 
 test("reuses the latest completed set values before falling back to history and target", () => {

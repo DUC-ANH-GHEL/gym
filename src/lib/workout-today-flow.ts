@@ -29,6 +29,24 @@ export function getNextSetToFill<TSet extends SetLike>(setLogs: TSet[]) {
   return setLogs.find((setLog) => !setLog.isCompleted) ?? setLogs[setLogs.length - 1] ?? null;
 }
 
+export function getSelectedSetToFill<TSet extends SetLike>(setLogs: TSet[], selectedSetId?: string | null) {
+  const firstUnfinishedSet = getNextSetToFill(setLogs);
+  if (!selectedSetId) {
+    return firstUnfinishedSet;
+  }
+
+  const selectedSet = setLogs.find((setLog) => setLog.id === selectedSetId) ?? null;
+  if (!selectedSet || !firstUnfinishedSet) {
+    return firstUnfinishedSet;
+  }
+
+  if (selectedSet.setIndex <= firstUnfinishedSet.setIndex) {
+    return selectedSet;
+  }
+
+  return firstUnfinishedSet;
+}
+
 export function getSetEntryDefaults(currentSet: SetLike, setLogs: SetLike[], previousSet: PreviousSetLike) {
   const previousInThisExercise =
     [...setLogs]

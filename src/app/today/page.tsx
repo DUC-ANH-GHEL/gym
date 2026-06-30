@@ -10,7 +10,7 @@ import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
 import { buildLastSetHint } from "@/lib/workout-rest";
 import { getExerciseMedia } from "@/lib/exercise-media";
-import { getCurrentExerciseRow, getNextSetToFill, getSetEntryDefaults } from "@/lib/workout-today-flow";
+import { getCurrentExerciseRow, getSelectedSetToFill, getSetEntryDefaults } from "@/lib/workout-today-flow";
 
 const TEXT = {
   done: "Xong",
@@ -386,9 +386,7 @@ async function getTodayPageData(params: SearchParams) {
       }
     : null;
 
-  const selectedSet =
-    activeExerciseWithHistory?.setLogs.find((setLog) => setLog.id === params.set) ??
-    (activeExerciseWithHistory ? getNextSetToFill(activeExerciseWithHistory.setLogs) : null);
+  const selectedSet = activeExerciseWithHistory ? getSelectedSetToFill(activeExerciseWithHistory.setLogs, params.set) : null;
   const selectedPreviousSet = selectedSet ? lastSetByIndex.get(selectedSet.setIndex) ?? null : null;
   const setDefaults = selectedSet ? getSetEntryDefaults(selectedSet, activeExerciseWithHistory?.setLogs ?? [], selectedPreviousSet) : { weightKg: null, reps: null };
 
