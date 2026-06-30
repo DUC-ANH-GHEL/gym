@@ -8,6 +8,7 @@ import { getDayOfWeekInTimeZone } from "@/lib/date";
 import { getRestReminderPlan } from "@/lib/workout-rest";
 import { ensureWorkoutReminderCronJob } from "@/lib/workout-cron-job-org";
 import { getNextExerciseAfterSetSave, getNextSetToFill } from "@/lib/workout-today-flow";
+import { clampWorkoutWeightKg } from "@/lib/workout-set-entry";
 
 async function redirectIfRestIsActive(userId: string): Promise<void> {
   const reminder = await prisma.workoutRestReminder.findFirst({
@@ -106,11 +107,13 @@ export async function saveWorkoutSetAction(formData: FormData) {
     return;
   }
 
+  const actualWeightKg = parseNullableNumber(formData.get("actualWeightKg"));
+
   await prisma.workoutSetLog.update({
     where: { id: setLogId },
     data: {
       actualReps: parseNullableNumber(formData.get("actualReps")) ?? null,
-      actualWeightKg: parseNullableNumber(formData.get("actualWeightKg")) ?? null,
+      actualWeightKg: typeof actualWeightKg === "number" ? clampWorkoutWeightKg(actualWeightKg) : null,
       note: String(formData.get("note") || "").trim() || null,
       isCompleted,
       completedAt: isCompleted ? new Date() : null,

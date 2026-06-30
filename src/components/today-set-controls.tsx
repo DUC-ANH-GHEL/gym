@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { clampWorkoutWeightKg, MAX_WORKOUT_WEIGHT_KG } from "@/lib/workout-set-entry";
 
 const TEXT = {
   weight: "T\u1ea1",
+  weightInput: "Nh\u1eadp t\u1ea1",
   reps: "S\u1ed1 l\u1ea7n",
   decreaseWeight: "Gi\u1ea3m t\u1ea1",
-  resetWeight: "\u0110\u1eb7t l\u1ea1i t\u1ea1",
   increaseWeight: "T\u0103ng t\u1ea1",
-  decreaseReps: "Gi\u1ea3m s\u1ed1 l\u1ea7n",
-  resetReps: "\u0110\u1eb7t l\u1ea1i s\u1ed1 l\u1ea7n",
-  increaseReps: "T\u0103ng s\u1ed1 l\u1ea7n",
   repUnit: "l\u1ea7n",
   waitRest: "\u0110ang ngh\u1ec9",
 };
@@ -38,8 +36,8 @@ export function TodaySetControls({
   restDueAtMs: number | null;
   action: (formData: FormData) => void | Promise<void>;
 }) {
-  const [weightKg, setWeightKg] = useState(() => defaultWeightKg ?? 0);
-  const [reps, setReps] = useState(() => defaultReps ?? 0);
+  const [weightKg, setWeightKg] = useState(() => clampWorkoutWeightKg(defaultWeightKg ?? 0));
+  const reps = defaultReps ?? 0;
   const [now, setNow] = useState(() => Date.now());
   const restLocked = typeof restDueAtMs === "number" && restDueAtMs > now;
 
@@ -66,23 +64,29 @@ export function TodaySetControls({
             <button
               type="button"
               className="h-11 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
-              onClick={() => setWeightKg((value) => Math.max(0, Number((value - 2.5).toFixed(1))))}
+              onClick={() => setWeightKg((value) => clampWorkoutWeightKg(value - 2.5))}
               aria-label={TEXT.decreaseWeight}
             >
               -
             </button>
-            <button
-              type="button"
-              className="min-w-0 whitespace-nowrap rounded-[12px] bg-[#111827] px-1 py-2 text-center text-[17px] font-black text-[#F9FAFB]"
-              onClick={() => setWeightKg(0)}
-              aria-label={TEXT.resetWeight}
-            >
-              {formatNumber(weightKg) || "0"} kg
-            </button>
+            <label className="flex min-w-0 items-center justify-center rounded-[12px] bg-[#111827] px-1 py-2 text-center text-[17px] font-black text-[#F9FAFB]">
+              <input
+                type="number"
+                min={0}
+                max={MAX_WORKOUT_WEIGHT_KG}
+                step={0.5}
+                inputMode="decimal"
+                value={formatNumber(weightKg) || "0"}
+                onChange={(event) => setWeightKg(clampWorkoutWeightKg(Number(event.target.value)))}
+                className="w-[44px] bg-transparent text-center text-[17px] font-black text-[#F9FAFB] outline-none"
+                aria-label={TEXT.weightInput}
+              />
+              <span className="shrink-0">kg</span>
+            </label>
             <button
               type="button"
               className="h-11 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
-              onClick={() => setWeightKg((value) => Number((value + 2.5).toFixed(1)))}
+              onClick={() => setWeightKg((value) => clampWorkoutWeightKg(value + 2.5))}
               aria-label={TEXT.increaseWeight}
             >
               +
@@ -92,31 +96,10 @@ export function TodaySetControls({
 
         <div className="rounded-[16px] border border-[#263241] bg-[#0B0F14] p-2">
           <p className="px-1 text-[12px] font-bold text-[#9CA3AF]">{TEXT.reps}</p>
-          <div className="mt-2 grid grid-cols-[30px_minmax(0,1fr)_30px] items-center gap-1">
-            <button
-              type="button"
-              className="h-11 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
-              onClick={() => setReps((value) => Math.max(0, value - 1))}
-              aria-label={TEXT.decreaseReps}
-            >
-              -
-            </button>
-            <button
-              type="button"
-              className="min-w-0 whitespace-nowrap rounded-[12px] bg-[#111827] px-1 py-2 text-center text-[17px] font-black text-[#F9FAFB]"
-              onClick={() => setReps(0)}
-              aria-label={TEXT.resetReps}
-            >
+          <div className="mt-2 flex h-11 items-center justify-center rounded-[12px] bg-[#111827] px-2 text-center text-[17px] font-black text-[#F9FAFB]">
+            <span className="min-w-0 whitespace-nowrap">
               {reps || 0} {TEXT.repUnit}
-            </button>
-            <button
-              type="button"
-              className="h-11 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
-              onClick={() => setReps((value) => value + 1)}
-              aria-label={TEXT.increaseReps}
-            >
-              +
-            </button>
+            </span>
           </div>
         </div>
       </div>
