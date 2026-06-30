@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getCurrentExerciseRow, getNextExerciseAfterSetSave, getNextSetToFill, getSelectedSetToFill, getSetEntryDefaults } from "./workout-today-flow.ts";
+import {
+  getCurrentExerciseRow,
+  getNextExerciseAfterSetSave,
+  getNextSetToFill,
+  getSelectedSetToFill,
+  getSetDisplayNumber,
+  getSetEntryDefaults,
+} from "./workout-today-flow.ts";
 
 test("selects the first unfinished set for one tap entry", () => {
   const setLogs = [
@@ -21,6 +28,17 @@ test("does not let a stale set URL skip earlier unfinished sets", () => {
 
   assert.equal(getSelectedSetToFill(setLogs, "set-2")?.id, "set-1");
   assert.equal(getSelectedSetToFill([{ ...setLogs[0], isCompleted: true }, setLogs[1], setLogs[2]], "set-2")?.id, "set-2");
+});
+
+test("shows the first set as set 1 even when stored setIndex starts at 1", () => {
+  const setLogs = [
+    { id: "set-1", setIndex: 1, isCompleted: false },
+    { id: "set-2", setIndex: 2, isCompleted: false },
+    { id: "set-3", setIndex: 3, isCompleted: false },
+  ];
+
+  assert.equal(getSetDisplayNumber(setLogs, setLogs[0]), 1);
+  assert.equal(getSetDisplayNumber(setLogs, setLogs[1]), 2);
 });
 
 test("reuses the latest completed set values before falling back to history and target", () => {

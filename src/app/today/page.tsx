@@ -10,7 +10,7 @@ import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
 import { buildLastSetHint } from "@/lib/workout-rest";
 import { getExerciseMedia } from "@/lib/exercise-media";
-import { getCurrentExerciseRow, getSelectedSetToFill, getSetEntryDefaults } from "@/lib/workout-today-flow";
+import { getCurrentExerciseRow, getSelectedSetToFill, getSetDisplayNumber, getSetEntryDefaults } from "@/lib/workout-today-flow";
 
 const TEXT = {
   done: "Xong",
@@ -195,7 +195,8 @@ function CurrentExerciseCard({
   setDefaults: { weightKg: number | null; reps: number | null };
 }) {
   const status = getExerciseStatus(row);
-  const setNumber = selectedSet ? selectedSet.setIndex + 1 : Math.min(row.completedSets + 1, row.setCount || 1);
+  const setNumber =
+    selectedSet && exercise ? getSetDisplayNumber(exercise.setLogs, selectedSet) : Math.min(row.completedSets + 1, row.setCount || 1);
   const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
 
   return (

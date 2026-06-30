@@ -47,6 +47,17 @@ export function getSelectedSetToFill<TSet extends SetLike>(setLogs: TSet[], sele
   return firstUnfinishedSet;
 }
 
+export function getSetDisplayNumber<TSet extends SetLike>(setLogs: TSet[], currentSet: TSet | null | undefined) {
+  if (!currentSet) {
+    return 1;
+  }
+
+  const sortedSets = [...setLogs].sort((a, b) => a.setIndex - b.setIndex);
+  const position = sortedSets.findIndex((setLog) => setLog.id === currentSet.id);
+
+  return position >= 0 ? position + 1 : 1;
+}
+
 export function getSetEntryDefaults(currentSet: SetLike, setLogs: SetLike[], previousSet: PreviousSetLike) {
   const previousInThisExercise =
     [...setLogs]
