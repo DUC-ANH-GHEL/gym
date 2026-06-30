@@ -497,9 +497,11 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
 
           <WorkoutRestTimer
             body={restLock?.body ?? null}
+            completedSets={completedSets}
             dueAtMs={restLock?.dueAtMs ?? null}
             restSeconds={restLock?.restSeconds ?? null}
             title={restLock?.title ?? null}
+            totalSets={totalSets}
           />
 
           <section className="space-y-2">

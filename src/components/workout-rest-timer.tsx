@@ -15,6 +15,8 @@ const TEXT = {
   left: "c\u00f2n l\u1ea1i",
   enable: "B\u1eadt nh\u1eafc ngh\u1ec9",
   help: "Khi b\u1eadt th\u00f4ng b\u00e1o, app s\u1ebd b\u00e1o l\u00fac t\u1edbi set ho\u1eb7c b\u00e0i ti\u1ebfp theo. N\u1ebfu \u0111\u00e3 ch\u1eb7n th\u00f4ng b\u00e1o, c\u1ea7n b\u1eadt l\u1ea1i trong c\u00e0i \u0111\u1eb7t tr\u00ecnh duy\u1ec7t.",
+  today: "H\u00f4m nay",
+  progress: "ti\u1ebfn \u0111\u1ed9",
 };
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -77,14 +79,18 @@ async function showLocalNotification(title: string, body: string) {
 
 export function WorkoutRestTimer({
   body: initialBody,
+  completedSets,
   dueAtMs,
   restSeconds: initialRestSeconds,
   title: initialTitle,
+  totalSets,
 }: {
   body?: string | null;
+  completedSets?: number;
   dueAtMs?: number | null;
   restSeconds?: number | null;
   title?: string | null;
+  totalSets?: number;
 }) {
   const searchParams = useSearchParams();
   const urlDueAt = Number(searchParams.get("restDueAt") || 0);
@@ -102,6 +108,7 @@ export function WorkoutRestTimer({
   const timerKey = useMemo(() => (dueAt > now ? `${dueAt}:${title}` : ""), [dueAt, now, title]);
   const secondsLeft = Math.max(0, Math.ceil((dueAt - now) / 1000));
   const hasTimer = dueAt > now && restSeconds > 0;
+  const percent = totalSets && totalSets > 0 ? Math.round(((completedSets ?? 0) / totalSets) * 100) : 0;
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
 
@@ -170,8 +177,26 @@ export function WorkoutRestTimer({
   }
 
   return (
-    <section className="rounded-[18px] border border-[#263241] bg-[#111827] p-3">
-      {hasTimer ? (
+    <div className="space-y-2">
+      {hasTimer && typeof completedSets === "number" && typeof totalSets === "number" ? (
+        <section className="rounded-[18px] border border-[#263241] bg-[#111827] p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[13px] font-bold text-[#9CA3AF]">{TEXT.today}</p>
+              <p className="mt-1 text-[31px] font-black leading-none text-[#F9FAFB]">
+                {completedSets}/{totalSets} set
+              </p>
+            </div>
+            <div className="shrink-0 rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-2 text-center">
+              <p className="text-[22px] font-black leading-none text-[#38BDF8]">{percent}%</p>
+              <p className="mt-1 text-[11px] font-bold text-[#9CA3AF]">{TEXT.progress}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="rounded-[18px] border border-[#263241] bg-[#111827] p-3">
+        {hasTimer ? (
         <div className="flex min-w-0 items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[14px] font-bold text-[#86EFAC]">{TEXT.resting}</p>
@@ -184,9 +209,9 @@ export function WorkoutRestTimer({
             <p className="text-[12px] font-bold text-[#9CA3AF]">{TEXT.left}</p>
           </div>
         </div>
-      ) : null}
+        ) : null}
 
-      {permission !== "granted" ? (
+        {permission !== "granted" ? (
         <div className={hasTimer ? "mt-3 border-t border-[#263241] pt-3" : ""}>
           <button
             type="button"
@@ -197,9 +222,10 @@ export function WorkoutRestTimer({
           </button>
           <p className="mt-2 text-[13px] leading-5 text-[#9CA3AF]">{TEXT.help}</p>
         </div>
-      ) : null}
+        ) : null}
 
-      {message ? <p className="mt-2 text-[13px] leading-5 text-[#D1D5DB]">{message}</p> : null}
-    </section>
+        {message ? <p className="mt-2 text-[13px] leading-5 text-[#D1D5DB]">{message}</p> : null}
+      </section>
+    </div>
   );
 }
