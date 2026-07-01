@@ -76,11 +76,13 @@ export function WorkoutRestTimer({
   body: initialBody,
   dueAtMs,
   restSeconds: initialRestSeconds,
+  showPrompt = true,
   title: initialTitle,
 }: {
   body?: string | null;
   dueAtMs?: number | null;
   restSeconds?: number | null;
+  showPrompt?: boolean;
   title?: string | null;
 }) {
   const searchParams = useSearchParams();
@@ -184,7 +186,7 @@ export function WorkoutRestTimer({
     setMessage(subscribed ? TEXT.subscribed : TEXT.localOnly);
   }
 
-  if (!hasTimer && permission === "granted") {
+  if (!showPrompt || (!hasTimer && permission === "granted")) {
     return null;
   }
 

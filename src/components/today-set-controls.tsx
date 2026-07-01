@@ -64,18 +64,18 @@ export function TodaySetControls({
   }, [restLocked]);
 
   return (
-    <form action={action} onSubmit={handleSubmit} noValidate className="space-y-3">
+    <form action={action} onSubmit={handleSubmit} noValidate className="space-y-2">
       <input type="hidden" name="setLogId" value={setLogId} />
       <input type="hidden" name="isCompleted" value="on" />
       <input type="hidden" name="actualReps" value={formatWorkoutWeightKg(reps)} />
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-[16px] border border-[#263241] bg-[#0B0F14] p-2">
+        <div className="rounded-[14px] border border-[#263241] bg-[#0B0F14] p-2">
           <p className="px-1 text-[12px] font-bold text-[#9CA3AF]">{TEXT.weight}</p>
-          <div className="mt-2 grid grid-cols-[30px_minmax(0,1fr)_30px] items-center gap-1">
+          <div className="mt-1.5 grid grid-cols-[30px_minmax(0,1fr)_30px] items-center gap-1">
             <button
               type="button"
-              className="h-11 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
+              className="h-10 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
               onClick={() =>
                 setWeightKg((value) => {
                   const nextValue = clampWorkoutWeightKg(value - 2.5);
@@ -87,7 +87,7 @@ export function TodaySetControls({
             >
               -
             </button>
-            <label className="flex min-w-0 items-center justify-center rounded-[12px] bg-[#111827] px-1 py-2 text-center text-[17px] font-black text-[#F9FAFB]">
+            <label className="flex min-w-0 items-center justify-center rounded-[12px] bg-[#111827] px-1 py-1.5 text-center text-[16px] font-black text-[#F9FAFB]">
               <input
                 type="number"
                 min={0}
@@ -107,14 +107,14 @@ export function TodaySetControls({
                   setWeightText(nextText);
                   setWeightKg(nextWeight);
                 }}
-                className="w-[44px] bg-transparent text-center text-[17px] font-black text-[#F9FAFB] outline-none"
+                className="w-[56px] bg-transparent text-center text-[16px] font-black text-[#F9FAFB] outline-none"
                 aria-label={TEXT.weightInput}
               />
               <span className="shrink-0">kg</span>
             </label>
             <button
               type="button"
-              className="h-11 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
+              className="h-10 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
               onClick={() =>
                 setWeightKg((value) => {
                   const nextValue = clampWorkoutWeightKg(value + 2.5);
@@ -129,9 +129,9 @@ export function TodaySetControls({
           </div>
         </div>
 
-        <div className="rounded-[16px] border border-[#263241] bg-[#0B0F14] p-2">
+        <div className="rounded-[14px] border border-[#263241] bg-[#0B0F14] p-2">
           <p className="px-1 text-[12px] font-bold text-[#9CA3AF]">{TEXT.reps}</p>
-          <div className="mt-2 flex h-11 items-center justify-center rounded-[12px] bg-[#111827] px-2 text-center text-[17px] font-black text-[#F9FAFB]">
+          <div className="mt-1.5 flex h-10 items-center justify-center rounded-[12px] bg-[#111827] px-2 text-center text-[16px] font-black text-[#F9FAFB]">
             <span className="min-w-0 whitespace-nowrap">
               {reps || 0} {TEXT.repUnit}
             </span>
@@ -141,7 +141,7 @@ export function TodaySetControls({
 
       <button
         disabled={restLocked}
-        className="min-h-[56px] w-full rounded-[16px] bg-[#22C55E] px-4 py-3 text-[18px] font-black text-white shadow-[0_14px_28px_rgba(34,197,94,0.18)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#334155] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
+        className="min-h-[50px] w-full rounded-[16px] bg-[#22C55E] px-4 py-2.5 text-[18px] font-black text-white shadow-[0_14px_28px_rgba(34,197,94,0.18)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#334155] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
       >
         {restLocked ? TEXT.waitRest : `Xong set ${setNumber}`}
       </button>

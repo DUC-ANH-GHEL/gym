@@ -6,6 +6,7 @@ import { AppCard, EmptyState } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { RestCountdownPill } from "@/components/rest-countdown-pill";
+import { TodayExercisePicker } from "@/components/today-exercise-picker";
 import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodaySetControls } from "@/components/today-set-controls";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
@@ -104,9 +105,9 @@ function ExerciseMediaFrame({
         width={720}
         height={420}
         imageClassName="h-full w-full object-cover"
-        placeholderClassName="flex aspect-video w-full items-center justify-center rounded-[18px] bg-[#0B0F14] text-[15px] font-bold text-[#9CA3AF]"
+        placeholderClassName="flex h-full w-full items-center justify-center rounded-[16px] bg-[#0B0F14] text-[15px] font-bold text-[#9CA3AF]"
         placeholderLabel={TEXT.noImage}
-        buttonClassName="block aspect-video w-full rounded-[18px] bg-black"
+        buttonClassName="block h-full w-full rounded-[16px] bg-black"
         sizes="(max-width: 480px) 100vw, 480px"
       />
     );
@@ -166,11 +167,11 @@ function ProgressCard({
   const percent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
   return (
-    <AppCard className="border-[#263241] bg-[#111827] p-3">
+    <AppCard className="rounded-[18px] border-[#263241] bg-[#111827] p-2.5">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[13px] font-bold text-[#9CA3AF]">{TEXT.today}</p>
-          <p className="mt-1 text-[32px] font-black leading-none text-[#F9FAFB]">
+          <p className="text-[12px] font-black text-[#86EFAC]">{restLock ? TEXT.resting : TEXT.today}</p>
+          <p className="mt-0.5 text-[25px] font-black leading-none text-[#F9FAFB]">
             {completedSets}/{totalSets} set
           </p>
         </div>
@@ -184,18 +185,12 @@ function ProgressCard({
             </button>
           </form>
         ) : (
-          <div className="shrink-0 rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-2 text-right">
-            <p className="text-[22px] font-black text-[#38BDF8]">{percent}%</p>
+          <div className="shrink-0 rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5 text-right">
+            <p className="text-[21px] font-black leading-none text-[#38BDF8]">{percent}%</p>
             <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.progress}</p>
           </div>
         )}
       </div>
-      {restLock ? (
-        <div className="mt-3 border-t border-[#263241] pt-3">
-          <p className="text-[14px] font-black text-[#86EFAC]">{TEXT.resting}</p>
-          <p className="mt-1 break-words text-[15px] leading-5 text-[#F9FAFB]">{restLock.body}</p>
-        </div>
-      ) : null}
     </AppCard>
   );
 }
@@ -204,98 +199,82 @@ function CurrentExerciseCard({
   row,
   exercise,
   restLock,
+  rows,
   selectedSet,
   setDefaults,
 }: {
   row: ExerciseRow;
   exercise: ActiveExercise | null;
   restLock: RestLock | null;
+  rows: ExerciseRow[];
   selectedSet: ActiveSet | null;
   setDefaults: { weightKg: number | null; reps: number | null };
 }) {
-  const status = getExerciseStatus(row);
   const setNumber =
     selectedSet && exercise ? getSetDisplayNumber(exercise.setLogs, selectedSet) : Math.min(row.completedSets + 1, row.setCount || 1);
   const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
 
   return (
-    <section className="overflow-hidden rounded-[22px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
-      <div className="p-3">
-        <div className="overflow-hidden rounded-[18px] border border-[#263241] bg-black">
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
+      <div className="shrink-0 p-2 pb-0">
+        <div className="h-[clamp(112px,24dvh,198px)] overflow-hidden rounded-[16px] border border-[#263241] bg-black min-[380px]:h-[clamp(170px,31dvh,270px)]">
           <ExerciseMediaFrame exercise={row} alt={row.name} variant="hero" />
         </div>
       </div>
 
-      <div className="space-y-3 px-4 pb-4">
-        <div className="flex min-w-0 items-start gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-3 pt-2">
+        <div className="flex min-w-0 items-start gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-[14px] font-black text-[#86EFAC]">
+            <p className="text-[13px] font-black leading-4 text-[#86EFAC]">
               {row.isCompleted ? TEXT.completedExercise : row.isStarted ? TEXT.active : TEXT.nextExercise}
             </p>
-            <h2 className="mt-1 break-words text-[24px] font-black leading-tight text-[#F9FAFB]">{row.name}</h2>
-            <p className="mt-1 break-words text-[15px] font-semibold leading-5 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
+            <h2 className="mt-0.5 break-words text-[22px] font-black leading-[1.05] text-[#F9FAFB]">{row.name}</h2>
+            <p className="mt-0.5 break-words text-[14px] font-semibold leading-5 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
           </div>
-          <span className={`shrink-0 rounded-full border px-3 py-2 text-[13px] font-black ${status.className}`}>{status.label}</span>
+          <TodayExercisePicker action={startWorkoutExerciseAction} restDueAtMs={restLock?.dueAtMs ?? null} rows={rows} />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-2">
-            <p className="text-[12px] font-bold text-[#9CA3AF]">Set</p>
-            <p className="mt-1 text-[19px] font-black text-[#F9FAFB]">
-              {row.completedSets}/{row.setCount}
+          <div className="rounded-[14px] border border-[#263241] bg-[#0B0F14] px-3 py-2">
+            <p className="text-[11px] font-bold text-[#9CA3AF]">Đã xong</p>
+            <p className="mt-0.5 text-[18px] font-black leading-none text-[#F9FAFB]">
+              {row.completedSets}/{row.setCount} set
             </p>
           </div>
-          <div className="rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-2">
-            <p className="text-[12px] font-bold text-[#9CA3AF]">{TEXT.preparing}</p>
-            <p className="mt-1 text-[19px] font-black text-[#F9FAFB]">Set {setNumber}</p>
+          <div className="rounded-[14px] border border-[#263241] bg-[#0B0F14] px-3 py-2">
+            <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.preparing}</p>
+            <p className="mt-0.5 text-[18px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
           </div>
         </div>
 
-        {selectedSet?.lastHint ? <p className="rounded-[14px] bg-[#0B0F14] px-3 py-2 text-[14px] font-bold leading-5 text-[#86EFAC]">{selectedSet.lastHint}</p> : null}
+        {selectedSet?.lastHint ? (
+          <p className="rounded-[12px] bg-[#0B0F14] px-3 py-1.5 text-[12px] font-bold leading-4 text-[#86EFAC]">{selectedSet.lastHint}</p>
+        ) : null}
 
-        {canSubmitSet && selectedSet ? (
-          <TodaySetControls
-            key={selectedSet.id}
-            setLogId={selectedSet.id}
-            setNumber={setNumber}
-            defaultWeightKg={setDefaults.weightKg}
-            defaultReps={setDefaults.reps}
-            restDueAtMs={restLock?.dueAtMs ?? null}
-            action={saveWorkoutSetAction}
-          />
-        ) : row.isCompleted ? (
-          <Link
-            href={row.exerciseLogId ? `/today?exercise=${row.exerciseLogId}` : "/today"}
-            className="flex min-h-[54px] w-full items-center justify-center rounded-[16px] border border-[#374151] bg-[#0B0F14] px-4 py-3 text-[17px] font-black text-[#F9FAFB]"
-          >
-            {TEXT.reviewExercise}
-          </Link>
-        ) : (
-          <StartExerciseButton row={row} restLock={restLock} wide />
-        )}
+        <div className="mt-auto">
+          {canSubmitSet && selectedSet ? (
+            <TodaySetControls
+              key={selectedSet.id}
+              setLogId={selectedSet.id}
+              setNumber={setNumber}
+              defaultWeightKg={setDefaults.weightKg}
+              defaultReps={setDefaults.reps}
+              restDueAtMs={restLock?.dueAtMs ?? null}
+              action={saveWorkoutSetAction}
+            />
+          ) : row.isCompleted ? (
+            <Link
+              href={row.exerciseLogId ? `/today?exercise=${row.exerciseLogId}` : "/today"}
+              className="flex min-h-[50px] w-full items-center justify-center rounded-[16px] border border-[#374151] bg-[#0B0F14] px-4 py-2.5 text-[17px] font-black text-[#F9FAFB]"
+            >
+              {TEXT.reviewExercise}
+            </Link>
+          ) : (
+            <StartExerciseButton row={row} restLock={restLock} wide />
+          )}
+        </div>
       </div>
     </section>
-  );
-}
-
-function ExerciseListRow({ restLock, row }: { restLock: RestLock | null; row: ExerciseRow }) {
-  const status = getExerciseStatus(row);
-
-  return (
-    <div className="grid min-w-0 grid-cols-[92px_1fr_auto] items-center gap-3 rounded-[18px] border border-[#263241] bg-[#111827] p-3">
-      <ExerciseMediaFrame exercise={row} alt={row.name} />
-      <div className="min-w-0">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <h3 className="min-w-0 break-words text-[17px] font-black leading-5 text-[#F9FAFB]">{row.name}</h3>
-          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[12px] font-black ${status.className}`}>{status.label}</span>
-        </div>
-        <p className="mt-1 break-words text-[14px] font-semibold leading-5 text-[#9CA3AF]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
-        <p className="mt-1 text-[13px] font-bold text-[#D1D5DB]">
-          {row.completedSets}/{row.setCount} set
-        </p>
-      </div>
-      <StartExerciseButton row={row} restLock={restLock} />
-    </div>
   );
 }
 
@@ -473,29 +452,43 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
   } = await getTodayPageData(params);
 
   return (
-    <AppShell>
-      <div className="space-y-3">
-        <div className="min-w-0">
-          <p className="text-[15px] font-black text-[#86EFAC]">
-            {TEXT.hello}, {displayName}
-          </p>
-          <h1 className="mt-1 break-words text-[25px] font-black leading-tight text-[#F9FAFB]">{pageTitle}</h1>
+    <AppShell todayFit>
+      <div className="shrink-0 space-y-2">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-black leading-4 text-[#86EFAC]">
+              {TEXT.hello}, {displayName}
+            </p>
+            <h1 className="mt-0.5 break-words text-[18px] font-black leading-[1.12] text-[#F9FAFB]">{pageTitle}</h1>
+          </div>
+          <div className="shrink-0 rounded-[14px] border border-[#263241] bg-[#111827] px-3 py-1.5 text-right">
+            <p className="text-[18px] font-black leading-none text-[#F9FAFB]">
+              {completedSets}/{totalSets}
+            </p>
+            <p className="mt-0.5 text-[10px] font-bold text-[#9CA3AF]">set</p>
+          </div>
         </div>
 
         <ProgressCard completedSets={completedSets} restLock={restLock} totalSets={totalSets} todayLogId={todayLogId} />
       </div>
 
       {!workoutDay ? (
-        <EmptyState
-          title={TEXT.noScheduleTitle}
-          description={TEXT.chooseSchedule}
-          actionHref="/schedule"
-          actionLabel={TEXT.openSchedule}
-        />
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <EmptyState
+            title={TEXT.noScheduleTitle}
+            description={TEXT.chooseSchedule}
+            actionHref="/schedule"
+            actionLabel={TEXT.openSchedule}
+          />
+        </div>
       ) : isRestDay ? (
-        <EmptyState title={TEXT.restTitle} description={TEXT.restDescription} />
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <EmptyState title={TEXT.restTitle} description={TEXT.restDescription} />
+        </div>
       ) : rows.length === 0 ? (
-        <EmptyState title={TEXT.noExerciseTitle} description={TEXT.addExercise} actionHref="/schedule" actionLabel={TEXT.editSchedule} />
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <EmptyState title={TEXT.noExerciseTitle} description={TEXT.addExercise} actionHref="/schedule" actionLabel={TEXT.editSchedule} />
+        </div>
       ) : (
         <>
           {activeRow ? (
@@ -503,6 +496,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
               row={activeRow}
               exercise={activeExerciseWithHistory}
               restLock={restLock}
+              rows={rows}
               selectedSet={selectedSet}
               setDefaults={setDefaults}
             />
@@ -513,21 +507,8 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
             dueAtMs={restLock?.dueAtMs ?? null}
             restSeconds={restLock?.restSeconds ?? null}
             title={restLock?.title ?? null}
+            showPrompt={false}
           />
-
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-[19px] font-black text-[#F9FAFB]">{TEXT.todayExercises}</h2>
-              <span className="shrink-0 text-[14px] font-black text-[#9CA3AF]">
-                {rows.filter((row) => row.isCompleted).length}/{rows.length} {TEXT.exerciseUnit}
-              </span>
-            </div>
-            <div className="space-y-2">
-              {rows.map((row) => (
-                <ExerciseListRow key={row.workoutDayExerciseId} row={row} restLock={restLock} />
-              ))}
-            </div>
-          </section>
         </>
       )}
     </AppShell>

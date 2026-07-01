@@ -11,12 +11,16 @@ const navItems = [
   { href: "/profile", label: "Cá nhân" },
 ] as const;
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, todayFit = false }: { children: ReactNode; todayFit?: boolean }) {
   const pathname = usePathname();
+  const shellClassName = todayFit
+    ? "h-dvh overflow-hidden bg-[#0B0F14] px-3 pb-[calc(76px+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+8px)] text-[#F9FAFB]"
+    : "min-h-dvh bg-[#0B0F14] px-4 pb-[calc(92px+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+18px)] text-[#F9FAFB]";
+  const mainClassName = todayFit ? "flex h-full min-h-0 flex-col gap-2 overflow-hidden" : "space-y-4";
 
   return (
-    <div className="min-h-dvh bg-[#0B0F14] px-4 pb-[calc(92px+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+18px)] text-[#F9FAFB]">
-      <main className="space-y-4">{children}</main>
+    <div className={shellClassName}>
+      <main className={mainClassName}>{children}</main>
       <nav className="fixed bottom-0 left-1/2 z-20 w-full max-w-[480px] -translate-x-1/2 border-t border-[#374151] bg-[#111827]/95 px-3 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
         <div className="grid grid-cols-4 gap-1.5">
           {navItems.map((item) => {
