@@ -35,6 +35,17 @@ test("updates workout weight from typed text without forcing empty text to zero"
   });
 });
 
+test("removes leading zeroes while typing workout weight", () => {
+  assert.deepEqual(updateWorkoutWeightInput("05", 0), {
+    text: "5",
+    weightKg: 5,
+  });
+  assert.deepEqual(updateWorkoutWeightInput("00.5", 0), {
+    text: "0.5",
+    weightKg: 0.5,
+  });
+});
+
 test("finalizes workout weight input for display after editing", () => {
   assert.equal(finalizeWorkoutWeightInput("", 42.5), "42.5");
   assert.equal(finalizeWorkoutWeightInput("150", 42.5), "100");

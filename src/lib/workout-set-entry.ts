@@ -16,21 +16,34 @@ export function formatWorkoutWeightKg(value: number | null) {
   return Number.isInteger(value) ? String(value) : String(value).replace(/\.0$/, "");
 }
 
+function normalizeWorkoutWeightText(text: string) {
+  if (text.startsWith("0.") || text === "0") {
+    return text;
+  }
+
+  if (/^0+\.\d*$/.test(text)) {
+    return `0.${text.split(".")[1] ?? ""}`;
+  }
+
+  return text.replace(/^0+(?=\d)/, "");
+}
+
 export function updateWorkoutWeightInput(rawText: string, previousWeightKg: number) {
   const text = rawText.trim();
   if (text === "") {
     return { text, weightKg: previousWeightKg };
   }
 
-  const nextValue = Number(text);
+  const normalizedText = normalizeWorkoutWeightText(text);
+  const nextValue = Number(normalizedText);
   if (!Number.isFinite(nextValue)) {
-    return { text, weightKg: previousWeightKg };
+    return { text: normalizedText, weightKg: previousWeightKg };
   }
 
   const weightKg = clampWorkoutWeightKg(nextValue);
 
   return {
-    text: nextValue !== weightKg ? formatWorkoutWeightKg(weightKg) : text,
+    text: nextValue !== weightKg ? formatWorkoutWeightKg(weightKg) : normalizedText,
     weightKg,
   };
 }
