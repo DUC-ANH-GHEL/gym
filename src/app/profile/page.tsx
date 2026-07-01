@@ -58,22 +58,14 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
         <AppCard className="space-y-3">
           <div>
             <h2 className="text-[18px] font-bold text-[#F9FAFB]">Admin</h2>
-            <p className="mt-1 text-[14px] text-[#9CA3AF]">Mở nhanh trang template, metadata và media bài tập chung.</p>
+            <p className="mt-1 text-[14px] text-[#9CA3AF]">Mở khu quản lý admin riêng.</p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Link
-              href="/admin"
-              className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#38BDF8] px-4 py-3 text-[15px] font-bold text-[#0B0F14]"
-            >
-              Mở admin
-            </Link>
-            <Link
-              href="/admin/exercise-media"
-              className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] border border-[#243041] bg-[#111827] px-4 py-3 text-[15px] font-bold text-[#F9FAFB]"
-            >
-              Media bài tập
-            </Link>
-          </div>
+          <Link
+            href="/admin"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#38BDF8] px-4 py-3 text-[15px] font-bold text-[#0B0F14]"
+          >
+            Mở admin
+          </Link>
         </AppCard>
       ) : null}
     </AppShell>
