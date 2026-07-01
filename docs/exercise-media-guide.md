@@ -95,7 +95,7 @@ Khi một bài chưa có GIF hoặc chưa có ảnh đúng:
 
 1. Tìm slug của bài trong app, admin hoặc DB.
 2. Tìm folder đúng trong dataset local.
-3. Thêm mapping vào `MANUAL_MATCH_MAP`.
+3. Thêm mapping vào `MANUAL_MATCH_MAP` trong `scripts/seed_free_exercise_db_media.py`.
 4. Chạy dry-run theo đúng slug.
 5. Nếu log đúng thì chạy thật theo slug đó.
 

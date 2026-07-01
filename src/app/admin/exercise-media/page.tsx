@@ -92,7 +92,7 @@ export default async function AdminExerciseMediaPage({
           <ol className="space-y-1 text-[14px] leading-6 text-[#CBD5E1]">
             <li>1. Chọn bài thiếu GIF.</li>
             <li>2. Tìm folder đúng trong `tools/exercisedb/free-exercise-db-main/exercises`.</li>
-            <li>3. Thêm mapping vào `MANUAL_MATCH_MAP` trong script.</li>
+            <li>3. Thêm mapping vào `MANUAL_MATCH_MAP` trong `scripts/seed_free_exercise_db_media.py`.</li>
             <li>4. Chạy dry-run theo slug.</li>
             <li>5. Nếu đúng thì chạy thật.</li>
           </ol>
