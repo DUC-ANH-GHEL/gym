@@ -217,8 +217,8 @@ function CurrentExerciseCard({
 
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
-      <div className="shrink-0 p-2 pb-0">
-        <div className="h-[clamp(76px,15svh,140px)] overflow-hidden rounded-[15px] border border-[#263241] bg-black [@media(min-height:760px)]:h-[clamp(128px,22svh,190px)] [@media(min-height:860px)]:h-[clamp(165px,26svh,230px)]">
+      <div className="shrink-0 p-1.5 pb-0">
+        <div className="h-[clamp(96px,17svh,152px)] overflow-hidden rounded-[15px] border border-[#263241] bg-black [@media(min-height:760px)]:h-[clamp(148px,24svh,210px)] [@media(min-height:860px)]:h-[clamp(185px,28svh,250px)]">
           <ExerciseMediaFrame exercise={row} alt={row.name} variant="hero" />
         </div>
       </div>
@@ -252,7 +252,7 @@ function CurrentExerciseCard({
           <p className="rounded-[12px] bg-[#0B0F14] px-3 py-1.5 text-[12px] font-bold leading-4 text-[#86EFAC]">{selectedSet.lastHint}</p>
         ) : null}
 
-        <div className="mt-auto pb-[58px]">
+        <div className="pb-[58px]">
           {canSubmitSet && selectedSet ? (
             <TodaySetControls
               key={selectedSet.id}
