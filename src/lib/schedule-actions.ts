@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -76,6 +77,8 @@ export async function applyWorkoutTemplateAction(formData: FormData): Promise<vo
       where: { workoutDay: { userId: user.id } },
     });
 
+    const resolvedWorkoutDays = new Map<number, { id: string }>();
+
     for (const config of DAY_CONFIG) {
       const templateDay = template.days.find((day) => day.dayOfWeek === config.dayOfWeek);
       const workoutDay = workoutDays.find((day) => day.dayOfWeek === config.dayOfWeek);
@@ -99,31 +102,66 @@ export async function applyWorkoutTemplateAction(formData: FormData): Promise<vo
         },
       });
 
-      if (!templateDay || templateDay.isRestDay) {
+      resolvedWorkoutDays.set(config.dayOfWeek, { id: resolvedDay.id });
+    }
+
+    const exerciseRows: {
+      id: string;
+      workoutDayId: string;
+      catalogItemId: string;
+      orderIndex: number;
+      note: string | null;
+    }[] = [];
+    const setRows: {
+      id: string;
+      workoutDayExerciseId: string;
+      setIndex: number;
+      intensityPercent: number | null;
+      targetReps: number | null;
+      targetWeightKg: number | null;
+    }[] = [];
+
+    for (const templateDay of template.days) {
+      const workoutDay = resolvedWorkoutDays.get(templateDay.dayOfWeek);
+
+      if (!workoutDay || templateDay.isRestDay) {
         continue;
       }
 
       for (const [orderIndex, templateExercise] of templateDay.exercises.entries()) {
-        await tx.workoutDayExercise.create({
-          data: {
-            workoutDayId: resolvedDay.id,
-            catalogItemId: templateExercise.catalogItemId,
-            orderIndex,
-            note: templateExercise.note || null,
-            sets: {
-              create:
-                templateExercise.sets.length > 0
-                  ? templateExercise.sets.map((set) => ({
-                      setIndex: set.setIndex,
-                      intensityPercent: set.intensityPercent,
-                      targetReps: set.targetReps,
-                      targetWeightKg: set.targetWeightKg,
-                    }))
-                  : buildDefaultPlanSets(templateExercise.catalogItem.defaultWeightKg ?? null),
-            },
-          },
+        const workoutDayExerciseId = randomUUID();
+        exerciseRows.push({
+          id: workoutDayExerciseId,
+          workoutDayId: workoutDay.id,
+          catalogItemId: templateExercise.catalogItemId,
+          orderIndex,
+          note: templateExercise.note || null,
         });
+
+        const sourceSets =
+          templateExercise.sets.length > 0
+            ? templateExercise.sets
+            : buildDefaultPlanSets(templateExercise.catalogItem.defaultWeightKg ?? null);
+
+        for (const set of sourceSets) {
+          setRows.push({
+            id: randomUUID(),
+            workoutDayExerciseId,
+            setIndex: set.setIndex,
+            intensityPercent: set.intensityPercent,
+            targetReps: set.targetReps,
+            targetWeightKg: set.targetWeightKg,
+          });
+        }
       }
+    }
+
+    if (exerciseRows.length > 0) {
+      await tx.workoutDayExercise.createMany({ data: exerciseRows });
+    }
+
+    if (setRows.length > 0) {
+      await tx.workoutPlanSet.createMany({ data: setRows });
     }
 
     await tx.gymProfile.upsert({
@@ -139,7 +177,7 @@ export async function applyWorkoutTemplateAction(formData: FormData): Promise<vo
         appliedWorkoutTemplateAt: new Date(),
       },
     });
-  });
+  }, { timeout: 30_000 });
 
   revalidatePath("/schedule");
   revalidatePath("/today");
