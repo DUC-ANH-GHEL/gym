@@ -29,6 +29,7 @@ const TEXT = {
   progress: "ti\u1ebfn \u0111\u1ed9",
   resting: "\u0110ang ngh\u1ec9",
   completedExercise: "B\u00e0i \u0111\u00e3 xong",
+  completedSets: "\u0110\u00e3 xong",
   nextExercise: "B\u00e0i ti\u1ebfp theo",
   noMuscleGroup: "Ch\u01b0a c\u00f3 nh\u00f3m c\u01a1",
   preparing: "\u0110ang chu\u1ea9n b\u1ecb",
@@ -218,7 +219,7 @@ function CurrentExerciseCard({
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
       <div className="shrink-0 p-1.5 pb-0">
-        <div className="h-[clamp(96px,17svh,152px)] overflow-hidden rounded-[15px] border border-[#263241] bg-black [@media(min-height:760px)]:h-[clamp(148px,24svh,210px)] [@media(min-height:860px)]:h-[clamp(185px,28svh,250px)]">
+        <div className="h-[clamp(170px,28svh,210px)] overflow-hidden rounded-[15px] border border-[#263241] bg-black [@media(min-height:760px)]:h-[clamp(220px,33svh,285px)] [@media(min-height:860px)]:h-[clamp(280px,37svh,360px)]">
           <ExerciseMediaFrame exercise={row} alt={row.name} variant="hero" />
         </div>
       </div>
@@ -237,7 +238,7 @@ function CurrentExerciseCard({
 
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
-            <p className="text-[11px] font-bold text-[#9CA3AF]">Đã xong</p>
+            <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.completedSets}</p>
             <p className="text-[17px] font-black leading-none text-[#F9FAFB]">
               {row.completedSets}/{row.setCount} set
             </p>
