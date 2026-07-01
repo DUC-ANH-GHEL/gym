@@ -1,9 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildFreeExerciseDbImageUrl,
   buildExerciseMediaSeedCommand,
   hasAnimationUrl,
+  isAllowedDatasetFolderName,
   normalizeExerciseMediaSearch,
+  normalizeDatasetFolderName,
   parseMissingAnimationFilter,
 } from "./exercise-media-admin.ts";
 
@@ -34,5 +37,23 @@ test("builds dry-run and apply commands for a single exercise slug", () => {
   assert.equal(
     buildExerciseMediaSeedCommand("romanian-deadlift", false),
     "python scripts/seed_free_exercise_db_media.py --slug romanian-deadlift --include-existing",
+  );
+});
+
+test("normalizes and validates dataset folder names", () => {
+  assert.equal(normalizeDatasetFolderName("  Romanian_Deadlift  "), "Romanian_Deadlift");
+  assert.equal(isAllowedDatasetFolderName("Romanian_Deadlift"), true);
+  assert.equal(isAllowedDatasetFolderName("../secret"), false);
+  assert.equal(isAllowedDatasetFolderName("bad/folder"), false);
+});
+
+test("builds GitHub raw image URLs for free-exercise-db folders", () => {
+  assert.equal(
+    buildFreeExerciseDbImageUrl("Romanian_Deadlift", 1),
+    "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg",
+  );
+  assert.equal(
+    buildFreeExerciseDbImageUrl("Bench Press", 0),
+    "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bench%20Press/0.jpg",
   );
 });

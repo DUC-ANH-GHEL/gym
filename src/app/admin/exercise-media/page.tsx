@@ -82,7 +82,7 @@ export default async function AdminExerciseMediaPage({
     <AppShell>
       <PageHeader
         title="Admin media bài tập"
-        description="Xem nhanh bài đang thiếu GIF, dò slug đúng và copy lệnh seed thủ công cho từng bài."
+        description="Xem bài thiếu GIF, nhập folder dataset, kiểm tra ảnh và cập nhật media ngay trên trang admin."
         action={<AdminRouteLinks current="exercise-media" />}
       />
 
@@ -91,14 +91,15 @@ export default async function AdminExerciseMediaPage({
           <h2 className="text-[18px] font-bold text-[#F8FAFC]">Cách làm nhanh</h2>
           <ol className="space-y-1 text-[14px] leading-6 text-[#CBD5E1]">
             <li>1. Chọn bài thiếu GIF.</li>
-            <li>2. Tìm folder đúng trong `tools/exercisedb/free-exercise-db-main/exercises`.</li>
-            <li>3. Thêm mapping vào `MANUAL_MATCH_MAP` trong `scripts/seed_free_exercise_db_media.py`.</li>
-            <li>4. Chạy dry-run theo slug.</li>
-            <li>5. Nếu đúng thì chạy thật.</li>
+            <li>2. Tìm folder đúng trong free-exercise-db.</li>
+            <li>3. Dán tên folder vào ô Dataset folder name.</li>
+            <li>4. Bấm Kiểm tra folder để chắc chắn có đủ 0.jpg và 1.jpg.</li>
+            <li>5. Nếu đúng, bấm Cập nhật media để upload Cloudinary và cập nhật DB.</li>
           </ol>
         </div>
-        <p className="break-all rounded-[14px] border border-[#243041] bg-[#0F172A] px-3 py-3 text-[13px] text-[#94A3B8]">
-          Dataset local: `tools/exercisedb/free-exercise-db-main/exercises`
+        <p className="break-words rounded-[14px] border border-[#243041] bg-[#0F172A] px-3 py-3 text-[13px] text-[#94A3B8]">
+          Trang này không chạy Python và không cần sửa file script. Script dự phòng vẫn nằm ở{" "}
+          <span className="font-semibold text-[#CBD5E1]">scripts/seed_free_exercise_db_media.py</span>.
         </p>
       </AppCard>
 

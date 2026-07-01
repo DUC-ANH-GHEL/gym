@@ -22,3 +22,16 @@ export function buildExerciseMediaSeedCommand(slug: string, dryRun: boolean) {
   const base = `python scripts/seed_free_exercise_db_media.py --slug ${slug} --include-existing`;
   return dryRun ? `${base} --dry-run` : base;
 }
+
+export function normalizeDatasetFolderName(value: string | null | undefined) {
+  return value?.trim() || "";
+}
+
+export function isAllowedDatasetFolderName(value: string) {
+  return /^[A-Za-z0-9][A-Za-z0-9_.()' -]{0,119}$/.test(value);
+}
+
+export function buildFreeExerciseDbImageUrl(folderName: string, index: number) {
+  const encodedFolder = encodeURIComponent(folderName).replace(/%2F/gi, "");
+  return `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${encodedFolder}/${index}.jpg`;
+}

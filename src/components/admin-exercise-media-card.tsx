@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
-import { buildExerciseMediaSeedCommand, hasAnimationUrl } from "@/lib/exercise-media-admin";
+import { hasAnimationUrl } from "@/lib/exercise-media-admin";
 
 type AdminExerciseMediaCardProps = {
   item: {
@@ -14,6 +14,14 @@ type AdminExerciseMediaCardProps = {
     animationUrl: string | null;
     updatedAtLabel: string;
   };
+};
+
+type MediaAction = "check" | "update";
+
+type MediaState = {
+  imageUrl: string | null;
+  animationUrl: string | null;
+  updatedAtLabel: string;
 };
 
 async function copyText(value: string) {
@@ -73,15 +81,66 @@ function PreviewBlock({
 
 export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
   const [datasetFolderName, setDatasetFolderName] = useState("");
-  const [copyStatus, setCopyStatus] = useState("");
-  const hasGif = hasAnimationUrl(item.animationUrl);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [media, setMedia] = useState<MediaState>({
+    imageUrl: item.imageUrl,
+    animationUrl: item.animationUrl,
+    updatedAtLabel: item.updatedAtLabel,
+  });
+  const hasGif = hasAnimationUrl(media.animationUrl);
 
-  async function handleCopy(value: string, label: string) {
+  async function handleCopySlug() {
     try {
-      await copyText(value);
-      setCopyStatus(`Đã copy ${label}.`);
+      await copyText(item.slug);
+      setStatusMessage("Đã copy slug.");
     } catch {
-      setCopyStatus(`Không copy được ${label}. Hãy thử lại trên trình duyệt khác.`);
+      setStatusMessage("Không copy được slug. Hãy thử lại trên trình duyệt khác.");
+    }
+  }
+
+  async function handleMediaAction(action: MediaAction) {
+    const folderName = datasetFolderName.trim();
+    if (!folderName) {
+      setStatusMessage("Nhập tên folder dataset trước khi kiểm tra hoặc cập nhật.");
+      return;
+    }
+
+    setIsSaving(true);
+    setStatusMessage(action === "check" ? "Đang kiểm tra folder..." : "Đang cập nhật media...");
+
+    try {
+      const response = await fetch("/api/admin/exercise-media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: item.slug, folderName, action }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        message?: string;
+        imageUrl?: string | null;
+        animationUrl?: string | null;
+        updatedAt?: string;
+      };
+
+      if (!response.ok) {
+        setStatusMessage(result.error || "Không xử lý được folder này.");
+        return;
+      }
+
+      if (action === "update") {
+        setMedia((current) => ({
+          imageUrl: result.imageUrl || current.imageUrl,
+          animationUrl: result.animationUrl || current.animationUrl,
+          updatedAtLabel: result.updatedAt ? new Date(result.updatedAt).toLocaleString("vi-VN") : current.updatedAtLabel,
+        }));
+      }
+
+      setStatusMessage(result.message || "Đã xử lý xong.");
+    } catch {
+      setStatusMessage("Không gọi được công cụ media. Hãy thử lại.");
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -101,22 +160,22 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
           </div>
           <p className="break-all text-[13px] font-medium text-[#7DD3FC]">{item.slug}</p>
           <p className="text-[13px] text-[#94A3B8]">
-            {item.muscleGroup || "Chưa có nhóm cơ"} · Cập nhật {item.updatedAtLabel}
+            {item.muscleGroup || "Chưa có nhóm cơ"} · Cập nhật {media.updatedAtLabel}
           </p>
         </div>
 
         <button
           type="button"
           className="min-h-[44px] rounded-[14px] border border-[#243041] bg-[#0F172A] px-4 py-3 text-[14px] font-semibold text-[#F8FAFC]"
-          onClick={() => handleCopy(item.slug, "slug")}
+          onClick={handleCopySlug}
         >
           Copy slug
         </button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <PreviewBlock title="Thumbnail" src={item.imageUrl} kind="image" alt={item.name} />
-        <PreviewBlock title="GIF động" src={item.animationUrl} kind="animation" alt={`${item.name} GIF`} />
+        <PreviewBlock title="Thumbnail" src={media.imageUrl} kind="image" alt={item.name} />
+        <PreviewBlock title="GIF động" src={media.animationUrl} kind="animation" alt={`${item.name} GIF`} />
       </div>
 
       <label className="block space-y-2">
@@ -127,27 +186,31 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
           placeholder="Ví dụ: Romanian_Deadlift"
           className="min-h-[48px] w-full rounded-[12px] border border-[#314155] bg-[#0F172A] px-3 text-[15px] text-[#F8FAFC] outline-none placeholder:text-[#64748B] focus:border-[#38BDF8]"
         />
-        <p className="text-[12px] text-[#94A3B8]">Ô này chỉ để ghi nhớ tạm khi dò folder, không lưu vào DB.</p>
+        <p className="text-[12px] text-[#94A3B8]">
+          Nhập đúng tên folder trong free-exercise-db, ví dụ <span className="font-semibold text-[#CBD5E1]">Romanian_Deadlift</span>.
+        </p>
       </label>
 
       <div className="grid gap-2 sm:grid-cols-2">
         <button
           type="button"
-          className="min-h-[44px] rounded-[14px] border border-[#243041] bg-[#0F172A] px-3 py-2 text-[13px] font-semibold text-[#E2E8F0]"
-          onClick={() => handleCopy(buildExerciseMediaSeedCommand(item.slug, true), "lệnh dry-run")}
+          className="min-h-[44px] rounded-[14px] border border-[#38BDF8]/50 bg-[#0F172A] px-3 py-2 text-[13px] font-semibold text-[#E0F2FE] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isSaving}
+          onClick={() => handleMediaAction("check")}
         >
-          Copy dry-run
+          Kiểm tra folder
         </button>
         <button
           type="button"
-          className="min-h-[44px] rounded-[14px] border border-[#243041] bg-[#0F172A] px-3 py-2 text-[13px] font-semibold text-[#E2E8F0]"
-          onClick={() => handleCopy(buildExerciseMediaSeedCommand(item.slug, false), "lệnh chạy thật")}
+          className="min-h-[44px] rounded-[14px] bg-[#38BDF8] px-3 py-2 text-[13px] font-bold text-[#082F49] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isSaving}
+          onClick={() => handleMediaAction("update")}
         >
-          Copy chạy thật
+          Cập nhật media
         </button>
       </div>
 
-      {copyStatus ? <p className="text-[13px] font-medium text-[#86EFAC]">{copyStatus}</p> : null}
+      {statusMessage ? <p className="text-[13px] font-medium text-[#86EFAC]">{statusMessage}</p> : null}
     </div>
   );
 }
