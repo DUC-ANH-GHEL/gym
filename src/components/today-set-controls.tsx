@@ -1,7 +1,14 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
-import { clampWorkoutWeightKg, MAX_WORKOUT_WEIGHT_KG } from "@/lib/workout-set-entry";
+import {
+  clampWorkoutWeightKg,
+  finalizeWorkoutWeightInput,
+  formatWorkoutWeightKg,
+  MAX_WORKOUT_WEIGHT_KG,
+  updateWorkoutWeightInput,
+} from "@/lib/workout-set-entry";
 
 const TEXT = {
   weight: "T\u1ea1",
@@ -12,14 +19,6 @@ const TEXT = {
   repUnit: "l\u1ea7n",
   waitRest: "\u0110ang ngh\u1ec9",
 };
-
-function formatNumber(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return "";
-  }
-
-  return Number.isInteger(value) ? String(value) : String(value).replace(/\.0$/, "");
-}
 
 export function TodaySetControls({
   setLogId,
@@ -37,9 +36,23 @@ export function TodaySetControls({
   action: (formData: FormData) => void | Promise<void>;
 }) {
   const [weightKg, setWeightKg] = useState(() => clampWorkoutWeightKg(defaultWeightKg ?? 0));
+  const [weightText, setWeightText] = useState(() => formatWorkoutWeightKg(clampWorkoutWeightKg(defaultWeightKg ?? 0)));
   const reps = defaultReps ?? 0;
   const [now, setNow] = useState(() => Date.now());
   const restLocked = typeof restDueAtMs === "number" && restDueAtMs > now;
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const weightInput = event.currentTarget.elements.namedItem("actualWeightKg");
+    if (!(weightInput instanceof HTMLInputElement)) {
+      return;
+    }
+
+    const nextText = finalizeWorkoutWeightInput(weightInput.value, weightKg);
+    const nextWeight = clampWorkoutWeightKg(Number(nextText));
+    weightInput.value = nextText;
+    setWeightText(nextText);
+    setWeightKg(nextWeight);
+  }
 
   useEffect(() => {
     if (!restLocked) {
@@ -51,11 +64,10 @@ export function TodaySetControls({
   }, [restLocked]);
 
   return (
-    <form action={action} className="space-y-3">
+    <form action={action} onSubmit={handleSubmit} noValidate className="space-y-3">
       <input type="hidden" name="setLogId" value={setLogId} />
       <input type="hidden" name="isCompleted" value="on" />
-      <input type="hidden" name="actualWeightKg" value={formatNumber(weightKg)} />
-      <input type="hidden" name="actualReps" value={formatNumber(reps)} />
+      <input type="hidden" name="actualReps" value={formatWorkoutWeightKg(reps)} />
 
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-[16px] border border-[#263241] bg-[#0B0F14] p-2">
@@ -64,7 +76,13 @@ export function TodaySetControls({
             <button
               type="button"
               className="h-11 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
-              onClick={() => setWeightKg((value) => clampWorkoutWeightKg(value - 2.5))}
+              onClick={() =>
+                setWeightKg((value) => {
+                  const nextValue = clampWorkoutWeightKg(value - 2.5);
+                  setWeightText(formatWorkoutWeightKg(nextValue));
+                  return nextValue;
+                })
+              }
               aria-label={TEXT.decreaseWeight}
             >
               -
@@ -76,8 +94,19 @@ export function TodaySetControls({
                 max={MAX_WORKOUT_WEIGHT_KG}
                 step={0.5}
                 inputMode="decimal"
-                value={formatNumber(weightKg) || "0"}
-                onChange={(event) => setWeightKg(clampWorkoutWeightKg(Number(event.target.value)))}
+                name="actualWeightKg"
+                value={weightText}
+                onChange={(event) => {
+                  const nextInput = updateWorkoutWeightInput(event.target.value, weightKg);
+                  setWeightText(nextInput.text);
+                  setWeightKg(nextInput.weightKg);
+                }}
+                onBlur={(event) => {
+                  const nextText = finalizeWorkoutWeightInput(event.target.value, weightKg);
+                  const nextWeight = clampWorkoutWeightKg(Number(nextText));
+                  setWeightText(nextText);
+                  setWeightKg(nextWeight);
+                }}
                 className="w-[44px] bg-transparent text-center text-[17px] font-black text-[#F9FAFB] outline-none"
                 aria-label={TEXT.weightInput}
               />
@@ -86,7 +115,13 @@ export function TodaySetControls({
             <button
               type="button"
               className="h-11 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97]"
-              onClick={() => setWeightKg((value) => clampWorkoutWeightKg(value + 2.5))}
+              onClick={() =>
+                setWeightKg((value) => {
+                  const nextValue = clampWorkoutWeightKg(value + 2.5);
+                  setWeightText(formatWorkoutWeightKg(nextValue));
+                  return nextValue;
+                })
+              }
               aria-label={TEXT.increaseWeight}
             >
               +

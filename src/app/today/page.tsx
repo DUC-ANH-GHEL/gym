@@ -255,6 +255,7 @@ function CurrentExerciseCard({
 
         {canSubmitSet && selectedSet ? (
           <TodaySetControls
+            key={selectedSet.id}
             setLogId={selectedSet.id}
             setNumber={setNumber}
             defaultWeightKg={setDefaults.weightKg}
