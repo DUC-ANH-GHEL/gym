@@ -20,6 +20,7 @@ type ExerciseMediaPreviewProps = {
   placeholderLabel?: string;
   buttonClassName?: string;
   sizes?: string;
+  priority?: boolean;
 };
 
 export function ExerciseMediaPreview({
@@ -32,6 +33,7 @@ export function ExerciseMediaPreview({
   placeholderLabel = TEXT.image,
   buttonClassName = "block shrink-0 rounded-[14px]",
   sizes,
+  priority = false,
 }: ExerciseMediaPreviewProps) {
   const [isOpen, setIsOpen] = useState(false);
   const titleId = useId();
@@ -56,6 +58,7 @@ export function ExerciseMediaPreview({
           height={height}
           className={imageClassName}
           sizes={sizes}
+          priority={priority}
           unoptimized={viewerTarget.kind === "animation"}
         />
       </button>

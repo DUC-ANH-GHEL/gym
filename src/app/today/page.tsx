@@ -109,6 +109,7 @@ function ExerciseMediaFrame({
         placeholderLabel={TEXT.noImage}
         buttonClassName="block h-full w-full rounded-[16px] bg-black"
         sizes="(max-width: 480px) 100vw, 480px"
+        priority
       />
     );
   }
@@ -167,11 +168,11 @@ function ProgressCard({
   const percent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
   return (
-    <AppCard className="rounded-[18px] border-[#263241] bg-[#111827] p-2.5">
+    <AppCard className="rounded-[16px] border-[#263241] bg-[#111827] p-2">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[12px] font-black text-[#86EFAC]">{restLock ? TEXT.resting : TEXT.today}</p>
-          <p className="mt-0.5 text-[25px] font-black leading-none text-[#F9FAFB]">
+          <p className="text-[11px] font-black text-[#86EFAC]">{restLock ? TEXT.resting : TEXT.today}</p>
+          <p className="text-[23px] font-black leading-none text-[#F9FAFB]">
             {completedSets}/{totalSets} set
           </p>
         </div>
@@ -185,8 +186,8 @@ function ProgressCard({
             </button>
           </form>
         ) : (
-          <div className="shrink-0 rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5 text-right">
-            <p className="text-[21px] font-black leading-none text-[#38BDF8]">{percent}%</p>
+          <div className="shrink-0 rounded-[14px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5 text-right">
+            <p className="text-[20px] font-black leading-none text-[#38BDF8]">{percent}%</p>
             <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.progress}</p>
           </div>
         )}
@@ -215,35 +216,35 @@ function CurrentExerciseCard({
   const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
       <div className="shrink-0 p-2 pb-0">
-        <div className="h-[clamp(112px,24dvh,198px)] overflow-hidden rounded-[16px] border border-[#263241] bg-black min-[380px]:h-[clamp(170px,31dvh,270px)]">
+        <div className="h-[clamp(76px,15svh,140px)] overflow-hidden rounded-[15px] border border-[#263241] bg-black [@media(min-height:760px)]:h-[clamp(128px,22svh,190px)] [@media(min-height:860px)]:h-[clamp(165px,26svh,230px)]">
           <ExerciseMediaFrame exercise={row} alt={row.name} variant="hero" />
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-3 pt-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-1.5 px-3 pb-2 pt-1.5">
         <div className="flex min-w-0 items-start gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-black leading-4 text-[#86EFAC]">
+            <p className="text-[12px] font-black leading-4 text-[#86EFAC]">
               {row.isCompleted ? TEXT.completedExercise : row.isStarted ? TEXT.active : TEXT.nextExercise}
             </p>
-            <h2 className="mt-0.5 break-words text-[22px] font-black leading-[1.05] text-[#F9FAFB]">{row.name}</h2>
-            <p className="mt-0.5 break-words text-[14px] font-semibold leading-5 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
+            <h2 className="break-words text-[20px] font-black leading-[1.02] text-[#F9FAFB]">{row.name}</h2>
+            <p className="break-words text-[13px] font-semibold leading-4 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
           </div>
           <TodayExercisePicker action={startWorkoutExerciseAction} restDueAtMs={restLock?.dueAtMs ?? null} rows={rows} />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-[14px] border border-[#263241] bg-[#0B0F14] px-3 py-2">
+          <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
             <p className="text-[11px] font-bold text-[#9CA3AF]">Đã xong</p>
-            <p className="mt-0.5 text-[18px] font-black leading-none text-[#F9FAFB]">
+            <p className="text-[17px] font-black leading-none text-[#F9FAFB]">
               {row.completedSets}/{row.setCount} set
             </p>
           </div>
-          <div className="rounded-[14px] border border-[#263241] bg-[#0B0F14] px-3 py-2">
+          <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
             <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.preparing}</p>
-            <p className="mt-0.5 text-[18px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
+            <p className="text-[17px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
           </div>
         </div>
 
@@ -251,7 +252,7 @@ function CurrentExerciseCard({
           <p className="rounded-[12px] bg-[#0B0F14] px-3 py-1.5 text-[12px] font-bold leading-4 text-[#86EFAC]">{selectedSet.lastHint}</p>
         ) : null}
 
-        <div className="mt-auto">
+        <div className="mt-auto pb-[58px]">
           {canSubmitSet && selectedSet ? (
             <TodaySetControls
               key={selectedSet.id}
@@ -453,16 +454,16 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
 
   return (
     <AppShell todayFit>
-      <div className="shrink-0 space-y-2">
+      <div className="shrink-0 space-y-1.5">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-black leading-4 text-[#86EFAC]">
+            <p className="text-[12px] font-black leading-4 text-[#86EFAC]">
               {TEXT.hello}, {displayName}
             </p>
-            <h1 className="mt-0.5 break-words text-[18px] font-black leading-[1.12] text-[#F9FAFB]">{pageTitle}</h1>
+            <h1 className="break-words text-[16px] font-black leading-[1.08] text-[#F9FAFB]">{pageTitle}</h1>
           </div>
-          <div className="shrink-0 rounded-[14px] border border-[#263241] bg-[#111827] px-3 py-1.5 text-right">
-            <p className="text-[18px] font-black leading-none text-[#F9FAFB]">
+          <div className="shrink-0 rounded-[13px] border border-[#263241] bg-[#111827] px-3 py-1 text-right">
+            <p className="text-[17px] font-black leading-none text-[#F9FAFB]">
               {completedSets}/{totalSets}
             </p>
             <p className="mt-0.5 text-[10px] font-bold text-[#9CA3AF]">set</p>
