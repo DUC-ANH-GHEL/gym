@@ -12,6 +12,7 @@ import {
   updateWorkoutTemplateDayAction,
   updateWorkoutTemplateSetAction,
 } from "@/lib/admin-template-actions";
+import { AdminRouteLinks } from "@/components/admin-route-links";
 import { AppShell } from "@/components/app-shell";
 import { AppButton, AppCard, AppInput, AppTextarea, PageHeader } from "@/components/ui";
 import { TemplateDayCard } from "@/components/template-day-card";
@@ -59,6 +60,7 @@ export default async function AdminTemplatesPage({
           </Link>
         }
       />
+      <AdminRouteLinks current="templates" />
 
       {params?.error ? (
         <p className="rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-4 py-3 text-[13px] font-semibold text-[#FCA5A5]">

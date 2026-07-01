@@ -1,0 +1,38 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  buildExerciseMediaSeedCommand,
+  hasAnimationUrl,
+  normalizeExerciseMediaSearch,
+  parseMissingAnimationFilter,
+} from "./exercise-media-admin.ts";
+
+test("normalizes media admin search term by trimming whitespace", () => {
+  assert.equal(normalizeExerciseMediaSearch("  romanian-deadlift  "), "romanian-deadlift");
+  assert.equal(normalizeExerciseMediaSearch(""), "");
+  assert.equal(normalizeExerciseMediaSearch(null), "");
+});
+
+test("parses missing animation filter from supported query values", () => {
+  assert.equal(parseMissingAnimationFilter("true"), true);
+  assert.equal(parseMissingAnimationFilter("false"), false);
+  assert.equal(parseMissingAnimationFilter("all"), undefined);
+  assert.equal(parseMissingAnimationFilter(undefined), undefined);
+});
+
+test("detects whether an animation URL is present after trimming", () => {
+  assert.equal(hasAnimationUrl("https://res.cloudinary.com/demo/image/upload/move.gif"), true);
+  assert.equal(hasAnimationUrl("   "), false);
+  assert.equal(hasAnimationUrl(null), false);
+});
+
+test("builds dry-run and apply commands for a single exercise slug", () => {
+  assert.equal(
+    buildExerciseMediaSeedCommand("romanian-deadlift", true),
+    "python scripts/seed_free_exercise_db_media.py --slug romanian-deadlift --include-existing --dry-run",
+  );
+  assert.equal(
+    buildExerciseMediaSeedCommand("romanian-deadlift", false),
+    "python scripts/seed_free_exercise_db_media.py --slug romanian-deadlift --include-existing",
+  );
+});

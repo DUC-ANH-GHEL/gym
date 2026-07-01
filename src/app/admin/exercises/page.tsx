@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
 import { saveCatalogItemAction, toggleCatalogItemActiveAction } from "@/lib/catalog-admin-actions";
+import { AdminRouteLinks } from "@/components/admin-route-links";
 import { AppButton, AppCard, AppInput, AppSelect, AppTextarea, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
@@ -31,6 +32,7 @@ export default async function AdminExercisesPage({
           </Link>
         }
       />
+      <AdminRouteLinks current="exercises" />
 
       {params?.error ? (
         <p className="rounded-[12px] border border-[#EF4444]/50 bg-[#EF4444]/10 px-3 py-2 text-[13px] font-semibold text-[#FCA5A5]">
