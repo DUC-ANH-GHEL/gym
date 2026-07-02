@@ -7,6 +7,7 @@ import {
   getSelectedSetToFill,
   getSetDisplayNumber,
   getSetEntryDefaults,
+  getTodayExerciseHref,
 } from "./workout-today-flow.ts";
 
 test("selects the first unfinished set for one tap entry", () => {
@@ -81,4 +82,26 @@ test("uses the exercise selected in the URL as the main current exercise", () =>
 
   assert.equal(getCurrentExerciseRow(rows, "barbell-row-log")?.exerciseLogId, "barbell-row-log");
   assert.equal(getCurrentExerciseRow(rows, undefined)?.exerciseLogId, "pull-up-log");
+});
+
+test("uses a completed exercise selected in the URL for review without changing the active exercise", () => {
+  const rows = [
+    { exerciseLogId: "done-log", isStarted: true, isCompleted: true },
+    { exerciseLogId: "active-log", isStarted: true, isCompleted: false },
+  ];
+
+  assert.equal(getCurrentExerciseRow(rows, "done-log")?.exerciseLogId, "done-log");
+  assert.equal(getCurrentExerciseRow(rows, undefined)?.exerciseLogId, "active-log");
+});
+
+test("routes completed exercises directly into review mode", () => {
+  assert.equal(
+    getTodayExerciseHref({ exerciseLogId: "done-log", isCompleted: true, isStarted: true }),
+    "/today?exercise=done-log&review=1",
+  );
+  assert.equal(
+    getTodayExerciseHref({ exerciseLogId: "active-log", isCompleted: false, isStarted: true }),
+    "/today?exercise=active-log",
+  );
+  assert.equal(getTodayExerciseHref({ exerciseLogId: null, isCompleted: false, isStarted: false }), null);
 });

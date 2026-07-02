@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, todayLabel } from "@/lib/date";
@@ -8,6 +7,7 @@ import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { RestCountdownPill } from "@/components/rest-countdown-pill";
 import { TodayExercisePicker } from "@/components/today-exercise-picker";
 import { TodayExerciseAction } from "@/components/today-exercise-action";
+import { TodayExerciseReviewSheet, type TodayExerciseReview } from "@/components/today-exercise-review-sheet";
 import { TodaySetControls } from "@/components/today-set-controls";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
@@ -50,6 +50,7 @@ const TEXT = {
 
 type SearchParams = {
   exercise?: string;
+  review?: string;
   set?: string;
   rest?: string;
   restTitle?: string;
@@ -201,6 +202,8 @@ function CurrentExerciseCard({
   row,
   exercise,
   restLock,
+  reviewDefaultOpen,
+  reviewExercise,
   rows,
   selectedSet,
   setDefaults,
@@ -208,6 +211,8 @@ function CurrentExerciseCard({
   row: ExerciseRow;
   exercise: ActiveExercise | null;
   restLock: RestLock | null;
+  reviewDefaultOpen: boolean;
+  reviewExercise: TodayExerciseReview | null;
   rows: ExerciseRow[];
   selectedSet: ActiveSet | null;
   setDefaults: { weightKg: number | null; reps: number | null };
@@ -262,13 +267,14 @@ function CurrentExerciseCard({
               restDueAtMs={restLock?.dueAtMs ?? null}
               action={saveWorkoutSetAction}
             />
-          ) : row.isCompleted ? (
-            <Link
-              href={row.exerciseLogId ? `/today?exercise=${row.exerciseLogId}` : "/today"}
-              className="flex min-h-[50px] w-full items-center justify-center rounded-[16px] border border-[#374151] bg-[#0B0F14] px-4 py-2.5 text-[17px] font-black text-[#F9FAFB]"
-            >
-              {TEXT.reviewExercise}
-            </Link>
+          ) : row.isCompleted && reviewExercise ? (
+            <TodayExerciseReviewSheet
+              key={`${reviewExercise.id}-${reviewDefaultOpen ? "open" : "closed"}`}
+              defaultOpen={reviewDefaultOpen}
+              exercise={reviewExercise}
+              triggerClassName="flex min-h-[50px] w-full items-center justify-center rounded-[16px] border border-[#374151] bg-[#0B0F14] px-4 py-2.5 text-[17px] font-black text-[#F9FAFB]"
+              triggerLabel={TEXT.reviewExercise}
+            />
           ) : (
             <StartExerciseButton row={row} restLock={restLock} wide />
           )}
@@ -415,6 +421,27 @@ async function getTodayPageData(params: SearchParams) {
   const selectedSet = activeExerciseWithHistory ? getSelectedSetToFill(activeExerciseWithHistory.setLogs, params.set) : null;
   const selectedPreviousSet = selectedSet ? lastSetByIndex.get(selectedSet.setIndex) ?? null : null;
   const setDefaults = selectedSet ? getSetEntryDefaults(selectedSet, activeExerciseWithHistory?.setLogs ?? [], selectedPreviousSet) : { weightKg: null, reps: null };
+  const reviewExercise: TodayExerciseReview | null = activeExerciseWithHistory
+    ? {
+        id: activeExerciseWithHistory.id,
+        name: activeExerciseWithHistory.exerciseName,
+        muscleGroup: activeExerciseWithHistory.muscleGroup,
+        imageUrl: activeExerciseWithHistory.imageUrl,
+        animationUrl: activeExerciseWithHistory.animationUrl,
+        completedSets: activeExerciseWithHistory.setLogs.filter((setLog) => setLog.isCompleted).length,
+        setCount: activeExerciseWithHistory.setLogs.length,
+        setLogs: activeExerciseWithHistory.setLogs.map((setLog, index) => ({
+          id: setLog.id,
+          setNumber: index + 1,
+          targetReps: setLog.targetReps,
+          targetWeightKg: setLog.targetWeightKg,
+          actualReps: setLog.actualReps,
+          actualWeightKg: setLog.actualWeightKg,
+          note: setLog.note,
+          isCompleted: setLog.isCompleted,
+        })),
+      }
+    : null;
 
   return {
     activeExerciseWithHistory,
@@ -425,6 +452,7 @@ async function getTodayPageData(params: SearchParams) {
     pageTitle,
     rows,
     restLock,
+    reviewExercise,
     selectedSet,
     setDefaults,
     todayLogId: todayLog?.id ?? null,
@@ -444,6 +472,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
     pageTitle,
     rows,
     restLock,
+    reviewExercise,
     selectedSet,
     setDefaults,
     todayLogId,
@@ -496,6 +525,8 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
               row={activeRow}
               exercise={activeExerciseWithHistory}
               restLock={restLock}
+              reviewDefaultOpen={params.review === "1"}
+              reviewExercise={reviewExercise}
               rows={rows}
               selectedSet={selectedSet}
               setDefaults={setDefaults}

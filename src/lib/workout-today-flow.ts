@@ -75,6 +75,20 @@ export function getSetEntryDefaults(currentSet: SetLike, setLogs: SetLike[], pre
   };
 }
 
+export function getTodayExerciseHref(row: CurrentExerciseRowLike) {
+  if (!row.exerciseLogId || (!row.isStarted && !row.isCompleted)) {
+    return null;
+  }
+
+  const params = new URLSearchParams({ exercise: row.exerciseLogId });
+
+  if (row.isCompleted) {
+    params.set("review", "1");
+  }
+
+  return `/today?${params.toString()}`;
+}
+
 export function getNextExerciseAfterSetSave<TExercise extends ExerciseLike>(exercises: TExercise[], currentExercise: TExercise) {
   if (!currentExercise.isCompleted) {
     return currentExercise;

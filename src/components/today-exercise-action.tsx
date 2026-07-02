@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getTodayExerciseHref } from "@/lib/workout-today-flow";
 
 const TEXT = {
   waitRest: "\u0110\u1ee3i ngh\u1ec9",
@@ -32,6 +34,7 @@ export function TodayExerciseAction({
   isCompleted,
   isStarted,
   restDueAtMs,
+  onBeforeNavigate,
   wide = false,
   workoutDayExerciseId,
 }: {
@@ -42,10 +45,28 @@ export function TodayExerciseAction({
   isCompleted: boolean;
   isStarted: boolean;
   restDueAtMs: number | null;
+  onBeforeNavigate?: () => void;
   wide?: boolean;
   workoutDayExerciseId: string;
 }) {
+  const router = useRouter();
   const restLocked = useRestLocked(restDueAtMs);
+  const href = getTodayExerciseHref({ exerciseLogId, isCompleted, isStarted });
+
+  if (href && isCompleted) {
+    return (
+      <button
+        type="button"
+        className={className}
+        onClick={() => {
+          onBeforeNavigate?.();
+          router.push(href);
+        }}
+      >
+        {cta}
+      </button>
+    );
+  }
 
   if (restLocked) {
     return (
@@ -60,9 +81,9 @@ export function TodayExerciseAction({
     );
   }
 
-  if (exerciseLogId && (isStarted || isCompleted)) {
+  if (href) {
     return (
-      <Link href={`/today?exercise=${exerciseLogId}`} className={className}>
+      <Link href={href} className={className} onClick={onBeforeNavigate}>
         {cta}
       </Link>
     );

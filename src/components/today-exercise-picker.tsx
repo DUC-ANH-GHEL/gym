@@ -139,6 +139,7 @@ export function TodayExercisePicker({
                       exerciseLogId={row.exerciseLogId}
                       isCompleted={row.isCompleted}
                       isStarted={row.isStarted}
+                      onBeforeNavigate={() => setOpen(false)}
                       restDueAtMs={restDueAtMs}
                       workoutDayExerciseId={row.workoutDayExerciseId}
                     />
