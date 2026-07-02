@@ -215,6 +215,7 @@ function CurrentExerciseCard({
   const setNumber =
     selectedSet && exercise ? getSetDisplayNumber(exercise.setLogs, selectedSet) : Math.min(row.completedSets + 1, row.setCount || 1);
   const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
+  const lastHint = selectedSet?.lastHint;
 
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
@@ -232,6 +233,7 @@ function CurrentExerciseCard({
             </p>
             <h2 className="break-words text-[20px] font-black leading-[1.02] text-[#F9FAFB]">{row.name}</h2>
             <p className="break-words text-[13px] font-semibold leading-4 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
+            {lastHint ? <p className="mt-0.5 break-words text-[12px] font-black leading-4 text-[#86EFAC]">{lastHint}</p> : null}
           </div>
           <TodayExercisePicker action={startWorkoutExerciseAction} restDueAtMs={restLock?.dueAtMs ?? null} rows={rows} />
         </div>
@@ -248,10 +250,6 @@ function CurrentExerciseCard({
             <p className="text-[17px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
           </div>
         </div>
-
-        {selectedSet?.lastHint ? (
-          <p className="rounded-[12px] bg-[#0B0F14] px-3 py-1.5 text-[12px] font-bold leading-4 text-[#86EFAC]">{selectedSet.lastHint}</p>
-        ) : null}
 
         <div className="pb-[58px]">
           {canSubmitSet && selectedSet ? (
