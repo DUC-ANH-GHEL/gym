@@ -14,6 +14,28 @@ export function parseMissingAnimationFilter(value: string | null | undefined) {
   return undefined;
 }
 
+export function buildExerciseMediaFilterHref({
+  search,
+  missingAnimation,
+}: {
+  search?: string | null;
+  missingAnimation?: boolean;
+}) {
+  const params = new URLSearchParams();
+  const normalizedSearch = normalizeExerciseMediaSearch(search);
+
+  if (normalizedSearch) {
+    params.set("search", normalizedSearch);
+  }
+
+  if (typeof missingAnimation === "boolean") {
+    params.set("missingAnimation", String(missingAnimation));
+  }
+
+  const query = params.toString();
+  return query ? `/admin/exercise-media?${query}` : "/admin/exercise-media";
+}
+
 export function hasAnimationUrl(value: string | null | undefined) {
   return Boolean(value?.trim());
 }

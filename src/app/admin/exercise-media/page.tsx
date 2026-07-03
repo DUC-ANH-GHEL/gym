@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { requireAdminUser } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import {
+  buildExerciseMediaFilterHref,
   hasAnimationUrl,
   normalizeExerciseMediaSearch,
   parseMissingAnimationFilter,
@@ -77,69 +78,82 @@ export default async function AdminExerciseMediaPage({
     updatedAtLabel: updatedAtFormatter.format(item.updatedAt),
   }));
   const missingCount = formattedItems.filter((item) => !hasAnimationUrl(item.animationUrl)).length;
+  const hasFilter = Boolean(search || typeof missingAnimation === "boolean");
 
   return (
     <AppShell>
       <PageHeader
         title="Admin media bài tập"
-        description="Xem bài thiếu GIF, nhập folder dataset, kiểm tra ảnh và cập nhật media ngay trên trang admin."
+        description="Tìm bài thật nhanh rồi upload GIF hoặc cập nhật media ngay trên trang này."
         action={<AdminRouteLinks current="exercise-media" />}
       />
+
+      <AppCard className="sticky top-2 z-20 space-y-3 border-[#38BDF8]/35 bg-[#0F172A]/95 shadow-xl backdrop-blur">
+        <form method="get" className="space-y-3">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <AppInput
+              name="search"
+              defaultValue={search}
+              placeholder="Gõ tên bài, ví dụ: squat, bench, lateral..."
+              className="flex-1 border-[#38BDF8]/45 bg-[#111827] text-[17px]"
+              autoComplete="off"
+            />
+            <AppSelect
+              name="missingAnimation"
+              defaultValue={missingAnimation === true ? "true" : missingAnimation === false ? "false" : ""}
+              className="border-[#38BDF8]/45 bg-[#111827] text-[17px] sm:max-w-[220px]"
+            >
+              <option value="">Tất cả bài</option>
+              <option value="true">Chỉ bài thiếu GIF</option>
+              <option value="false">Chỉ bài đã có GIF</option>
+            </AppSelect>
+            <AppButton className="sm:w-auto">Tìm</AppButton>
+          </div>
+        </form>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={buildExerciseMediaFilterHref({ search, missingAnimation: true })}
+            className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#F59E0B]/45 bg-[#2A1F08] px-4 text-[13px] font-black text-[#FCD34D]"
+          >
+            Thiếu GIF
+          </Link>
+          <Link
+            href={buildExerciseMediaFilterHref({ search, missingAnimation: false })}
+            className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#22C55E]/45 bg-[#12301F] px-4 text-[13px] font-black text-[#86EFAC]"
+          >
+            Có GIF
+          </Link>
+          {hasFilter ? (
+            <Link
+              href="/admin/exercise-media"
+              className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#374151] bg-[#111827] px-4 text-[13px] font-black text-[#F9FAFB]"
+            >
+              Xóa lọc
+            </Link>
+          ) : null}
+        </div>
+
+        <p className="text-[13px] font-semibold text-[#CBD5E1]">
+          Đang thấy {formattedItems.length} bài · {missingCount} bài thiếu GIF trong kết quả này
+        </p>
+      </AppCard>
 
       <AppCard className="space-y-3 border-[#243041] bg-[#121A2B]">
         <div className="space-y-2">
           <h2 className="text-[18px] font-bold text-[#F8FAFC]">Cách làm nhanh</h2>
           <ol className="space-y-1 text-[14px] leading-6 text-[#CBD5E1]">
-            <li>1. Chọn bài thiếu GIF.</li>
-            <li>2. Tìm folder đúng trong free-exercise-db.</li>
-            <li>3. Dán tên folder vào ô Dataset folder name.</li>
-            <li>4. Bấm Kiểm tra folder để chắc chắn có đủ 0.jpg và 1.jpg.</li>
-            <li>5. Nếu đúng, bấm Cập nhật media để upload Cloudinary và cập nhật DB.</li>
+            <li>1. Gõ tên bài vào ô tìm kiếm ở trên.</li>
+            <li>2. Nếu bài chưa có GIF, bấm Upload GIF ngay trong thẻ bài đó.</li>
+            <li>3. Nếu bài có trong free-exercise-db, vẫn có thể nhập folder và bấm Cập nhật media.</li>
           </ol>
         </div>
-        <p className="break-words rounded-[14px] border border-[#243041] bg-[#0F172A] px-3 py-3 text-[13px] text-[#94A3B8]">
-          Trang này không chạy Python và không cần sửa file script. Script dự phòng vẫn nằm ở{" "}
-          <span className="font-semibold text-[#CBD5E1]">scripts/seed_free_exercise_db_media.py</span>.
-        </p>
-      </AppCard>
-
-      <AppCard className="space-y-4 border-[#243041] bg-[#121A2B]">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-[18px] font-bold text-[#F8FAFC]">Lọc bài tập</h2>
-            <p className="mt-1 text-[13px] text-[#94A3B8]">
-              {formattedItems.length} bài đang hiển thị · {missingCount} bài thiếu GIF trong danh sách hiện tại
-            </p>
-          </div>
-          <Link href="/admin/exercise-media" className="text-[13px] font-semibold text-[#7DD3FC]">
-            Xóa lọc
-          </Link>
-        </div>
-
-        <form method="get" className="flex flex-col gap-3 sm:flex-row">
-          <AppInput
-            name="search"
-            defaultValue={search}
-            placeholder="Tìm theo tên hoặc slug"
-            className="flex-1 border-[#314155] bg-[#0F172A]"
-          />
-          <AppSelect
-            name="missingAnimation"
-            defaultValue={missingAnimation === true ? "true" : missingAnimation === false ? "false" : ""}
-            className="border-[#314155] bg-[#0F172A] sm:max-w-[220px]"
-          >
-            <option value="">Tất cả</option>
-            <option value="true">Thiếu animationUrl</option>
-            <option value="false">Có animationUrl</option>
-          </AppSelect>
-          <AppButton className="sm:w-auto">Lọc danh sách</AppButton>
-        </form>
       </AppCard>
 
       {formattedItems.length === 0 ? (
         <EmptyState
           title="Không có bài nào khớp"
-          description="Thử đổi từ khóa hoặc đổi filter để xem lại danh sách media bài tập."
+          description="Thử gõ ngắn hơn, ví dụ squat, press, curl, row hoặc xóa lọc để xem lại toàn bộ."
           actionHref="/admin/exercise-media"
           actionLabel="Xem lại toàn bộ"
         />

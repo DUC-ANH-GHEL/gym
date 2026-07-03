@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildFreeExerciseDbImageUrl,
+  buildExerciseMediaFilterHref,
   buildExerciseMediaSeedCommand,
   hasAnimationUrl,
   isAllowedDatasetFolderName,
@@ -21,6 +22,12 @@ test("parses missing animation filter from supported query values", () => {
   assert.equal(parseMissingAnimationFilter("false"), false);
   assert.equal(parseMissingAnimationFilter("all"), undefined);
   assert.equal(parseMissingAnimationFilter(undefined), undefined);
+});
+
+test("builds media admin filter links with search and missing gif state", () => {
+  assert.equal(buildExerciseMediaFilterHref({ search: "  squat  ", missingAnimation: true }), "/admin/exercise-media?search=squat&missingAnimation=true");
+  assert.equal(buildExerciseMediaFilterHref({ search: "bench press", missingAnimation: undefined }), "/admin/exercise-media?search=bench+press");
+  assert.equal(buildExerciseMediaFilterHref({ search: "", missingAnimation: false }), "/admin/exercise-media?missingAnimation=false");
 });
 
 test("detects whether an animation URL is present after trimming", () => {
