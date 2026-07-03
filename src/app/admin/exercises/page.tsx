@@ -6,6 +6,7 @@ import { AdminRouteLinks } from "@/components/admin-route-links";
 import { AppButton, AppCard, AppInput, AppSelect, AppTextarea, PageHeader } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
+import { ImageUpload } from "@/components/image-upload";
 
 const muscleGroups = ["Ngực", "Lưng", "Vai", "Tay trước", "Tay sau", "Chân", "Bụng", "Full body"];
 
@@ -65,8 +66,10 @@ export default async function AdminExercisesPage({
             <AppInput name="defaultWeightKg" type="number" step="0.5" placeholder="Tạ gợi ý" inputMode="decimal" />
             <AppInput name="sortOrder" type="number" placeholder="Thứ tự" inputMode="numeric" />
           </div>
-          <AppInput name="imageUrl" placeholder="Ảnh nội bộ /... hoặc link Cloudinary" />
-          <AppInput name="animationUrl" placeholder="GIF động /... hoặc link Cloudinary" />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ImageUpload name="imageUrl" kind="image" label="Upload ảnh thumbnail" />
+            <ImageUpload name="animationUrl" kind="animation" label="Upload GIF động" />
+          </div>
           <AppTextarea name="note" rows={4} placeholder="Ghi chú kỹ thuật" />
           <label className="flex min-h-[48px] items-center gap-3 rounded-[12px] bg-[#1F2937] px-3 text-[14px] font-bold text-[#F9FAFB]">
             <input type="checkbox" name="isActive" defaultChecked className="h-6 w-6 accent-[#22C55E]" />
@@ -87,16 +90,12 @@ export default async function AdminExercisesPage({
             <AppCard key={item.id} className={item.isActive ? "space-y-3" : "space-y-3 opacity-60"}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="truncate text-[17px] font-bold text-[#F9FAFB]">{item.name}</h3>
+                  <h3 className="break-words text-[17px] font-bold text-[#F9FAFB]">{item.name}</h3>
                   <p className="text-[13px] text-[#9CA3AF]">
                     {item.muscleGroup || "Chưa có nhóm cơ"} · {item.defaultWeightKg ?? 0}kg · #{item.sortOrder}
                   </p>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-bold ${
-                    item.isActive ? "bg-[#22C55E]/15 text-[#86EFAC]" : "bg-[#EF4444]/15 text-[#FCA5A5]"
-                  }`}
-                >
+                <span className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-bold ${item.isActive ? "bg-[#22C55E]/15 text-[#86EFAC]" : "bg-[#EF4444]/15 text-[#FCA5A5]"}`}>
                   {item.isActive ? "Đang hiện" : "Đã ẩn"}
                 </span>
               </div>
