@@ -331,10 +331,10 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
               <CatalogPickerPanel
                 items={catalogItems}
                 existingIds={selectedDay.exercises.map((entry) => entry.catalogItemId)}
-                title="Thêm bài vào buổi này"
-                description="Chọn nhiều bài theo nhóm cơ rồi thêm một lần."
-                submitLabel="Thêm bài đã chọn"
-                emptyLabel="Không còn bài phù hợp để thêm cho buổi này."
+                title={`Thêm bài vào ${selectedDayTitle || "buổi này"}`}
+                description="Chọn bài có hình để dễ nhớ và bấm dễ hơn."
+                submitLabel="Thêm"
+                emptyLabel="Không tìm thấy bài phù hợp để thêm cho buổi này."
               />
             </form>
 
