@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { AppButton, AppInput } from "@/components/ui";
 import {
@@ -21,6 +22,16 @@ type CatalogPickerPanelProps = {
   submitLabel: string;
   emptyLabel?: string;
 };
+
+function CatalogPickerSubmitButton({ label, disabled, className = "" }: { label: string; disabled: boolean; className?: string }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <AppButton className={className} disabled={disabled || pending}>
+      {pending ? "Đang thêm..." : label}
+    </AppButton>
+  );
+}
 
 export function CatalogPickerPanel({
   items,
@@ -54,7 +65,7 @@ export function CatalogPickerPanel({
   }
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-[20px] border border-[#243041] bg-[#0F172A] shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
+    <div className="relative min-w-0 overflow-hidden rounded-[20px] border border-[#243041] bg-[#0F172A] shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
       {selectedIds.map((id) => (
         <input key={id} type="hidden" name="catalogItemIds" value={id} />
       ))}
@@ -122,7 +133,7 @@ export function CatalogPickerPanel({
                   </button>
                 ))}
               </div>
-              <AppButton className="mt-3 w-full text-[15px] font-black">{buttonLabel}</AppButton>
+              <CatalogPickerSubmitButton label={buttonLabel} disabled={selectedCount === 0} className="mt-3 w-full text-[15px] font-black" />
             </>
           ) : (
             <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">Bấm chọn ở bài bạn muốn thêm.</p>
@@ -223,9 +234,7 @@ export function CatalogPickerPanel({
           <span className="font-black text-[#E2E8F0]">{selectedCount} bài đã chọn</span>
           <span className="font-bold text-[#94A3B8]">Thêm vào buổi tập</span>
         </div>
-        <AppButton className="w-full text-[16px] font-black" disabled={selectedCount === 0}>
-          {buttonLabel}
-        </AppButton>
+        <CatalogPickerSubmitButton label={buttonLabel} disabled={selectedCount === 0} className="w-full text-[16px] font-black" />
       </div>
     </div>
   );

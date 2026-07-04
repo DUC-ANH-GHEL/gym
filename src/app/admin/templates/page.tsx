@@ -18,6 +18,7 @@ import { AppButton, AppCard, AppInput, AppTextarea, PageHeader } from "@/compone
 import { TemplateDayCard } from "@/components/template-day-card";
 
 type SearchParams = {
+  added?: string;
   day?: string;
   error?: string;
   template?: string;
@@ -33,6 +34,16 @@ const DAY_LABELS: Record<number, string> = {
   4: "T5",
   5: "T6",
   6: "T7",
+};
+
+const DAY_FULL_LABELS: Record<number, string> = {
+  0: "Chủ nhật",
+  1: "Thứ 2",
+  2: "Thứ 3",
+  3: "Thứ 4",
+  4: "Thứ 5",
+  5: "Thứ 6",
+  6: "Thứ 7",
 };
 
 function getTemplateStats(template: {
@@ -58,6 +69,11 @@ function getSortedDays<TDay extends { dayOfWeek: number }>(days: TDay[]) {
 function parseSelectedDay(value: string | undefined) {
   const parsed = Number(value);
   return DAY_ORDER.includes(parsed as (typeof DAY_ORDER)[number]) ? parsed : 1;
+}
+
+function parseAddedCount(value: string | undefined) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 0;
 }
 
 function buildTemplateHref(templateId: string, dayOfWeek: number) {
@@ -102,6 +118,7 @@ export default async function AdminTemplatesPage({
   const selectedDay =
     selectedDays.find((day) => day.dayOfWeek === selectedDayOfWeek) ?? selectedDays.find((day) => day.dayOfWeek === 1) ?? selectedDays[0] ?? null;
   const selectedStats = selectedTemplate ? getTemplateStats(selectedTemplate) : null;
+  const addedCount = parseAddedCount(params?.added);
 
   return (
     <AppShell>
@@ -119,6 +136,12 @@ export default async function AdminTemplatesPage({
       {params?.error ? (
         <p className="rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-4 py-3 text-[14px] font-semibold leading-6 text-[#FCA5A5]">
           Dữ liệu mẫu lịch chưa hợp lệ. Kiểm tra lại tên mẫu, ngày tập và thông số set.
+        </p>
+      ) : null}
+
+      {addedCount > 0 && selectedDay ? (
+        <p className="rounded-[14px] border border-[#22C55E]/35 bg-[#123522] px-4 py-3 text-[14px] font-black leading-6 text-[#BBF7D0]">
+          Đã thêm {addedCount} bài vào {DAY_FULL_LABELS[selectedDay.dayOfWeek]}.
         </p>
       ) : null}
 

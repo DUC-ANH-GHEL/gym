@@ -218,6 +218,7 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
   });
 
   revalidatePath("/admin/templates");
+  redirect(`/admin/templates?template=${encodeURIComponent(templateDay.workoutTemplateId)}&day=${templateDay.dayOfWeek}&added=${orderedCatalogItems.length}`);
 }
 
 export async function moveWorkoutTemplateExerciseAction(formData: FormData): Promise<void> {
