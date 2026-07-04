@@ -283,6 +283,70 @@ export async function removeWorkoutTemplateExerciseAction(formData: FormData): P
   revalidatePath("/admin/templates");
 }
 
+export async function replaceWorkoutTemplateExerciseAction(formData: FormData): Promise<void> {
+  await requireAdminUser();
+  const templateExerciseId = String(formData.get("templateExerciseId") || "");
+  const catalogItemId = getSelectedCatalogItemIds(formData)[0] || "";
+
+  if (!templateExerciseId || !catalogItemId) {
+    redirect("/admin/templates?error=invalid");
+  }
+
+  const [templateExercise, catalogItem] = await Promise.all([
+    prisma.workoutTemplateExercise.findUnique({
+      where: { id: templateExerciseId },
+      include: { workoutTemplateDay: { select: { workoutTemplateId: true, dayOfWeek: true } } },
+    }),
+    prisma.exerciseCatalogItem.findFirst({
+      where: { id: catalogItemId, isActive: true },
+      select: { id: true, defaultWeightKg: true },
+    }),
+  ]);
+
+  if (!templateExercise || !catalogItem) {
+    redirect("/admin/templates?error=invalid");
+  }
+
+  const redirectUrl = `/admin/templates?template=${encodeURIComponent(templateExercise.workoutTemplateDay.workoutTemplateId)}&day=${templateExercise.workoutTemplateDay.dayOfWeek}&replaced=1`;
+
+  if (catalogItem.id === templateExercise.catalogItemId) {
+    redirect(redirectUrl);
+  }
+
+  const duplicateExercise = await prisma.workoutTemplateExercise.findFirst({
+    where: {
+      workoutTemplateDayId: templateExercise.workoutTemplateDayId,
+      catalogItemId: catalogItem.id,
+      NOT: { id: templateExercise.id },
+    },
+    select: { id: true },
+  });
+
+  if (duplicateExercise) {
+    redirect(`/admin/templates?template=${encodeURIComponent(templateExercise.workoutTemplateDay.workoutTemplateId)}&day=${templateExercise.workoutTemplateDay.dayOfWeek}&error=duplicate`);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.workoutTemplateSet.deleteMany({
+      where: { workoutTemplateExerciseId: templateExercise.id },
+    });
+    await tx.workoutTemplateExercise.update({
+      where: { id: templateExercise.id },
+      data: {
+        catalogItemId: catalogItem.id,
+        note: null,
+        sets: {
+          create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
+        },
+      },
+    });
+  });
+
+  await syncTemplateUsersAndRevalidate(templateExercise.workoutTemplateDay.workoutTemplateId);
+  revalidatePath("/admin/templates");
+  redirect(redirectUrl);
+}
+
 export async function updateWorkoutTemplateSetAction(formData: FormData): Promise<void> {
   await requireAdminUser();
   const templateExerciseId = String(formData.get("templateExerciseId") || "");

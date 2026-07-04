@@ -10,7 +10,9 @@ import {
   getCatalogPickerDisplayGroup,
   getCatalogPickerSelection,
   getCatalogPickerSubmitLabel,
+  toggleCatalogPickerSelection,
   type CatalogPickerItem,
+  type CatalogPickerSelectionMode,
 } from "@/lib/catalog-picker";
 import { getExerciseMedia } from "@/lib/exercise-media";
 
@@ -21,14 +23,27 @@ type CatalogPickerPanelProps = {
   description: string;
   submitLabel: string;
   emptyLabel?: string;
+  selectionMode?: CatalogPickerSelectionMode;
+  pendingLabel?: string;
+  actionSummary?: string;
 };
 
-function CatalogPickerSubmitButton({ label, disabled, className = "" }: { label: string; disabled: boolean; className?: string }) {
+function CatalogPickerSubmitButton({
+  label,
+  disabled,
+  pendingLabel,
+  className = "",
+}: {
+  label: string;
+  disabled: boolean;
+  pendingLabel: string;
+  className?: string;
+}) {
   const { pending } = useFormStatus();
 
   return (
     <AppButton className={className} disabled={disabled || pending}>
-      {pending ? "Đang thêm..." : label}
+      {pending ? pendingLabel : label}
     </AppButton>
   );
 }
@@ -40,6 +55,9 @@ export function CatalogPickerPanel({
   description,
   submitLabel,
   emptyLabel = "Chưa có bài tập nào để chọn.",
+  selectionMode = "multiple",
+  pendingLabel = "Đang thêm...",
+  actionSummary = "Thêm vào buổi tập",
 }: CatalogPickerPanelProps) {
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<string>("all");
@@ -52,16 +70,10 @@ export function CatalogPickerPanel({
   );
   const selectedItems = useMemo(() => getCatalogPickerSelection(items, selectedIds), [items, selectedIds]);
   const selectedCount = selectedIds.length;
-  const buttonLabel = getCatalogPickerSubmitLabel(submitLabel, selectedCount);
+  const buttonLabel = getCatalogPickerSubmitLabel(submitLabel, selectedCount, selectionMode);
 
   function toggleSelected(id: string) {
-    setSelectedIds((current) => {
-      if (current.includes(id)) {
-        return current.filter((itemId) => itemId !== id);
-      }
-
-      return [...current, id];
-    });
+    setSelectedIds((current) => toggleCatalogPickerSelection(current, id, selectionMode));
   }
 
   return (
@@ -133,10 +145,12 @@ export function CatalogPickerPanel({
                   </button>
                 ))}
               </div>
-              <CatalogPickerSubmitButton label={buttonLabel} disabled={selectedCount === 0} className="mt-3 w-full text-[15px] font-black" />
+              <CatalogPickerSubmitButton label={buttonLabel} disabled={selectedCount === 0} pendingLabel={pendingLabel} className="mt-3 w-full text-[15px] font-black" />
             </>
           ) : (
-            <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">Bấm chọn ở bài bạn muốn thêm.</p>
+            <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">
+              {selectionMode === "multiple" ? "Bấm chọn ở bài bạn muốn thêm." : "Bấm chọn bài mới để thay bài hiện tại."}
+            </p>
           )}
         </div>
 
@@ -232,9 +246,9 @@ export function CatalogPickerPanel({
       <div className="sticky bottom-[calc(76px+env(safe-area-inset-bottom))] z-10 border-t border-[#1E293B] bg-[#0B1220]/95 px-4 py-4 backdrop-blur">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-3 text-[13px]">
           <span className="font-black text-[#E2E8F0]">{selectedCount} bài đã chọn</span>
-          <span className="font-bold text-[#94A3B8]">Thêm vào buổi tập</span>
+          <span className="font-bold text-[#94A3B8]">{actionSummary}</span>
         </div>
-        <CatalogPickerSubmitButton label={buttonLabel} disabled={selectedCount === 0} className="w-full text-[16px] font-black" />
+        <CatalogPickerSubmitButton label={buttonLabel} disabled={selectedCount === 0} pendingLabel={pendingLabel} className="w-full text-[16px] font-black" />
       </div>
     </div>
   );

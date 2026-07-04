@@ -6,6 +6,7 @@ import {
   getCatalogPickerSelection,
   getCatalogPickerDisplayGroup,
   getCatalogPickerSubmitLabel,
+  toggleCatalogPickerSelection,
 } from "./catalog-picker.ts";
 
 const items = [
@@ -134,4 +135,11 @@ test("getCatalogPickerSubmitLabel shows a clear disabled and selected label", ()
   assert.equal(getCatalogPickerSubmitLabel("Thêm vào buổi này", 1), "Thêm 1 bài vào buổi này");
   assert.equal(getCatalogPickerSubmitLabel("Thêm vào buổi này", 3), "Thêm 3 bài vào buổi này");
   assert.equal(getCatalogPickerSubmitLabel("Thêm bài vào Thứ 7", 1), "Thêm 1 bài vào Thứ 7");
+});
+
+test("replace mode keeps one selected exercise and uses clear copy", () => {
+  assert.deepEqual(toggleCatalogPickerSelection(["rdl"], "plank", "single"), ["plank"]);
+  assert.deepEqual(toggleCatalogPickerSelection(["plank"], "plank", "single"), []);
+  assert.equal(getCatalogPickerSubmitLabel("Thay bài", 0, "replace"), "Chọn 1 bài để thay");
+  assert.equal(getCatalogPickerSubmitLabel("Thay bài", 1, "replace"), "Thay bằng bài đã chọn");
 });

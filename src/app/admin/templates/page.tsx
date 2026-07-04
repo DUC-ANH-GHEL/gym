@@ -8,6 +8,7 @@ import {
   moveWorkoutTemplateExerciseAction,
   removeWorkoutTemplateExerciseAction,
   removeWorkoutTemplateSetAction,
+  replaceWorkoutTemplateExerciseAction,
   saveWorkoutTemplateAction,
   updateWorkoutTemplateDayAction,
   updateWorkoutTemplateSetAction,
@@ -21,6 +22,7 @@ type SearchParams = {
   added?: string;
   day?: string;
   error?: string;
+  replaced?: string;
   template?: string;
 };
 
@@ -135,13 +137,21 @@ export default async function AdminTemplatesPage({
 
       {params?.error ? (
         <p className="rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-4 py-3 text-[14px] font-semibold leading-6 text-[#FCA5A5]">
-          Dữ liệu mẫu lịch chưa hợp lệ. Kiểm tra lại tên mẫu, ngày tập và thông số set.
+          {params.error === "duplicate"
+            ? "Ngày này đã có bài đó rồi. Chọn bài khác để thay."
+            : "Dữ liệu mẫu lịch chưa hợp lệ. Kiểm tra lại tên mẫu, ngày tập và thông số set."}
         </p>
       ) : null}
 
       {addedCount > 0 && selectedDay ? (
         <p className="rounded-[14px] border border-[#22C55E]/35 bg-[#123522] px-4 py-3 text-[14px] font-black leading-6 text-[#BBF7D0]">
           Đã thêm {addedCount} bài vào {DAY_FULL_LABELS[selectedDay.dayOfWeek]}.
+        </p>
+      ) : null}
+
+      {params?.replaced === "1" && selectedDay ? (
+        <p className="rounded-[14px] border border-[#22C55E]/35 bg-[#123522] px-4 py-3 text-[14px] font-black leading-6 text-[#BBF7D0]">
+          Đã thay bài trong {DAY_FULL_LABELS[selectedDay.dayOfWeek]}. Lịch của học viên đang dùng mẫu này cũng đã được cập nhật.
         </p>
       ) : null}
 
@@ -330,6 +340,7 @@ export default async function AdminTemplatesPage({
               addAction={addCatalogItemToTemplateDayAction}
               moveExerciseAction={moveWorkoutTemplateExerciseAction}
               removeExerciseAction={removeWorkoutTemplateExerciseAction}
+              replaceExerciseAction={replaceWorkoutTemplateExerciseAction}
               updateSetAction={updateWorkoutTemplateSetAction}
               addSetAction={addWorkoutTemplateSetAction}
               removeSetAction={removeWorkoutTemplateSetAction}

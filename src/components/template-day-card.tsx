@@ -40,6 +40,7 @@ type TemplateDayCardProps = {
   addAction: (formData: FormData) => Promise<void>;
   moveExerciseAction: (formData: FormData) => Promise<void>;
   removeExerciseAction: (formData: FormData) => Promise<void>;
+  replaceExerciseAction: (formData: FormData) => Promise<void>;
   updateSetAction: (formData: FormData) => Promise<void>;
   addSetAction: (formData: FormData) => Promise<void>;
   removeSetAction: (formData: FormData) => Promise<void>;
@@ -84,6 +85,7 @@ export function TemplateDayCard({
   addAction,
   moveExerciseAction,
   removeExerciseAction,
+  replaceExerciseAction,
   updateSetAction,
   addSetAction,
   removeSetAction,
@@ -91,6 +93,7 @@ export function TemplateDayCard({
   const [isEditingDay, setIsEditingDay] = useState(false);
   const [isAddingExercises, setIsAddingExercises] = useState(false);
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
+  const [replacingExerciseId, setReplacingExerciseId] = useState<string | null>(null);
   const hasExercises = day.exercises.length > 0;
   const setCount = day.exercises.reduce((sum, exercise) => sum + exercise.sets.length, 0);
   const dayName = DAY_NAMES[day.dayOfWeek] || "Ngày tập";
@@ -187,6 +190,7 @@ export function TemplateDayCard({
         <div className="space-y-3">
           {day.exercises.map((exercise, exerciseIndex) => {
             const isEditingSets = editingExerciseId === exercise.id;
+            const isReplacingExercise = replacingExerciseId === exercise.id;
 
             return (
               <article key={exercise.id} className="min-w-0 rounded-[18px] border border-[#243041] bg-[#0F172A] p-4">
@@ -202,7 +206,7 @@ export function TemplateDayCard({
                   </span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
                   <form action={moveExerciseAction} className="min-w-0">
                     <input type="hidden" name="templateExerciseId" value={exercise.id} />
                     <input type="hidden" name="direction" value="up" />
@@ -219,7 +223,21 @@ export function TemplateDayCard({
                   </form>
                   <button
                     type="button"
-                    onClick={() => setEditingExerciseId(isEditingSets ? null : exercise.id)}
+                    onClick={() => {
+                      setReplacingExerciseId(isReplacingExercise ? null : exercise.id);
+                      setEditingExerciseId(null);
+                      setIsAddingExercises(false);
+                    }}
+                    className="min-h-[44px] w-full min-w-0 rounded-[13px] border border-[#0EA5E9]/40 bg-[#0C2537] px-2 text-[13px] font-black text-[#7DD3FC]"
+                  >
+                    Thay thế
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingExerciseId(isEditingSets ? null : exercise.id);
+                      setReplacingExerciseId(null);
+                    }}
                     className="min-h-[44px] w-full min-w-0 rounded-[13px] border border-[#334155] bg-[#111827] px-2 text-[13px] font-black text-[#E2E8F0]"
                   >
                     Sửa set
@@ -231,6 +249,23 @@ export function TemplateDayCard({
                     </button>
                   </form>
                 </div>
+
+                {isReplacingExercise ? (
+                  <form action={replaceExerciseAction} className="mt-4">
+                    <input type="hidden" name="templateExerciseId" value={exercise.id} />
+                    <CatalogPickerPanel
+                      items={catalogItems}
+                      existingIds={day.exercises.map((item) => item.catalogItemId)}
+                      title={`Thay thế ${exercise.catalogItem.name}`}
+                      description="Chọn 1 bài mới. Bài mới sẽ giữ đúng vị trí trong ngày tập này."
+                      submitLabel="Thay bài"
+                      selectionMode="replace"
+                      pendingLabel="Đang thay..."
+                      actionSummary="Thay bài hiện tại"
+                      emptyLabel="Không còn bài phù hợp để thay cho ngày này."
+                    />
+                  </form>
+                ) : null}
 
                 {isEditingSets ? (
                   <div className="mt-4 space-y-3 rounded-[16px] border border-[#243041] bg-[#111827] p-3">

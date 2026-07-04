@@ -16,6 +16,8 @@ export type CatalogPickerFilterInput = {
   activeGroup: string;
 };
 
+export type CatalogPickerSelectionMode = "multiple" | "single" | "replace";
+
 const MUSCLE_GROUP_DISPLAY_FIXES: Record<string, string> = {
   "Ch?n": "Chân",
   "B?p ch?n": "Bắp chân",
@@ -69,9 +71,29 @@ export function getCatalogPickerSelection(items: CatalogPickerItem[], selectedId
   return selectedIds.map((id) => itemById.get(id)).filter(Boolean) as CatalogPickerItem[];
 }
 
-export function getCatalogPickerSubmitLabel(baseLabel: string, selectedCount: number) {
+export function toggleCatalogPickerSelection(selectedIds: string[], id: string, mode: CatalogPickerSelectionMode = "multiple") {
+  if (selectedIds.includes(id)) {
+    return selectedIds.filter((itemId) => itemId !== id);
+  }
+
+  if (mode !== "multiple") {
+    return [id];
+  }
+
+  return [...selectedIds, id];
+}
+
+export function getCatalogPickerSubmitLabel(baseLabel: string, selectedCount: number, mode: CatalogPickerSelectionMode = "multiple") {
   if (selectedCount <= 0) {
+    if (mode !== "multiple") {
+      return "Chọn 1 bài để thay";
+    }
+
     return "Chọn ít nhất 1 bài";
+  }
+
+  if (mode !== "multiple") {
+    return "Thay bằng bài đã chọn";
   }
 
   const target = baseLabel.trim().match(/^Thêm bài vào\s+(.+)$/i)?.[1]?.trim();
