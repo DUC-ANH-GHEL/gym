@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { RestCountdownPill } from "@/components/rest-countdown-pill";
 import { TodayExercisePicker } from "@/components/today-exercise-picker";
+import { TodayExerciseGuideSheet } from "@/components/today-exercise-guide-sheet";
 import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodayExerciseReviewSheet, type TodayExerciseReview } from "@/components/today-exercise-review-sheet";
 import { TodaySetControls } from "@/components/today-set-controls";
@@ -65,6 +66,7 @@ type ExerciseRow = {
   muscleGroup: string | null;
   imageUrl: string | null;
   animationUrl: string | null;
+  note: string | null;
   currentWeightKg: number | null;
   setCount: number;
   completedSets: number;
@@ -240,7 +242,10 @@ function CurrentExerciseCard({
             <p className="break-words text-[13px] font-semibold leading-4 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
             {lastHint ? <p className="mt-0.5 break-words text-[12px] font-black leading-4 text-[#86EFAC]">{lastHint}</p> : null}
           </div>
-          <TodayExercisePicker action={startWorkoutExerciseAction} restDueAtMs={restLock?.dueAtMs ?? null} rows={rows} />
+          <div className="flex shrink-0 flex-wrap justify-end gap-2">
+            <TodayExerciseGuideSheet exerciseName={row.name} muscleGroup={row.muscleGroup} note={row.note} />
+            <TodayExercisePicker action={startWorkoutExerciseAction} restDueAtMs={restLock?.dueAtMs ?? null} rows={rows} />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -338,6 +343,7 @@ async function getTodayPageData(params: SearchParams) {
         muscleGroup: entry.catalogItem.muscleGroup,
         imageUrl: entry.catalogItem.imageUrl,
         animationUrl: entry.catalogItem.animationUrl,
+        note: entry.catalogItem.note,
         currentWeightKg: entry.catalogItem.defaultWeightKg,
         setCount,
         completedSets,
