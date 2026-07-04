@@ -40,9 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="vi">
       <body>
-        <div className="mx-auto min-h-screen max-w-[480px] bg-[#0B0F14]">
-          {children}
-        </div>
+        <div className="min-h-screen bg-[#0B0F14]">{children}</div>
       </body>
     </html>
   );

@@ -54,16 +54,16 @@ export function CatalogPickerPanel({
   }
 
   return (
-    <div className="rounded-[20px] border border-[#243041] bg-[#0F172A] shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
+    <div className="min-w-0 overflow-hidden rounded-[20px] border border-[#243041] bg-[#0F172A] shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
       {selectedIds.map((id) => (
         <input key={id} type="hidden" name="catalogItemIds" value={id} />
       ))}
 
-      <div className="rounded-t-[20px] border-b border-[#1E293B] bg-[#111C2E] px-4 py-4">
-        <div className="flex items-start justify-between gap-3">
+      <div className="border-b border-[#1E293B] bg-[#111C2E] px-4 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="break-words text-[18px] font-black leading-6 text-[#F8FAFC]">{title}</h3>
-            <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">{description}</p>
+            <p className="mt-1 text-[14px] leading-6 text-[#94A3B8]">{description}</p>
           </div>
           <div className="shrink-0 rounded-full border border-[#0EA5E9]/30 bg-[#0EA5E9]/10 px-3 py-1 text-[12px] font-black text-[#7DD3FC]">
             {selectedCount} đã chọn
@@ -71,7 +71,7 @@ export function CatalogPickerPanel({
         </div>
       </div>
 
-      <div className="space-y-4 px-4 pb-[150px] pt-4">
+      <div className="space-y-4 px-4 pb-4 pt-4">
         <AppInput
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -79,17 +79,17 @@ export function CatalogPickerPanel({
           className="border-[#314155] bg-[#111C2E]"
         />
 
-        <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
+        <div className="flex max-w-full flex-wrap gap-2">
           {muscleGroups.map((group) => {
             const isActive = group === activeGroup;
-            const label = group === "all" ? "Phù hợp" : group;
+            const label = group === "all" ? "Tất cả" : group;
 
             return (
               <button
                 key={group}
                 type="button"
                 onClick={() => setActiveGroup(group)}
-                className={`shrink-0 rounded-full border px-3 py-2 text-[13px] font-black transition ${
+                className={`min-h-[40px] rounded-full border px-3 py-2 text-[13px] font-black transition ${
                   isActive ? "border-[#0EA5E9] bg-[#0EA5E9] text-[#082F49]" : "border-[#334155] bg-[#111827] text-[#CBD5E1]"
                 }`}
               >
@@ -100,7 +100,7 @@ export function CatalogPickerPanel({
         </div>
 
         <div className="rounded-[18px] border border-[#263244] bg-[#0B1220] p-3">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px] font-black text-[#E2E8F0]">Đã chọn {selectedCount} bài</p>
             {selectedCount > 0 ? (
               <button type="button" className="text-[12px] font-bold text-[#7DD3FC]" onClick={() => setSelectedIds([])}>
@@ -117,12 +117,12 @@ export function CatalogPickerPanel({
                   onClick={() => toggleSelected(item.id)}
                   className="min-w-0 max-w-full rounded-full border border-[#22C55E]/40 bg-[#123522] px-3 py-2 text-left text-[13px] font-black text-[#BBF7D0]"
                 >
-                  <span className="break-words">{item.name} ×</span>
+                  <span className="break-words">{item.name} x</span>
                 </button>
               ))}
             </div>
           ) : (
-            <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">Bấm “Chọn bài này” ở bài bạn muốn thêm.</p>
+            <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">Bấm chọn ở bài bạn muốn thêm.</p>
           )}
         </div>
 
@@ -153,7 +153,7 @@ export function CatalogPickerPanel({
                   />
 
                   <div className="mt-3 min-w-0">
-                    <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h4 className="break-words text-[17px] font-black leading-6 text-[#F8FAFC]">{item.name}</h4>
                         <p className="mt-1 text-[13px] font-bold text-[#7DD3FC]">
@@ -177,7 +177,7 @@ export function CatalogPickerPanel({
                         isSelected ? "bg-[#22C55E] text-white" : "border border-[#334155] bg-[#172234] text-[#E2E8F0]"
                       }`}
                     >
-                      {isSelected ? "Đã chọn ✓" : "Chọn bài này"}
+                      {isSelected ? "Đã chọn" : "Chọn bài này"}
                     </button>
                   </div>
                 </article>
@@ -185,16 +185,16 @@ export function CatalogPickerPanel({
             })}
           </div>
         ) : (
-          <div className="rounded-[16px] border border-dashed border-[#334155] bg-[#111827] px-4 py-6 text-center text-[13px] text-[#94A3B8]">
+          <div className="rounded-[16px] border border-dashed border-[#334155] bg-[#111827] px-4 py-6 text-center text-[13px] leading-5 text-[#94A3B8]">
             {emptyLabel}
           </div>
         )}
       </div>
 
-      <div className="sticky bottom-[calc(76px+env(safe-area-inset-bottom))] z-10 rounded-b-[20px] border-t border-[#1E293B] bg-[#0B1220]/95 px-4 py-4 backdrop-blur">
-        <div className="mb-2 flex items-center justify-between gap-3 text-[13px]">
+      <div className="sticky bottom-[calc(76px+env(safe-area-inset-bottom))] z-10 border-t border-[#1E293B] bg-[#0B1220]/95 px-4 py-4 backdrop-blur">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-3 text-[13px]">
           <span className="font-black text-[#E2E8F0]">{selectedCount} bài đã chọn</span>
-          <span className="text-right font-bold text-[#94A3B8]">Thêm vào buổi tập</span>
+          <span className="font-bold text-[#94A3B8]">Thêm vào buổi tập</span>
         </div>
         <AppButton className="w-full text-[16px] font-black" disabled={selectedCount === 0}>
           {buttonLabel}

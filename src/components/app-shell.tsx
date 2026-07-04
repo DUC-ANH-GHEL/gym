@@ -13,9 +13,10 @@ const navItems = [
 
 export function AppShell({ children, todayFit = false }: { children: ReactNode; todayFit?: boolean }) {
   const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin");
   const shellClassName = todayFit
-    ? "h-[100svh] overflow-hidden bg-[#0B0F14] px-3 pb-[calc(64px+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+6px)] text-[#F9FAFB]"
-    : "min-h-dvh bg-[#0B0F14] px-4 pb-[calc(92px+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+18px)] text-[#F9FAFB]";
+    ? "mx-auto h-[100svh] w-full max-w-[480px] overflow-hidden bg-[#0B0F14] px-3 pb-[calc(64px+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+6px)] text-[#F9FAFB]"
+    : `mx-auto min-h-dvh w-full ${isAdminRoute ? "max-w-[1280px]" : "max-w-[480px]"} bg-[#0B0F14] px-4 pb-[calc(92px+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+18px)] text-[#F9FAFB]`;
   const mainClassName = todayFit ? "mx-auto flex h-full min-h-0 w-full max-w-[480px] flex-col gap-1.5 overflow-hidden" : "space-y-4";
   const navClassName = todayFit
     ? "fixed bottom-0 left-1/2 z-20 w-full max-w-[480px] -translate-x-1/2 border-t border-[#374151] bg-[#111827]/95 px-2 pb-[calc(7px+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur"

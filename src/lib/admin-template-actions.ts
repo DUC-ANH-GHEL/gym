@@ -201,8 +201,8 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
             create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
           },
         },
-        });
-      }
+      });
+    }
 
     if (templateDay.isRestDay) {
       const allDays = await tx.workoutTemplateDay.findMany({
