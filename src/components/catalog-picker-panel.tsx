@@ -101,7 +101,7 @@ export function CatalogPickerPanel({
 
         <div className="rounded-[18px] border border-[#263244] bg-[#0B1220] p-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[13px] font-black text-[#E2E8F0]">Đã chọn {selectedCount} bài</p>
+            <p className="text-[13px] font-black text-[#E2E8F0]">{selectedCount > 0 ? `Đã chọn ${selectedCount} bài` : "Chưa chọn bài nào"}</p>
             {selectedCount > 0 ? (
               <button type="button" className="text-[12px] font-bold text-[#7DD3FC]" onClick={() => setSelectedIds([])}>
                 Bỏ chọn hết
@@ -109,18 +109,21 @@ export function CatalogPickerPanel({
             ) : null}
           </div>
           {selectedItems.length > 0 ? (
-            <div className="mt-2 flex max-w-full flex-wrap gap-2">
-              {selectedItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => toggleSelected(item.id)}
-                  className="min-w-0 max-w-full rounded-full border border-[#22C55E]/40 bg-[#123522] px-3 py-2 text-left text-[13px] font-black text-[#BBF7D0]"
-                >
-                  <span className="break-words">{item.name} x</span>
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="mt-2 flex max-w-full flex-wrap gap-2">
+                {selectedItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => toggleSelected(item.id)}
+                    className="min-w-0 max-w-full rounded-full border border-[#22C55E]/40 bg-[#123522] px-3 py-2 text-left text-[13px] font-black text-[#BBF7D0]"
+                  >
+                    <span className="break-words">{item.name} x</span>
+                  </button>
+                ))}
+              </div>
+              <AppButton className="mt-3 w-full text-[15px] font-black">{buttonLabel}</AppButton>
+            </>
           ) : (
             <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">Bấm chọn ở bài bạn muốn thêm.</p>
           )}
@@ -140,6 +143,30 @@ export function CatalogPickerPanel({
                     isSelected ? "border-[#22C55E] bg-[#0D2418] shadow-[0_0_0_1px_rgba(34,197,94,0.18)]" : "border-[#263244] bg-[#111827]"
                   }`}
                 >
+                  <button
+                    type="button"
+                    onClick={() => toggleSelected(item.id)}
+                    aria-pressed={isSelected}
+                    className={`mb-3 flex min-h-[52px] w-full min-w-0 items-center gap-3 rounded-[15px] border px-3 text-left transition active:scale-[0.99] ${
+                      isSelected
+                        ? "border-[#22C55E] bg-[#14532D] text-[#DCFCE7]"
+                        : "border-[#38BDF8]/45 bg-[#0C2537] text-[#E0F2FE] hover:border-[#38BDF8]"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[16px] font-black ${
+                        isSelected ? "border-[#BBF7D0] bg-[#22C55E] text-[#052E16]" : "border-[#7DD3FC] bg-[#082F49] text-[#BAE6FD]"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {isSelected ? "✓" : "+"}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] font-black leading-5">{isSelected ? "Đã chọn" : "Chọn bài này"}</span>
+                      <span className="mt-0.5 block break-words text-[13px] font-bold opacity-85">{item.name}</span>
+                    </span>
+                  </button>
+
                   <ExerciseMediaPreview
                     media={media}
                     alt={item.name}
@@ -177,7 +204,7 @@ export function CatalogPickerPanel({
                         isSelected ? "bg-[#22C55E] text-white" : "border border-[#334155] bg-[#172234] text-[#E2E8F0]"
                       }`}
                     >
-                      {isSelected ? "Đã chọn" : "Chọn bài này"}
+                      {isSelected ? "Bỏ chọn bài này" : "Chọn bài này"}
                     </button>
                   </div>
                 </article>

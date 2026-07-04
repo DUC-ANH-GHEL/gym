@@ -74,6 +74,10 @@ export function getCatalogPickerSubmitLabel(baseLabel: string, selectedCount: nu
     return "Chọn ít nhất 1 bài";
   }
 
-  const action = baseLabel.split(" ")[0] || "Thêm";
-  return `${action} ${selectedCount} bài vào buổi này`;
+  const target = baseLabel.trim().match(/^Thêm bài vào\s+(.+)$/i)?.[1]?.trim();
+  if (target) {
+    return `Thêm ${selectedCount} bài vào ${target}`;
+  }
+
+  return `Thêm ${selectedCount} bài vào buổi này`;
 }

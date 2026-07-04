@@ -133,4 +133,5 @@ test("getCatalogPickerSubmitLabel shows a clear disabled and selected label", ()
   assert.equal(getCatalogPickerSubmitLabel("Thêm vào buổi này", 0), "Chọn ít nhất 1 bài");
   assert.equal(getCatalogPickerSubmitLabel("Thêm vào buổi này", 1), "Thêm 1 bài vào buổi này");
   assert.equal(getCatalogPickerSubmitLabel("Thêm vào buổi này", 3), "Thêm 3 bài vào buổi này");
+  assert.equal(getCatalogPickerSubmitLabel("Thêm bài vào Thứ 7", 1), "Thêm 1 bài vào Thứ 7");
 });
