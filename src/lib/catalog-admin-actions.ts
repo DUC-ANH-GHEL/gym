@@ -110,6 +110,65 @@ export async function saveCatalogItemAction(formData: FormData): Promise<void> {
   redirect("/admin/exercises?created=1");
 }
 
+export async function updateCatalogItemAction(formData: FormData): Promise<void> {
+  await requireAdminUser();
+  const id = String(formData.get("id") || "");
+
+  if (!id) {
+    redirect("/admin/exercises?error=invalid");
+  }
+
+  const parsed = exerciseCatalogItemSchema.safeParse({
+    name: formData.get("name"),
+    muscleGroup: formData.get("muscleGroup"),
+    imageUrl: formData.get("imageUrl"),
+    animationUrl: formData.get("animationUrl"),
+    defaultWeightKg: formData.get("defaultWeightKg"),
+    note: formData.get("note"),
+    sortOrder: formData.get("sortOrder"),
+    isActive: formData.get("isActive") === "on",
+  });
+
+  if (!parsed.success) {
+    redirect("/admin/exercises?error=invalid");
+  }
+
+  const imageUrl = normalizeCatalogImageUrl(parsed.data.imageUrl);
+  if (!imageUrl) {
+    redirect("/admin/exercises?error=image");
+  }
+
+  const animationUrl = normalizeCatalogAnimationUrl(parsed.data.animationUrl);
+  if (parsed.data.animationUrl && !animationUrl) {
+    redirect("/admin/exercises?error=animation");
+  }
+
+  const updated = await prisma.exerciseCatalogItem.updateMany({
+    where: { id },
+    data: {
+      name: parsed.data.name,
+      muscleGroup: parsed.data.muscleGroup || null,
+      imageUrl,
+      animationUrl,
+      defaultWeightKg: parsed.data.defaultWeightKg ?? null,
+      note: parsed.data.note || null,
+      sortOrder: parsed.data.sortOrder ?? 999,
+      isActive: parsed.data.isActive ?? true,
+    },
+  });
+
+  if (updated.count !== 1) {
+    redirect("/admin/exercises?error=invalid");
+  }
+
+  revalidatePath("/admin/exercises");
+  revalidatePath("/admin/templates");
+  revalidatePath("/exercises");
+  revalidatePath("/schedule");
+  revalidatePath("/today");
+  redirect("/admin/exercises?updated=1");
+}
+
 export async function toggleCatalogItemActiveAction(formData: FormData): Promise<void> {
   await requireAdminUser();
   const id = String(formData.get("id") || "");
