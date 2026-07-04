@@ -1,23 +1,12 @@
 "use server";
 
-import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { ensureDefaultWorkoutDays } from "@/lib/setup";
 import { buildDefaultPlanSets } from "@/lib/workout";
+import { getWorkoutTemplateForScheduleSync, syncWorkoutTemplateToUserSchedule } from "@/lib/workout-template-sync";
 import { workoutDaySchema, workoutSetSchema } from "@/lib/validators";
-
-const DAY_CONFIG = [
-  { dayOfWeek: 1, title: "Thứ 2" },
-  { dayOfWeek: 2, title: "Thứ 3" },
-  { dayOfWeek: 3, title: "Thứ 4" },
-  { dayOfWeek: 4, title: "Thứ 5" },
-  { dayOfWeek: 5, title: "Thứ 6" },
-  { dayOfWeek: 6, title: "Thứ 7" },
-  { dayOfWeek: 0, title: "Chủ nhật" },
-] as const;
 
 function getSelectedCatalogItemIds(formData: FormData) {
   return Array.from(
@@ -39,145 +28,13 @@ export async function applyWorkoutTemplateAction(formData: FormData): Promise<vo
   const user = await requireUser();
   const templateId = String(formData.get("templateId") || "");
 
-  const template = await prisma.workoutTemplate.findFirst({
-    where: { id: templateId, isActive: true },
-    include: {
-      days: {
-        orderBy: { dayOfWeek: "asc" },
-        include: {
-          exercises: {
-            orderBy: { orderIndex: "asc" },
-            include: {
-              catalogItem: true,
-              sets: { orderBy: { setIndex: "asc" } },
-            },
-          },
-        },
-      },
-    },
-  });
+  const template = await getWorkoutTemplateForScheduleSync(templateId, true);
 
   if (!template) {
     redirect("/schedule");
   }
 
-  await ensureDefaultWorkoutDays(user.id);
-
-  await prisma.$transaction(async (tx) => {
-    const workoutDays = await tx.workoutDay.findMany({
-      where: { userId: user.id },
-      orderBy: { dayOfWeek: "asc" },
-    });
-
-    await tx.workoutPlanSet.deleteMany({
-      where: { workoutDayExercise: { workoutDay: { userId: user.id } } },
-    });
-
-    await tx.workoutDayExercise.deleteMany({
-      where: { workoutDay: { userId: user.id } },
-    });
-
-    const resolvedWorkoutDays = new Map<number, { id: string }>();
-
-    for (const config of DAY_CONFIG) {
-      const templateDay = template.days.find((day) => day.dayOfWeek === config.dayOfWeek);
-      const workoutDay = workoutDays.find((day) => day.dayOfWeek === config.dayOfWeek);
-
-      const resolvedDay =
-        workoutDay ??
-        (await tx.workoutDay.create({
-          data: {
-            userId: user.id,
-            dayOfWeek: config.dayOfWeek,
-            title: config.title,
-            isRestDay: true,
-          },
-        }));
-
-      await tx.workoutDay.update({
-        where: { id: resolvedDay.id },
-        data: {
-          title: templateDay?.title || config.title,
-          isRestDay: templateDay?.isRestDay ?? true,
-        },
-      });
-
-      resolvedWorkoutDays.set(config.dayOfWeek, { id: resolvedDay.id });
-    }
-
-    const exerciseRows: {
-      id: string;
-      workoutDayId: string;
-      catalogItemId: string;
-      orderIndex: number;
-      note: string | null;
-    }[] = [];
-    const setRows: {
-      id: string;
-      workoutDayExerciseId: string;
-      setIndex: number;
-      intensityPercent: number | null;
-      targetReps: number | null;
-      targetWeightKg: number | null;
-    }[] = [];
-
-    for (const templateDay of template.days) {
-      const workoutDay = resolvedWorkoutDays.get(templateDay.dayOfWeek);
-
-      if (!workoutDay || templateDay.isRestDay) {
-        continue;
-      }
-
-      for (const [orderIndex, templateExercise] of templateDay.exercises.entries()) {
-        const workoutDayExerciseId = randomUUID();
-        exerciseRows.push({
-          id: workoutDayExerciseId,
-          workoutDayId: workoutDay.id,
-          catalogItemId: templateExercise.catalogItemId,
-          orderIndex,
-          note: templateExercise.note || null,
-        });
-
-        const sourceSets =
-          templateExercise.sets.length > 0
-            ? templateExercise.sets
-            : buildDefaultPlanSets(templateExercise.catalogItem.defaultWeightKg ?? null);
-
-        for (const set of sourceSets) {
-          setRows.push({
-            id: randomUUID(),
-            workoutDayExerciseId,
-            setIndex: set.setIndex,
-            intensityPercent: set.intensityPercent,
-            targetReps: set.targetReps,
-            targetWeightKg: set.targetWeightKg,
-          });
-        }
-      }
-    }
-
-    if (exerciseRows.length > 0) {
-      await tx.workoutDayExercise.createMany({ data: exerciseRows });
-    }
-
-    if (setRows.length > 0) {
-      await tx.workoutPlanSet.createMany({ data: setRows });
-    }
-
-    await tx.gymProfile.upsert({
-      where: { userId: user.id },
-      update: {
-        appliedWorkoutTemplateId: template.id,
-        appliedWorkoutTemplateAt: new Date(),
-      },
-      create: {
-        userId: user.id,
-        timezone: "Asia/Bangkok",
-        appliedWorkoutTemplateId: template.id,
-        appliedWorkoutTemplateAt: new Date(),
-      },
-    });
-  }, { timeout: 30_000 });
+  await prisma.$transaction((tx) => syncWorkoutTemplateToUserSchedule(tx, user.id, template), { timeout: 30_000 });
 
   revalidatePath("/schedule");
   revalidatePath("/today");

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
 import { buildDefaultPlanSets } from "@/lib/workout";
+import { syncUsersAppliedToWorkoutTemplate } from "@/lib/workout-template-sync";
 import { workoutDaySchema, workoutSetSchema, workoutTemplateSchema } from "@/lib/validators";
 
 const DAY_CONFIG = [
@@ -35,6 +36,12 @@ function getSelectedCatalogItemIds(formData: FormData) {
 
 function isDefined<T>(value: T | undefined): value is T {
   return value !== undefined;
+}
+
+async function syncTemplateUsersAndRevalidate(templateId: string) {
+  await syncUsersAppliedToWorkoutTemplate(templateId);
+  revalidatePath("/schedule");
+  revalidatePath("/today");
 }
 
 export async function saveWorkoutTemplateAction(formData: FormData): Promise<void> {
@@ -69,6 +76,7 @@ export async function saveWorkoutTemplateAction(formData: FormData): Promise<voi
         isActive: parsed.data.isActive ?? true,
       },
     });
+    await syncTemplateUsersAndRevalidate(templateId);
   } else {
     await prisma.workoutTemplate.create({
       data: {
@@ -141,6 +149,7 @@ export async function updateWorkoutTemplateDayAction(formData: FormData): Promis
     data: { sessionsPerWeek: countSessionsFromDays(allDays) },
   });
 
+  await syncTemplateUsersAndRevalidate(templateDay.workoutTemplateId);
   revalidatePath("/admin/templates");
 }
 
@@ -217,6 +226,7 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
     }
   });
 
+  await syncTemplateUsersAndRevalidate(templateDay.workoutTemplateId);
   revalidatePath("/admin/templates");
   redirect(`/admin/templates?template=${encodeURIComponent(templateDay.workoutTemplateId)}&day=${templateDay.dayOfWeek}&added=${orderedCatalogItems.length}`);
 }
@@ -228,6 +238,7 @@ export async function moveWorkoutTemplateExerciseAction(formData: FormData): Pro
 
   const current = await prisma.workoutTemplateExercise.findUnique({
     where: { id: templateExerciseId },
+    include: { workoutTemplateDay: { select: { workoutTemplateId: true } } },
   });
 
   if (!current) {
@@ -250,6 +261,7 @@ export async function moveWorkoutTemplateExerciseAction(formData: FormData): Pro
     prisma.workoutTemplateExercise.update({ where: { id: sibling.id }, data: { orderIndex: current.orderIndex } }),
   ]);
 
+  await syncTemplateUsersAndRevalidate(current.workoutTemplateDay.workoutTemplateId);
   revalidatePath("/admin/templates");
 }
 
@@ -259,6 +271,7 @@ export async function removeWorkoutTemplateExerciseAction(formData: FormData): P
 
   const templateExercise = await prisma.workoutTemplateExercise.findUnique({
     where: { id: templateExerciseId },
+    include: { workoutTemplateDay: { select: { workoutTemplateId: true } } },
   });
 
   if (!templateExercise) {
@@ -266,6 +279,7 @@ export async function removeWorkoutTemplateExerciseAction(formData: FormData): P
   }
 
   await prisma.workoutTemplateExercise.delete({ where: { id: templateExerciseId } });
+  await syncTemplateUsersAndRevalidate(templateExercise.workoutTemplateDay.workoutTemplateId);
   revalidatePath("/admin/templates");
 }
 
@@ -285,6 +299,7 @@ export async function updateWorkoutTemplateSetAction(formData: FormData): Promis
 
   const templateExercise = await prisma.workoutTemplateExercise.findUnique({
     where: { id: templateExerciseId },
+    include: { workoutTemplateDay: { select: { workoutTemplateId: true } } },
   });
 
   if (!templateExercise) {
@@ -322,6 +337,7 @@ export async function updateWorkoutTemplateSetAction(formData: FormData): Promis
     });
   }
 
+  await syncTemplateUsersAndRevalidate(templateExercise.workoutTemplateDay.workoutTemplateId);
   revalidatePath("/admin/templates");
 }
 
@@ -334,6 +350,7 @@ export async function addWorkoutTemplateSetAction(formData: FormData): Promise<v
     include: {
       catalogItem: true,
       sets: { orderBy: { setIndex: "asc" } },
+      workoutTemplateDay: { select: { workoutTemplateId: true } },
     },
   });
 
@@ -351,6 +368,7 @@ export async function addWorkoutTemplateSetAction(formData: FormData): Promise<v
     },
   });
 
+  await syncTemplateUsersAndRevalidate(templateExercise.workoutTemplateDay.workoutTemplateId);
   revalidatePath("/admin/templates");
 }
 
@@ -360,6 +378,11 @@ export async function removeWorkoutTemplateSetAction(formData: FormData): Promis
 
   const templateSet = await prisma.workoutTemplateSet.findUnique({
     where: { id: templateSetId },
+    include: {
+      workoutTemplateExercise: {
+        include: { workoutTemplateDay: { select: { workoutTemplateId: true } } },
+      },
+    },
   });
 
   if (!templateSet) {
@@ -384,5 +407,6 @@ export async function removeWorkoutTemplateSetAction(formData: FormData): Promis
     );
   }
 
+  await syncTemplateUsersAndRevalidate(templateSet.workoutTemplateExercise.workoutTemplateDay.workoutTemplateId);
   revalidatePath("/admin/templates");
 }
