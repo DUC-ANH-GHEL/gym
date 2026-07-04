@@ -17,6 +17,8 @@ type CloudinaryUploadResult = {
   secure_url?: string;
 };
 
+const EXERCISE_GIF_FRAME_DELAY_MS = 650;
+
 function isSameOriginPost(request: Request) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
@@ -70,13 +72,13 @@ function isAllowedCatalogImageUrl(value: string) {
   }
 }
 
-function cloudinaryPublicId(slug: string, kind: "image" | "gif" | "frame0" | "frame1") {
+function cloudinaryPublicId(slug: string, kind: "image" | "gif" | "frame0" | "frame1" | "frame2") {
   if (kind === "gif") {
     return `gym/exercises/gifs/${slug}`;
   }
 
-  if (kind === "frame0" || kind === "frame1") {
-    return `gym/exercises/frames/${slug}-${kind === "frame0" ? "0" : "1"}`;
+  if (kind === "frame0" || kind === "frame1" || kind === "frame2") {
+    return `gym/exercises/frames/${slug}-${kind === "frame0" ? "0" : kind === "frame1" ? "1" : "2"}`;
   }
 
   return `gym/exercises/${slug}`;
@@ -92,10 +94,12 @@ async function uploadExerciseMedia(slug: string, imageUrls: string[]) {
     format: "webp",
   })) as CloudinaryUploadResult;
 
+  const gifFrameUrls = [imageUrls[0], imageUrls[1] || imageUrls[0], imageUrls[0]];
+
   await Promise.all(
-    imageUrls.slice(0, 2).map((url, index) =>
+    gifFrameUrls.map((url, index) =>
       cloudinary.uploader.upload(url, {
-        public_id: cloudinaryPublicId(slug, index === 0 ? "frame0" : "frame1"),
+        public_id: cloudinaryPublicId(slug, index === 0 ? "frame0" : index === 1 ? "frame1" : "frame2"),
         overwrite: true,
         invalidate: true,
         resource_type: "image",
@@ -104,7 +108,10 @@ async function uploadExerciseMedia(slug: string, imageUrls: string[]) {
     ),
   );
 
-  const gifUpload = (await cloudinary.uploader.multi(tag, { format: "gif" })) as CloudinaryUploadResult;
+  const gifUpload = (await cloudinary.uploader.multi(tag, {
+    format: "gif",
+    transformation: { delay: EXERCISE_GIF_FRAME_DELAY_MS },
+  })) as CloudinaryUploadResult;
 
   if (!imageUpload.secure_url || !gifUpload.secure_url) {
     throw new Error("Cloudinary upload did not return secure URLs");
