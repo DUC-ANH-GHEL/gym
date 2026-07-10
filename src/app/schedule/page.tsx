@@ -236,7 +236,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                     <div className="min-w-0">
                       <b className="block truncate text-[15px] leading-tight text-[#F7FAFC]">{entry.catalogItem.name}</b>
                       <span className="mt-1 block truncate text-[12px] text-[#B7C6D8]">
-                        {entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"} · nghỉ 90 giây
+                        {entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"} · nghỉ 120 giây
                       </span>
                     </div>
                     <span className="shrink-0 rounded-full border border-[#22C55E]/20 bg-[#22C55E]/12 px-2.5 py-1.5 text-[12px] font-black text-[#D1FAE5]">

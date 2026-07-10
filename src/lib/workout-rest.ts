@@ -1,5 +1,5 @@
-export const SET_REST_SECONDS = 30;
-export const EXERCISE_REST_SECONDS = 90;
+export const SET_REST_SECONDS = 45;
+export const EXERCISE_REST_SECONDS = 120;
 
 export type RestReminderPlan = {
   seconds: number;

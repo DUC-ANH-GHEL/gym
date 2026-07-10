@@ -8,7 +8,7 @@ import {
   isRestLocked,
 } from "./workout-rest.ts";
 
-test("starts a 30 second rest after a completed set when the exercise is not done", () => {
+test("starts a 45 second rest after a completed set when the exercise is not done", () => {
   const plan = getRestReminderPlan({
     setWasCompleted: true,
     exerciseIsCompleted: false,
@@ -16,14 +16,14 @@ test("starts a 30 second rest after a completed set when the exercise is not don
   });
 
   assert.deepEqual(plan, {
-    seconds: 30,
+    seconds: 45,
     kind: "set",
     title: "T\u1edbi set ti\u1ebfp theo",
     body: "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp set ti\u1ebfp theo nh\u00e9.",
   });
 });
 
-test("starts a 90 second rest after the last set of an exercise", () => {
+test("starts a 120 second rest after the last set of an exercise", () => {
   const plan = getRestReminderPlan({
     setWasCompleted: true,
     exerciseIsCompleted: true,
@@ -31,7 +31,7 @@ test("starts a 90 second rest after the last set of an exercise", () => {
   });
 
   assert.deepEqual(plan, {
-    seconds: 90,
+    seconds: 120,
     kind: "exercise",
     title: "T\u1edbi b\u00e0i ti\u1ebfp theo",
     body: "Ngh\u1ec9 xong r\u1ed3i. Chuy\u1ec3n sang Incline Dumbbell Press nh\u00e9.",
@@ -62,17 +62,17 @@ test("locks workout actions while the rest timer is still running", () => {
 test("reads an active rest lock from search params", () => {
   const lock = getRestLockFromSearchParams(
     {
-      rest: "30",
+      rest: "45",
       restTitle: "T\u1edbi set ti\u1ebfp theo",
       restBody: "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp set ti\u1ebfp theo nh\u00e9.",
-      restDueAt: String(Date.parse("2026-06-30T09:00:30.000Z")),
+      restDueAt: String(Date.parse("2026-06-30T09:00:45.000Z")),
     },
     Date.parse("2026-06-30T09:00:00.000Z"),
   );
 
   assert.deepEqual(lock, {
-    dueAtMs: Date.parse("2026-06-30T09:00:30.000Z"),
-    restSeconds: 30,
+    dueAtMs: Date.parse("2026-06-30T09:00:45.000Z"),
+    restSeconds: 45,
     title: "T\u1edbi set ti\u1ebfp theo",
     body: "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp set ti\u1ebfp theo nh\u00e9.",
   });

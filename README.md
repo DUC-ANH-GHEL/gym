@@ -71,7 +71,7 @@ Accounts listed in `ADMIN_IDENTIFIERS` cannot register through the public form. 
 
 ## Workout Rest Reminders
 
-After a completed set, the app starts a 30-second rest timer. After the final set of an exercise, it starts a 90-second rest timer for the next exercise.
+After a completed set, the app starts a 45-second rest timer. After the final set of an exercise, it starts a 120-second rest timer for the next exercise.
 
 When the app is open, the service worker sends the notification at the timer boundary. When the app is closed but the device can receive Web Push, QStash publishes a delayed callback at the same reminder due time. The callback is verified with QStash signing keys before it can send a push notification.
 
