@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
 import { buildDefaultPlanSets } from "@/lib/workout";
 import { syncUsersAppliedToWorkoutTemplate } from "@/lib/workout-template-sync";
+import { buildMovedOrderIndexUpdates, getNextOrderIndex } from "@/lib/template-ordering";
 import { workoutDaySchema, workoutSetSchema, workoutTemplateSchema } from "@/lib/validators";
 
 const DAY_CONFIG = [
@@ -164,7 +165,7 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
 
   const templateDay = await prisma.workoutTemplateDay.findUnique({
     where: { id: templateDayId },
-    include: { exercises: { orderBy: { orderIndex: "asc" } } },
+    include: { exercises: { orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }, { id: "asc" }] } },
   });
 
   if (!templateDay) {
@@ -187,6 +188,7 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
 
   const catalogItemMap = new Map(catalogItems.map((item) => [item.id, item]));
   const orderedCatalogItems = allowedIds.map((id) => catalogItemMap.get(id)).filter(isDefined);
+  const nextOrderIndex = getNextOrderIndex(templateDay.exercises);
 
   if (orderedCatalogItems.length === 0) {
     return;
@@ -205,7 +207,7 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
         data: {
           workoutTemplateDayId: templateDay.id,
           catalogItemId: catalogItem.id,
-          orderIndex: templateDay.exercises.length + index,
+          orderIndex: nextOrderIndex + index,
           sets: {
             create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
           },
@@ -235,6 +237,11 @@ export async function moveWorkoutTemplateExerciseAction(formData: FormData): Pro
   await requireAdminUser();
   const templateExerciseId = String(formData.get("templateExerciseId") || "");
   const direction = String(formData.get("direction") || "");
+  const moveDirection = direction === "up" || direction === "down" ? direction : null;
+
+  if (!moveDirection) {
+    return;
+  }
 
   const current = await prisma.workoutTemplateExercise.findUnique({
     where: { id: templateExerciseId },
@@ -245,21 +252,20 @@ export async function moveWorkoutTemplateExerciseAction(formData: FormData): Pro
     return;
   }
 
-  const sibling = await prisma.workoutTemplateExercise.findFirst({
-    where: {
-      workoutTemplateDayId: current.workoutTemplateDayId,
-      orderIndex: direction === "up" ? current.orderIndex - 1 : current.orderIndex + 1,
-    },
+  const dayExercises = await prisma.workoutTemplateExercise.findMany({
+    where: { workoutTemplateDayId: current.workoutTemplateDayId },
+    orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+    select: { id: true, orderIndex: true, createdAt: true },
   });
+  const updates = buildMovedOrderIndexUpdates(dayExercises, current.id, moveDirection);
 
-  if (!sibling) {
+  if (updates.length === 0) {
     return;
   }
 
-  await prisma.$transaction([
-    prisma.workoutTemplateExercise.update({ where: { id: current.id }, data: { orderIndex: sibling.orderIndex } }),
-    prisma.workoutTemplateExercise.update({ where: { id: sibling.id }, data: { orderIndex: current.orderIndex } }),
-  ]);
+  await prisma.$transaction(
+    updates.map((update) => prisma.workoutTemplateExercise.update({ where: { id: update.id }, data: { orderIndex: update.orderIndex } })),
+  );
 
   await syncTemplateUsersAndRevalidate(current.workoutTemplateDay.workoutTemplateId);
   revalidatePath("/admin/templates");

@@ -98,7 +98,7 @@ export default async function AdminTemplatesPage({
           orderBy: { dayOfWeek: "asc" },
           include: {
             exercises: {
-              orderBy: { orderIndex: "asc" },
+              orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }, { id: "asc" }],
               include: {
                 catalogItem: true,
                 sets: { orderBy: { setIndex: "asc" } },
