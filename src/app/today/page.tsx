@@ -357,46 +357,39 @@ async function getTodayPageData(params: SearchParams) {
   const activeRow = getCurrentExerciseRow(rows, params.exercise);
   const activeExerciseId = params.exercise ?? activeRow?.exerciseLogId ?? null;
   const activeExercise = activeExerciseId ? todayLog?.exerciseLogs.find((exercise) => exercise.id === activeExerciseId) ?? null : null;
-  const previousSetLogs = activeExercise
-    ? await prisma.workoutSetLog.findMany({
+  const previousExerciseLog = activeExercise
+    ? await prisma.workoutExerciseLog.findFirst({
         where: {
-          workoutExerciseLogId: { not: activeExercise.id },
-          OR: [{ actualReps: { not: null } }, { actualWeightKg: { not: null } }],
-          workoutExerciseLog: {
-            workoutLog: { userId: user.id },
-            ...(activeExercise.catalogItemId ? { catalogItemId: activeExercise.catalogItemId } : { exerciseName: activeExercise.exerciseName }),
+          id: { not: activeExercise.id },
+          workoutLog: { userId: user.id },
+          ...(activeExercise.catalogItemId ? { catalogItemId: activeExercise.catalogItemId } : { exerciseName: activeExercise.exerciseName }),
+          setLogs: { some: { OR: [{ actualReps: { not: null } }, { actualWeightKg: { not: null } }] } },
+        },
+        orderBy: [{ workoutLog: { workoutDate: "desc" } }, { updatedAt: "desc" }],
+        select: {
+          setLogs: {
+            where: { OR: [{ actualReps: { not: null } }, { actualWeightKg: { not: null } }] },
+            orderBy: { setIndex: "desc" },
+            select: {
+              actualReps: true,
+              actualWeightKg: true,
+            },
+            take: 1,
           },
         },
-        orderBy: [{ completedAt: "desc" }, { updatedAt: "desc" }],
-        select: {
-          setIndex: true,
-          actualReps: true,
-          actualWeightKg: true,
-        },
-        take: 50,
       })
-    : [];
-  const lastSetByIndex = new Map<number, (typeof previousSetLogs)[number]>();
-
-  for (const previousSet of previousSetLogs) {
-    if (!lastSetByIndex.has(previousSet.setIndex)) {
-      lastSetByIndex.set(previousSet.setIndex, previousSet);
-    }
-  }
+    : null;
+  const previousFinalSet = previousExerciseLog?.setLogs[0] ?? null;
 
   const activeExerciseWithHistory = activeExercise
     ? {
         ...activeExercise,
-        setLogs: activeExercise.setLogs.map((setLog) => {
-          const lastSet = lastSetByIndex.get(setLog.setIndex) ?? null;
-
-          return {
-            ...setLog,
-            lastHint: buildLastSetHint(lastSet),
-            lastActualReps: lastSet?.actualReps ?? null,
-            lastActualWeightKg: lastSet?.actualWeightKg ?? null,
-          };
-        }),
+        setLogs: activeExercise.setLogs.map((setLog) => ({
+          ...setLog,
+          lastHint: buildLastSetHint(previousFinalSet),
+          lastActualReps: previousFinalSet?.actualReps ?? null,
+          lastActualWeightKg: previousFinalSet?.actualWeightKg ?? null,
+        })),
       }
     : null;
 
@@ -425,8 +418,7 @@ async function getTodayPageData(params: SearchParams) {
       : null;
   const restLock = dbRestLock && (!urlRestLock || dbRestLock.dueAtMs >= urlRestLock.dueAtMs) ? dbRestLock : urlRestLock;
   const selectedSet = activeExerciseWithHistory ? getSelectedSetToFill(activeExerciseWithHistory.setLogs, params.set) : null;
-  const selectedPreviousSet = selectedSet ? lastSetByIndex.get(selectedSet.setIndex) ?? null : null;
-  const setDefaults = selectedSet ? getSetEntryDefaults(selectedSet, activeExerciseWithHistory?.setLogs ?? [], selectedPreviousSet) : { weightKg: null, reps: null };
+  const setDefaults = selectedSet ? getSetEntryDefaults(selectedSet, activeExerciseWithHistory?.setLogs ?? [], previousFinalSet) : { weightKg: null, reps: null };
   const reviewExercise: TodayExerciseReview | null = activeExerciseWithHistory
     ? {
         id: activeExerciseWithHistory.id,
