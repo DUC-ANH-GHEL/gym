@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { getDateKeyInTimeZone, getDayOfWeekInTimeZone } from "@/lib/date";
+import { planTodayWorkoutLogSync } from "@/lib/workout-log-sync";
 
 const DEFAULT_SET_TEMPLATE = [
   { intensityPercent: 70, targetReps: 12 },
@@ -21,23 +22,6 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
   const profile = await prisma.gymProfile.findUnique({ where: { userId } });
   const actualTimeZone = profile?.timezone || timeZone;
   const todayKey = getDateKeyInTimeZone(new Date(), actualTimeZone);
-
-  const existingLogs = await prisma.workoutLog.findMany({
-    where: { userId },
-    orderBy: { startedAt: "desc" },
-    include: {
-      exerciseLogs: {
-        orderBy: { orderIndex: "asc" },
-        include: { setLogs: { orderBy: { setIndex: "asc" } } },
-      },
-    },
-  });
-
-  const existingToday = existingLogs.find((log) => getDateKeyInTimeZone(log.workoutDate, actualTimeZone) === todayKey);
-  if (existingToday) {
-    return { log: existingToday, created: false, timezone: actualTimeZone };
-  }
-
   const todayDayOfWeek = getDayOfWeekInTimeZone(new Date(), actualTimeZone);
   const workoutDay = await prisma.workoutDay.findUnique({
     where: { userId_dayOfWeek: { userId, dayOfWeek: todayDayOfWeek } },
@@ -52,6 +36,54 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
     },
   });
 
+  const existingLogs = await prisma.workoutLog.findMany({
+    where: { userId },
+    orderBy: { startedAt: "desc" },
+    include: {
+      exerciseLogs: {
+        orderBy: { orderIndex: "asc" },
+        include: { setLogs: { orderBy: { setIndex: "asc" } } },
+      },
+    },
+  });
+
+  const existingToday = existingLogs.find((log) => getDateKeyInTimeZone(log.workoutDate, actualTimeZone) === todayKey);
+  if (existingToday) {
+    if (!workoutDay || workoutDay.isRestDay) {
+      return { log: existingToday, created: false, timezone: actualTimeZone };
+    }
+
+    const syncPlan = planTodayWorkoutLogSync(workoutDay.exercises, existingToday.exerciseLogs);
+
+    if (syncPlan.createRows.length === 0 && syncPlan.updateRows.length === 0) {
+      return { log: existingToday, created: false, timezone: actualTimeZone };
+    }
+
+    await prisma.$transaction([
+      ...syncPlan.updateRows.map((row) => prisma.workoutExerciseLog.update({ where: { id: row.id }, data: { orderIndex: row.orderIndex } })),
+      ...syncPlan.createRows.map((row) =>
+        prisma.workoutExerciseLog.create({
+          data: {
+            workoutLogId: existingToday.id,
+            ...row,
+          },
+        }),
+      ),
+    ]);
+
+    const syncedLog = await prisma.workoutLog.findUnique({
+      where: { id: existingToday.id },
+      include: {
+        exerciseLogs: {
+          orderBy: { orderIndex: "asc" },
+          include: { setLogs: { orderBy: { setIndex: "asc" } } },
+        },
+      },
+    });
+
+    return { log: syncedLog ?? existingToday, created: false, timezone: actualTimeZone };
+  }
+
   if (!workoutDay || workoutDay.isRestDay) {
     throw new Error("TODAY_IS_REST_DAY");
   }
@@ -63,22 +95,7 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
       dayOfWeek: todayDayOfWeek,
       title: workoutDay.title,
       exerciseLogs: {
-        create: workoutDay.exercises.map((workoutDayExercise, orderIndex) => ({
-          catalogItemId: workoutDayExercise.catalogItemId,
-          exerciseName: workoutDayExercise.catalogItem.name,
-          muscleGroup: workoutDayExercise.catalogItem.muscleGroup,
-          imageUrl: workoutDayExercise.catalogItem.imageUrl,
-          animationUrl: workoutDayExercise.catalogItem.animationUrl,
-          orderIndex,
-          setLogs: {
-            create: workoutDayExercise.sets.map((set) => ({
-              setIndex: set.setIndex,
-              intensityPercent: set.intensityPercent,
-              targetReps: set.targetReps,
-              targetWeightKg: set.targetWeightKg,
-            })),
-          },
-        })),
+        create: planTodayWorkoutLogSync(workoutDay.exercises, []).createRows,
       },
     },
     include: {
