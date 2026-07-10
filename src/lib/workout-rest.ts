@@ -9,6 +9,7 @@ export type RestReminderPlan = {
 };
 
 export type RestLock = {
+  reminderId?: string;
   dueAtMs: number;
   restSeconds: number;
   title: string;
@@ -24,7 +25,7 @@ export type RestSearchParams = {
 
 const DEFAULT_REST_TITLE = "T\u1edbi gi\u1edd t\u1eadp";
 const DEFAULT_REST_BODY = "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp ti\u1ebfp nh\u00e9.";
-const LOCAL_NOTIFICATION_GRACE_MS = 2 * 60 * 1000;
+const LOCAL_NOTIFICATION_GRACE_MS = 2 * 1000;
 
 export function isRestLocked(dueAtMs: number | null | undefined, nowMs = Date.now()) {
   return typeof dueAtMs === "number" && Number.isFinite(dueAtMs) && dueAtMs > nowMs;

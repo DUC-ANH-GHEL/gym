@@ -79,11 +79,12 @@ test("reads an active rest lock from search params", () => {
   });
 });
 
-test("does not show a stale local rest notification long after the due time", () => {
+test("only shows a local rest notification at the timer boundary", () => {
   const dueAtMs = Date.parse("2026-06-30T09:00:30.000Z");
 
   assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:00:31.000Z")), true);
-  assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:06:00.000Z")), false);
+  assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:00:31.999Z")), true);
+  assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:00:32.001Z")), false);
 });
 
 test("formats a rest countdown for the progress card", () => {

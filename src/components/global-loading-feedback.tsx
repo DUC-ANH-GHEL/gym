@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const TEXT = {
-  loading: "Đang xử lý...",
+  loading: "\u0110ang x\u1eed l\u00fd...",
 };
 
 function isModifiedClick(event: MouseEvent) {
@@ -26,7 +26,7 @@ export function GlobalLoadingFeedback() {
   const pathname = usePathname();
   const [loadingPath, setLoadingPath] = useState<string | null>(null);
   const timeoutRef = useRef<number | null>(null);
-  const active = loadingPath === pathname;
+  const loading = loadingPath === pathname;
 
   const clearLoading = useCallback(() => {
     if (timeoutRef.current) {
@@ -56,11 +56,9 @@ export function GlobalLoadingFeedback() {
 
   useEffect(() => {
     function handleSubmit(event: SubmitEvent) {
-      if (event.defaultPrevented) {
-        return;
+      if (!event.defaultPrevented) {
+        startLoading(12000);
       }
-
-      startLoading(12000);
     }
 
     function handleClick(event: MouseEvent) {
@@ -75,18 +73,16 @@ export function GlobalLoadingFeedback() {
       }
 
       if (interactive instanceof HTMLAnchorElement) {
-        if (shouldIgnoreAnchor(interactive)) {
-          return;
+        if (!shouldIgnoreAnchor(interactive)) {
+          startLoading(4500);
         }
-        startLoading(4500);
         return;
       }
 
-      if (interactive instanceof HTMLButtonElement && (interactive.type || "submit") === "submit") {
-        return;
-      }
-
-      if (interactive instanceof HTMLInputElement && interactive.type === "submit") {
+      if (
+        (interactive instanceof HTMLButtonElement && (interactive.type || "submit") === "submit") ||
+        (interactive instanceof HTMLInputElement && interactive.type === "submit")
+      ) {
         return;
       }
 
@@ -109,17 +105,16 @@ export function GlobalLoadingFeedback() {
 
   return (
     <div
-      aria-live="polite"
       aria-atomic="true"
-      className={`pointer-events-none fixed inset-x-0 top-0 z-[80] flex justify-center px-3 pt-[calc(env(safe-area-inset-top)+8px)] transition duration-150 ${
-        active ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
+      aria-busy={loading}
+      aria-live="polite"
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#0B0F14]/78 px-6 backdrop-blur-sm transition duration-150 ${
+        loading ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
       }`}
     >
-      <div className="max-w-[calc(100vw-24px)] rounded-full border border-[#38BDF8]/35 bg-[#0B1220]/95 px-3 py-2 text-[13px] font-black text-[#E0F2FE] shadow-[0_16px_36px_rgba(0,0,0,0.35)] backdrop-blur">
-        <span className="inline-flex min-w-0 items-center gap-2">
-          <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#7DD3FC] border-t-transparent" aria-hidden="true" />
-          <span className="truncate">{TEXT.loading}</span>
-        </span>
+      <div className="flex min-h-[120px] w-full max-w-[280px] flex-col items-center justify-center rounded-[18px] border border-[#263241] bg-[#111827] px-5 py-5 text-center shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+        <span className="h-10 w-10 animate-spin rounded-full border-4 border-[#334155] border-t-[#38BDF8]" aria-hidden="true" />
+        <p className="mt-3 text-[17px] font-black text-[#F9FAFB]">{TEXT.loading}</p>
       </div>
     </div>
   );

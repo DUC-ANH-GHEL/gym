@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { buildWorkoutNotificationOptions, shouldSyncPushSubscription } from "@/lib/workout-notification-options";
 import { shouldShowLocalRestNotification } from "@/lib/workout-rest";
@@ -72,15 +72,26 @@ async function showLocalNotification(title: string, body: string) {
   }
 }
 
+async function acknowledgeForegroundNotification(reminderId: string) {
+  await fetch("/api/workout-reminders/acknowledge", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reminderId }),
+    keepalive: true,
+  });
+}
+
 export function WorkoutRestTimer({
   body: initialBody,
   dueAtMs,
+  reminderId,
   restSeconds: initialRestSeconds,
   showPrompt = true,
   title: initialTitle,
 }: {
   body?: string | null;
   dueAtMs?: number | null;
+  reminderId?: string | null;
   restSeconds?: number | null;
   showPrompt?: boolean;
   title?: string | null;
@@ -98,6 +109,7 @@ export function WorkoutRestTimer({
   );
   const [message, setMessage] = useState("");
   const [pushSynced, setPushSynced] = useState(false);
+  const wasHiddenDuringTimerRef = useRef(false);
 
   const timerKey = useMemo(() => (dueAt > now ? `${dueAt}:${title}` : ""), [dueAt, now, title]);
   const hasTimer = dueAt > now && restSeconds > 0;
@@ -127,11 +139,22 @@ export function WorkoutRestTimer({
 
   useEffect(() => {
     if (!hasTimer) {
+      wasHiddenDuringTimerRef.current = false;
       return;
     }
 
+    wasHiddenDuringTimerRef.current = document.visibilityState !== "visible";
+    const markWhenHidden = () => {
+      if (document.visibilityState !== "visible") {
+        wasHiddenDuringTimerRef.current = true;
+      }
+    };
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(interval);
+    document.addEventListener("visibilitychange", markWhenHidden);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", markWhenHidden);
+    };
   }, [hasTimer]);
 
   useEffect(() => {
@@ -145,7 +168,7 @@ export function WorkoutRestTimer({
     }
 
     const timeout = window.setTimeout(() => {
-      if (!shouldShowLocalRestNotification(dueAt, Date.now())) {
+      if (wasHiddenDuringTimerRef.current || !shouldShowLocalRestNotification(dueAt, Date.now())) {
         return;
       }
 
@@ -155,11 +178,13 @@ export function WorkoutRestTimer({
       }
 
       window.sessionStorage.setItem(notifiedKey, "1");
-      showLocalNotification(title, body).catch(() => undefined);
+      showLocalNotification(title, body)
+        .then(() => (reminderId ? acknowledgeForegroundNotification(reminderId) : undefined))
+        .catch(() => undefined);
     }, delay);
 
     return () => window.clearTimeout(timeout);
-  }, [body, dueAt, hasTimer, timerKey, title]);
+  }, [body, dueAt, hasTimer, reminderId, timerKey, title]);
 
   async function enableReminder() {
     if (!("Notification" in window)) {

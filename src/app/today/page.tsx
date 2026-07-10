@@ -423,10 +423,11 @@ async function getTodayPageData(params: SearchParams) {
     where: {
       userId: user.id,
       sentAt: null,
-      dueAt: { gt: today },
+      dueAt: { gt: new Date(nowMs) },
     },
     orderBy: { dueAt: "desc" },
     select: {
+      id: true,
       dueAt: true,
       title: true,
       body: true,
@@ -435,6 +436,7 @@ async function getTodayPageData(params: SearchParams) {
   const dbRestLock =
     activeRestReminder && isRestLocked(activeRestReminder.dueAt.getTime(), nowMs)
       ? {
+          reminderId: activeRestReminder.id,
           dueAtMs: activeRestReminder.dueAt.getTime(),
           restSeconds: Math.ceil((activeRestReminder.dueAt.getTime() - nowMs) / 1000),
           title: activeRestReminder.title,
@@ -559,6 +561,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
           <WorkoutRestTimer
             body={restLock?.body ?? null}
             dueAtMs={restLock?.dueAtMs ?? null}
+            reminderId={restLock?.reminderId ?? null}
             restSeconds={restLock?.restSeconds ?? null}
             title={restLock?.title ?? null}
             showPrompt={false}
