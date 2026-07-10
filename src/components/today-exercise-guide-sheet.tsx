@@ -19,10 +19,12 @@ export function TodayExerciseGuideSheet({
   exerciseName,
   muscleGroup,
   note,
+  triggerClassName,
 }: {
   exerciseName: string;
   muscleGroup: string | null;
   note: string | null;
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
@@ -34,7 +36,10 @@ export function TodayExerciseGuideSheet({
       <button
         type="button"
         data-testid="today-exercise-guide-button"
-        className="inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full border border-[#22C55E]/45 bg-[#12301F] px-4 text-[14px] font-black text-[#86EFAC] active:scale-[0.98]"
+        className={
+          triggerClassName ??
+          "inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full border border-[#22C55E]/45 bg-[#12301F] px-4 text-[14px] font-black text-[#86EFAC] active:scale-[0.98]"
+        }
         aria-label={TEXT.openLabel}
         onClick={() => setOpen(true)}
       >

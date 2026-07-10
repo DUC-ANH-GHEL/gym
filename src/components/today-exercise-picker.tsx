@@ -48,10 +48,12 @@ export function TodayExercisePicker({
   action,
   restDueAtMs,
   rows,
+  triggerClassName,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   restDueAtMs: number | null;
   rows: TodayExercisePickerRow[];
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
@@ -60,7 +62,10 @@ export function TodayExercisePicker({
     <>
       <button
         type="button"
-        className="inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full border border-[#38BDF8]/45 bg-[#082f49] px-4 text-[14px] font-black text-[#7DD3FC] active:scale-[0.98]"
+        className={
+          triggerClassName ??
+          "inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full border border-[#38BDF8]/45 bg-[#082f49] px-4 text-[14px] font-black text-[#7DD3FC] active:scale-[0.98]"
+        }
         onClick={() => setOpen(true)}
       >
         {TEXT.open}

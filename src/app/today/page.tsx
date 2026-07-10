@@ -223,18 +223,34 @@ function CurrentExerciseCard({
     selectedSet && exercise ? getSetDisplayNumber(exercise.setLogs, selectedSet) : Math.min(row.completedSets + 1, row.setCount || 1);
   const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
   const lastHint = selectedSet?.lastHint;
+  const guideButtonClassName =
+    "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#22C55E]/45 bg-[#12301F] px-2 text-center text-[13px] font-black leading-tight text-[#86EFAC] active:scale-[0.98]";
+  const pickerButtonClassName =
+    "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#38BDF8]/45 bg-[#082f49] px-2 text-center text-[13px] font-black leading-tight text-[#7DD3FC] active:scale-[0.98]";
   const setProgressSummary = (
-    <div className="grid grid-cols-2 gap-2">
-      <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
-        <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.completedSets}</p>
-        <p className="text-[17px] font-black leading-none text-[#F9FAFB]">
+    <div className="grid grid-cols-4 gap-1.5">
+      <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#263241] bg-[#0B0F14] px-2 py-1.5">
+        <p className="break-words text-[10px] font-bold leading-[1.05] text-[#9CA3AF]">{TEXT.completedSets}</p>
+        <p className="mt-0.5 whitespace-nowrap text-[15px] font-black leading-none text-[#F9FAFB]">
           {row.completedSets}/{row.setCount} set
         </p>
       </div>
-      <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
-        <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.preparing}</p>
-        <p className="text-[17px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
+      <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#263241] bg-[#0B0F14] px-2 py-1.5">
+        <p className="break-words text-[10px] font-bold leading-[1.05] text-[#9CA3AF]">{TEXT.preparing}</p>
+        <p className="mt-0.5 whitespace-nowrap text-[15px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
       </div>
+      <TodayExerciseGuideSheet
+        exerciseName={row.name}
+        muscleGroup={row.muscleGroup}
+        note={row.note}
+        triggerClassName={guideButtonClassName}
+      />
+      <TodayExercisePicker
+        action={startWorkoutExerciseAction}
+        restDueAtMs={restLock?.dueAtMs ?? null}
+        rows={rows}
+        triggerClassName={pickerButtonClassName}
+      />
     </div>
   );
 
@@ -255,10 +271,6 @@ function CurrentExerciseCard({
             <h2 className="break-words text-[20px] font-black leading-[1.02] text-[#F9FAFB]">{row.name}</h2>
             <p className="break-words text-[13px] font-semibold leading-4 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
             {lastHint ? <p className="mt-0.5 break-words text-[12px] font-black leading-4 text-[#86EFAC]">{lastHint}</p> : null}
-          </div>
-          <div className="flex shrink-0 flex-wrap justify-end gap-2">
-            <TodayExerciseGuideSheet exerciseName={row.name} muscleGroup={row.muscleGroup} note={row.note} />
-            <TodayExercisePicker action={startWorkoutExerciseAction} restDueAtMs={restLock?.dueAtMs ?? null} rows={rows} />
           </div>
         </div>
 
