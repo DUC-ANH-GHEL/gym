@@ -6,7 +6,7 @@ import { ensureTodayWorkoutLog, parseNullableNumber, recalculateExerciseCompleti
 import { requireUser } from "@/lib/auth";
 import { getDayOfWeekInTimeZone } from "@/lib/date";
 import { getRestReminderPlan } from "@/lib/workout-rest";
-import { ensureWorkoutReminderCronJob } from "@/lib/workout-cron-job-org";
+import { scheduleWorkoutRestReminder } from "@/lib/workout-qstash";
 import { getNextExerciseAfterSetSave, getNextSetToFill } from "@/lib/workout-today-flow";
 import { clampWorkoutWeightKg } from "@/lib/workout-set-entry";
 
@@ -176,7 +176,7 @@ export async function saveWorkoutSetAction(formData: FormData) {
     const targetExerciseId = updatedExercise?.isCompleted ? nextExercise?.id : setLog.workoutExerciseLogId;
     const reminderUrl = targetExerciseId ? `/today?exercise=${targetExerciseId}` : "/today";
 
-    await prisma.workoutRestReminder.create({
+    const reminder = await prisma.workoutRestReminder.create({
       data: {
         userId: user.id,
         workoutSetLogId: setLogId,
@@ -188,7 +188,15 @@ export async function saveWorkoutSetAction(formData: FormData) {
         dueAt,
       },
     });
-    await ensureWorkoutReminderCronJob().catch(() => undefined);
+    try {
+      await scheduleWorkoutRestReminder({ reminderId: reminder.id, dueAt });
+    } catch (error) {
+      await prisma.workoutRestReminder.update({
+        where: { id: reminder.id },
+        data: { lastError: error instanceof Error ? error.message.slice(0, 500) : "qstash_schedule_failed" },
+      });
+      throw error;
+    }
 
     const params = new URLSearchParams({
       rest: String(restPlan.seconds),

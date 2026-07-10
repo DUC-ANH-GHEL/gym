@@ -6,7 +6,6 @@ import {
   getRestLockFromSearchParams,
   getRestReminderPlan,
   isRestLocked,
-  shouldShowLocalRestNotification,
 } from "./workout-rest.ts";
 
 test("starts a 30 second rest after a completed set when the exercise is not done", () => {
@@ -77,14 +76,6 @@ test("reads an active rest lock from search params", () => {
     title: "T\u1edbi set ti\u1ebfp theo",
     body: "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp set ti\u1ebfp theo nh\u00e9.",
   });
-});
-
-test("only shows a local rest notification at the timer boundary", () => {
-  const dueAtMs = Date.parse("2026-06-30T09:00:30.000Z");
-
-  assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:00:31.000Z")), true);
-  assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:00:31.999Z")), true);
-  assert.equal(shouldShowLocalRestNotification(dueAtMs, Date.parse("2026-06-30T09:00:32.001Z")), false);
 });
 
 test("formats a rest countdown for the progress card", () => {

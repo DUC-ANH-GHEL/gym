@@ -1,13 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { buildWorkoutNotificationOptions, shouldSyncPushSubscription } from "@/lib/workout-notification-options";
-import { shouldShowLocalRestNotification } from "@/lib/workout-rest";
+import { shouldSyncPushSubscription } from "@/lib/workout-notification-options";
 
 const TEXT = {
-  defaultTitle: "T\u1edbi gi\u1edd t\u1eadp",
-  defaultBody: "Ngh\u1ec9 xong r\u1ed3i. V\u00e0o t\u1eadp ti\u1ebfp nh\u00e9.",
   unsupported: "M\u00e1y n\u00e0y ch\u01b0a h\u1ed7 tr\u1ee3 th\u00f4ng b\u00e1o.",
   denied: "B\u1ea1n \u0111ang ch\u1eb7n th\u00f4ng b\u00e1o. M\u1edf c\u00e0i \u0111\u1eb7t tr\u00ecnh duy\u1ec7t \u0111\u1ec3 b\u1eadt l\u1ea1i.",
   notEnabled: "Ch\u01b0a b\u1eadt th\u00f4ng b\u00e1o, app v\u1eabn \u0111\u1ebfm gi\u1edd khi \u0111ang m\u1edf.",
@@ -58,49 +55,18 @@ async function subscribeForPush() {
   return response.ok;
 }
 
-async function showLocalNotification(title: string, body: string) {
-  if (!("Notification" in window) || Notification.permission !== "granted") {
-    return;
-  }
-
-  const registration = await ensureServiceWorker();
-  if (registration) {
-    await registration.showNotification(title, {
-      ...buildWorkoutNotificationOptions({ url: "/today" }),
-      body,
-    });
-  }
-}
-
-async function acknowledgeForegroundNotification(reminderId: string) {
-  await fetch("/api/workout-reminders/acknowledge", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reminderId }),
-    keepalive: true,
-  });
-}
-
 export function WorkoutRestTimer({
-  body: initialBody,
   dueAtMs,
-  reminderId,
   restSeconds: initialRestSeconds,
   showPrompt = true,
-  title: initialTitle,
 }: {
-  body?: string | null;
   dueAtMs?: number | null;
-  reminderId?: string | null;
   restSeconds?: number | null;
   showPrompt?: boolean;
-  title?: string | null;
 }) {
   const searchParams = useSearchParams();
   const urlDueAt = Number(searchParams.get("restDueAt") || 0);
   const dueAt = dueAtMs || urlDueAt;
-  const title = initialTitle || searchParams.get("restTitle") || TEXT.defaultTitle;
-  const body = initialBody || searchParams.get("restBody") || TEXT.defaultBody;
   const urlRestSeconds = Number(searchParams.get("rest") || 0);
   const restSeconds = initialRestSeconds || urlRestSeconds;
   const [now, setNow] = useState(() => Date.now());
@@ -109,9 +75,7 @@ export function WorkoutRestTimer({
   );
   const [message, setMessage] = useState("");
   const [pushSynced, setPushSynced] = useState(false);
-  const wasHiddenDuringTimerRef = useRef(false);
 
-  const timerKey = useMemo(() => (dueAt > now ? `${dueAt}:${title}` : ""), [dueAt, now, title]);
   const hasTimer = dueAt > now && restSeconds > 0;
 
   useEffect(() => {
@@ -139,52 +103,12 @@ export function WorkoutRestTimer({
 
   useEffect(() => {
     if (!hasTimer) {
-      wasHiddenDuringTimerRef.current = false;
       return;
     }
 
-    wasHiddenDuringTimerRef.current = document.visibilityState !== "visible";
-    const markWhenHidden = () => {
-      if (document.visibilityState !== "visible") {
-        wasHiddenDuringTimerRef.current = true;
-      }
-    };
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
-    document.addEventListener("visibilitychange", markWhenHidden);
-    return () => {
-      window.clearInterval(interval);
-      document.removeEventListener("visibilitychange", markWhenHidden);
-    };
+    return () => window.clearInterval(interval);
   }, [hasTimer]);
-
-  useEffect(() => {
-    if (!hasTimer || !timerKey) {
-      return;
-    }
-
-    const delay = dueAt - Date.now();
-    if (delay <= 0) {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => {
-      if (wasHiddenDuringTimerRef.current || !shouldShowLocalRestNotification(dueAt, Date.now())) {
-        return;
-      }
-
-      const notifiedKey = `workout-rest-notified:${timerKey}`;
-      if (window.sessionStorage.getItem(notifiedKey)) {
-        return;
-      }
-
-      window.sessionStorage.setItem(notifiedKey, "1");
-      showLocalNotification(title, body)
-        .then(() => (reminderId ? acknowledgeForegroundNotification(reminderId) : undefined))
-        .catch(() => undefined);
-    }, delay);
-
-    return () => window.clearTimeout(timeout);
-  }, [body, dueAt, hasTimer, reminderId, timerKey, title]);
 
   async function enableReminder() {
     if (!("Notification" in window)) {
