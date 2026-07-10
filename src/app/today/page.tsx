@@ -227,12 +227,12 @@ function CurrentExerciseCard({
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
       <div className="shrink-0 p-1.5 pb-0">
-        <div className="h-[clamp(170px,28svh,210px)] overflow-hidden rounded-[15px] border border-[#263241] bg-black [@media(min-height:760px)]:h-[clamp(220px,33svh,285px)] [@media(min-height:860px)]:h-[clamp(280px,37svh,360px)]">
+        <div className="h-[clamp(150px,24svh,190px)] overflow-hidden rounded-[15px] border border-[#263241] bg-black [@media(min-height:760px)]:h-[clamp(190px,29svh,250px)] [@media(min-height:860px)]:h-[clamp(230px,32svh,310px)]">
           <ExerciseMediaFrame exercise={row} alt={row.name} variant="hero" />
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-1.5 px-3 pb-2 pt-1.5">
+      <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto overscroll-contain px-3 pb-2 pt-1.5">
         <div className="flex min-w-0 items-start gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-[12px] font-black leading-4 text-[#86EFAC]">
@@ -261,7 +261,7 @@ function CurrentExerciseCard({
           </div>
         </div>
 
-        <div className="pb-[58px]">
+        <div className="pb-[92px]">
           {canSubmitSet && selectedSet ? (
             <TodaySetControls
               key={selectedSet.id}
