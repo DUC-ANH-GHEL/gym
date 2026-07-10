@@ -18,10 +18,11 @@ export function middleware(request: NextRequest) {
   const isPublic = publicPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   const isApiUpload = pathname === "/api/upload" || pathname.startsWith("/api/upload/");
   const isWorkoutReminderCron = pathname === "/api/workout-reminders/due";
+  const isWorkoutReminderDelivery = pathname === "/api/workout-reminders/deliver";
   const isAsset = pathname.startsWith("/_next") || pathname.startsWith("/favicon");
   const isPublicAsset = publicAssetPaths.has(pathname);
 
-  if (isPublic || isAsset || isApiUpload || isWorkoutReminderCron || isPublicAsset) {
+  if (isPublic || isAsset || isApiUpload || isWorkoutReminderCron || isWorkoutReminderDelivery || isPublicAsset) {
     return NextResponse.next();
   }
 
