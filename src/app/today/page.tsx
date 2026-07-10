@@ -223,6 +223,20 @@ function CurrentExerciseCard({
     selectedSet && exercise ? getSetDisplayNumber(exercise.setLogs, selectedSet) : Math.min(row.completedSets + 1, row.setCount || 1);
   const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
   const lastHint = selectedSet?.lastHint;
+  const setProgressSummary = (
+    <div className="grid grid-cols-2 gap-2">
+      <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
+        <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.completedSets}</p>
+        <p className="text-[17px] font-black leading-none text-[#F9FAFB]">
+          {row.completedSets}/{row.setCount} set
+        </p>
+      </div>
+      <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
+        <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.preparing}</p>
+        <p className="text-[17px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
+      </div>
+    </div>
+  );
 
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
@@ -248,21 +262,8 @@ function CurrentExerciseCard({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
-            <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.completedSets}</p>
-            <p className="text-[17px] font-black leading-none text-[#F9FAFB]">
-              {row.completedSets}/{row.setCount} set
-            </p>
-          </div>
-          <div className="rounded-[13px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5">
-            <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.preparing}</p>
-            <p className="text-[17px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
-          </div>
-        </div>
-
-        <div className="pb-[92px]">
-          {canSubmitSet && selectedSet ? (
+        {canSubmitSet && selectedSet ? (
+          <>
             <TodaySetControls
               key={selectedSet.id}
               setLogId={selectedSet.id}
@@ -272,18 +273,26 @@ function CurrentExerciseCard({
               restDueAtMs={restLock?.dueAtMs ?? null}
               action={saveWorkoutSetAction}
             />
-          ) : row.isCompleted && reviewExercise ? (
-            <TodayExerciseReviewSheet
-              key={`${reviewExercise.id}-${reviewDefaultOpen ? "open" : "closed"}`}
-              defaultOpen={reviewDefaultOpen}
-              exercise={reviewExercise}
-              triggerClassName="flex min-h-[50px] w-full items-center justify-center rounded-[16px] border border-[#374151] bg-[#0B0F14] px-4 py-2.5 text-[17px] font-black text-[#F9FAFB]"
-              triggerLabel={TEXT.reviewExercise}
-            />
-          ) : (
-            <StartExerciseButton row={row} restLock={restLock} wide />
-          )}
-        </div>
+            <div className="pb-[92px]">{setProgressSummary}</div>
+          </>
+        ) : (
+          <>
+            {setProgressSummary}
+            <div className="pb-[92px]">
+              {row.isCompleted && reviewExercise ? (
+                <TodayExerciseReviewSheet
+                  key={`${reviewExercise.id}-${reviewDefaultOpen ? "open" : "closed"}`}
+                  defaultOpen={reviewDefaultOpen}
+                  exercise={reviewExercise}
+                  triggerClassName="flex min-h-[50px] w-full items-center justify-center rounded-[16px] border border-[#374151] bg-[#0B0F14] px-4 py-2.5 text-[17px] font-black text-[#F9FAFB]"
+                  triggerLabel={TEXT.reviewExercise}
+                />
+              ) : (
+                <StartExerciseButton row={row} restLock={restLock} wide />
+              )}
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
