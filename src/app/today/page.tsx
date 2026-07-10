@@ -228,7 +228,7 @@ function CurrentExerciseCard({
   const pickerButtonClassName =
     "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#38BDF8]/45 bg-[#082f49] px-2 text-center text-[13px] font-black leading-tight text-[#7DD3FC] active:scale-[0.98]";
   const setProgressSummary = (
-    <div className="grid grid-cols-4 gap-1.5">
+    <div className="grid grid-cols-[minmax(0,1.08fr)_minmax(0,1.08fr)_minmax(0,0.92fr)_minmax(0,0.92fr)] gap-1.5">
       <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#263241] bg-[#0B0F14] px-2 py-1.5">
         <p className="break-words text-[10px] font-bold leading-[1.05] text-[#9CA3AF]">{TEXT.completedSets}</p>
         <p className="mt-0.5 whitespace-nowrap text-[15px] font-black leading-none text-[#F9FAFB]">
