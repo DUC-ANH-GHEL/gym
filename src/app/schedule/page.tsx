@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { getDayOfWeekInTimeZone } from "@/lib/date";
-import { AppButton, AppInput } from "@/components/ui";
+import { AppButton, AppInput, PendingButton } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
 import { buildScheduleSummary, getFriendlyWorkoutTitle } from "@/lib/schedule-summary";
@@ -292,9 +292,12 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                 </Link>
                 <form action={applyWorkoutTemplateAction}>
                   <input type="hidden" name="templateId" value={featuredTemplate.id} />
-                  <button className="min-h-[44px] w-full rounded-[15px] bg-[#22C55E] px-3 text-[13px] font-black text-white active:scale-[0.99]">
+                  <PendingButton
+                    className="min-h-[44px] w-full rounded-[15px] bg-[#22C55E] px-3 text-[13px] font-black text-white active:scale-[0.99]"
+                    pendingLabel="Đang áp..."
+                  >
                     Áp lại mẫu
-                  </button>
+                  </PendingButton>
                 </form>
               </div>
             </article>
@@ -323,7 +326,9 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                 <input type="checkbox" name="isRestDay" defaultChecked={selectedDay.isRestDay} className="h-5 w-5 accent-[#22C55E]" />
                 Đánh dấu là ngày nghỉ
               </label>
-              <AppButton className="w-full">Lưu buổi này</AppButton>
+              <AppButton className="w-full" pendingLabel="Đang lưu...">
+                Lưu buổi này
+              </AppButton>
             </form>
 
             <form id="them-bai" action={addCatalogItemToDayAction} className="scroll-mt-8">
@@ -355,9 +360,12 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                         </div>
                         <form action={removeExerciseFromDayAction}>
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                          <button className="min-h-[40px] rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 text-[13px] font-bold text-[#FCA5A5]">
+                          <PendingButton
+                            className="min-h-[40px] rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 text-[13px] font-bold text-[#FCA5A5]"
+                            pendingLabel="Đang xóa..."
+                          >
                             Xóa
-                          </button>
+                          </PendingButton>
                         </form>
                       </div>
 
@@ -365,16 +373,22 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                         <form action={moveWorkoutDayExerciseAction}>
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
                           <input type="hidden" name="direction" value="up" />
-                          <button className="min-h-[42px] w-full rounded-[14px] border border-[#273444] bg-[#182433] text-[13px] font-bold text-[#E2E8F0]">
+                          <PendingButton
+                            className="min-h-[42px] w-full rounded-[14px] border border-[#273444] bg-[#182433] text-[13px] font-bold text-[#E2E8F0]"
+                            pendingLabel="Đang đưa lên..."
+                          >
                             Đưa lên
-                          </button>
+                          </PendingButton>
                         </form>
                         <form action={moveWorkoutDayExerciseAction}>
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
                           <input type="hidden" name="direction" value="down" />
-                          <button className="min-h-[42px] w-full rounded-[14px] border border-[#273444] bg-[#182433] text-[13px] font-bold text-[#E2E8F0]">
+                          <PendingButton
+                            className="min-h-[42px] w-full rounded-[14px] border border-[#273444] bg-[#182433] text-[13px] font-bold text-[#E2E8F0]"
+                            pendingLabel="Đang đưa xuống..."
+                          >
                             Đưa xuống
-                          </button>
+                          </PendingButton>
                         </form>
                       </div>
 
@@ -400,21 +414,29 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                                 <span className="text-[12px] font-bold text-[#B7C6D8]">Tạ mục tiêu (kg)</span>
                                 <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="40" inputMode="decimal" className="border-[#314155] bg-[#111C2E]" />
                               </label>
-                              <AppButton className="w-full">Lưu hiệp</AppButton>
+                              <AppButton className="w-full" pendingLabel="Đang lưu...">
+                                Lưu hiệp
+                              </AppButton>
                             </form>
                             <form action={removeWorkoutSetPlanAction}>
                               <input type="hidden" name="planSetId" value={set.id} />
-                              <button className="min-h-[40px] w-full rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 text-[13px] font-bold text-[#FCA5A5]">
+                              <PendingButton
+                                className="min-h-[40px] w-full rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 text-[13px] font-bold text-[#FCA5A5]"
+                                pendingLabel="Đang xóa..."
+                              >
                                 Xóa hiệp
-                              </button>
+                              </PendingButton>
                             </form>
                           </div>
                         ))}
                         <form action={addWorkoutSetPlanAction}>
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                          <button className="min-h-[44px] w-full rounded-[14px] border border-[#22C55E]/40 bg-[#0C2537] px-3 text-[13px] font-bold text-[#BBF7D0]">
+                          <PendingButton
+                            className="min-h-[44px] w-full rounded-[14px] border border-[#22C55E]/40 bg-[#0C2537] px-3 text-[13px] font-bold text-[#BBF7D0]"
+                            pendingLabel="Đang thêm..."
+                          >
                             Thêm hiệp mới
-                          </button>
+                          </PendingButton>
                         </form>
                       </div>
                     </div>
@@ -446,9 +468,12 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                   </div>
                   <form action={applyWorkoutTemplateAction} className="mt-3">
                     <input type="hidden" name="templateId" value={template.id} />
-                    <button className="min-h-[44px] w-full rounded-[15px] bg-[#22C55E] px-3 text-[13px] font-black text-white active:scale-[0.99]">
+                    <PendingButton
+                      className="min-h-[44px] w-full rounded-[15px] bg-[#22C55E] px-3 text-[13px] font-black text-white active:scale-[0.99]"
+                      pendingLabel="Đang áp..."
+                    >
                       Áp mẫu này
-                    </button>
+                    </PendingButton>
                   </form>
                 </article>
               );

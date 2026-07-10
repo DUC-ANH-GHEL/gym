@@ -39,7 +39,9 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
               autoComplete="username"
             />
             <AppInput type="password" name="password" placeholder={TEXT.passwordPlaceholder} required autoComplete="current-password" />
-            <AppButton className="w-full">{TEXT.submit}</AppButton>
+            <AppButton className="w-full" pendingLabel="Đang đăng nhập...">
+              {TEXT.submit}
+            </AppButton>
           </form>
           <p className="mt-4 text-[13px] text-[#9CA3AF]">
             {TEXT.noAccount}{" "}

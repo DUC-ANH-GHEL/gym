@@ -55,7 +55,9 @@ export default async function RegisterPage({ searchParams }: { searchParams?: Pr
               autoComplete="username"
             />
             <AppInput type="password" name="password" placeholder={TEXT.passwordPlaceholder} required autoComplete="new-password" />
-            <AppButton className="w-full">{TEXT.submit}</AppButton>
+            <AppButton className="w-full" pendingLabel="Đang tạo tài khoản...">
+              {TEXT.submit}
+            </AppButton>
           </form>
           <p className="mt-4 text-[13px] text-[#9CA3AF]">
             {TEXT.haveAccount}{" "}

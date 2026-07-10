@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { AdminRouteLinks } from "@/components/admin-route-links";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { ImageUpload } from "@/components/image-upload";
-import { AppButton, AppCard, AppInput, AppSelect, AppTextarea, EmptyState, PageHeader } from "@/components/ui";
+import { AppButton, AppCard, AppInput, AppSelect, AppTextarea, EmptyState, PageHeader, PendingButton } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 
 type SearchParams = {
@@ -146,7 +146,9 @@ export default async function AdminExercisesPage({
             autoComplete="off"
           />
           {status ? <input type="hidden" name="status" value={status} /> : null}
-          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Tìm metadata</AppButton>
+          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]" pendingLabel="Đang tìm...">
+            Tìm metadata
+          </AppButton>
         </form>
 
         <div className="flex max-w-full flex-wrap gap-2">
@@ -228,7 +230,9 @@ export default async function AdminExercisesPage({
             <input type="checkbox" name="isActive" defaultChecked className="h-6 w-6 accent-[#22C55E]" />
             Hiện trong kho bài tập
           </label>
-          <AppButton className="w-full">Lưu metadata</AppButton>
+          <AppButton className="w-full" pendingLabel="Đang lưu...">
+            Lưu metadata
+          </AppButton>
         </form>
       </details>
 
@@ -318,16 +322,21 @@ export default async function AdminExercisesPage({
                           <input type="checkbox" name="isActive" defaultChecked={item.isActive} className="h-5 w-5 accent-[#22C55E]" />
                           Hiện trong kho
                         </label>
-                        <AppButton className="w-full min-h-[44px] text-[14px]">Lưu sửa</AppButton>
+                        <AppButton className="w-full min-h-[44px] text-[14px]" pendingLabel="Đang lưu...">
+                          Lưu sửa
+                        </AppButton>
                       </form>
                     </details>
 
                     <form action={toggleCatalogItemActiveAction}>
                       <input type="hidden" name="id" value={item.id} />
                       <input type="hidden" name="isActive" value={item.isActive ? "" : "on"} />
-                      <button className="min-h-[44px] w-full rounded-[14px] border border-[#334155] bg-[#172234] px-3 text-[14px] font-black text-[#F8FAFC]">
+                      <PendingButton
+                        className="min-h-[44px] w-full rounded-[14px] border border-[#334155] bg-[#172234] px-3 text-[14px] font-black text-[#F8FAFC]"
+                        pendingLabel="Đang đổi..."
+                      >
                         {item.isActive ? "Ẩn" : "Hiện lại"}
-                      </button>
+                      </PendingButton>
                     </form>
                   </div>
                 </AppCard>

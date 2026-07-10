@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
-import { AppButton, AppCard, AppInput } from "@/components/ui";
+import { AppButton, AppCard, AppInput, PendingButton } from "@/components/ui";
 
 type CatalogItem = {
   id: string;
@@ -128,9 +128,12 @@ export function TemplateDayCard({
             <input type="hidden" name="templateDayId" value={day.id} />
             <input type="hidden" name="title" value={day.title} />
             {!day.isRestDay ? <input type="hidden" name="isRestDay" value="on" /> : null}
-            <button className="min-h-[44px] w-full rounded-[14px] border border-[#334155] bg-[#111827] px-3 py-2 text-[13px] font-black text-[#E2E8F0]">
+            <PendingButton
+              className="min-h-[44px] w-full rounded-[14px] border border-[#334155] bg-[#111827] px-3 py-2 text-[13px] font-black text-[#E2E8F0]"
+              pendingLabel="Đang đổi..."
+            >
               {day.isRestDay ? "Đổi thành ngày tập" : "Đặt nghỉ"}
-            </button>
+            </PendingButton>
           </form>
           <button
             type="button"
@@ -150,7 +153,9 @@ export function TemplateDayCard({
             <span className="text-[13px] font-bold text-[#CBD5E1]">Tên ngày</span>
             <AppInput name="title" defaultValue={day.title} placeholder="Ví dụ Ngực và tay sau" className="border-[#314155] bg-[#111C2E]" />
           </label>
-          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu tên ngày</AppButton>
+          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]" pendingLabel="Đang lưu...">
+            Lưu tên ngày
+          </AppButton>
         </form>
       ) : null}
 
@@ -210,16 +215,22 @@ export function TemplateDayCard({
                   <form action={moveExerciseAction} className="min-w-0">
                     <input type="hidden" name="templateExerciseId" value={exercise.id} />
                     <input type="hidden" name="direction" value="up" />
-                    <button className="min-h-[44px] w-full rounded-[13px] border border-[#334155] bg-[#111827] px-2 text-[13px] font-black text-[#E2E8F0]">
+                    <PendingButton
+                      className="min-h-[44px] w-full rounded-[13px] border border-[#334155] bg-[#111827] px-2 text-[13px] font-black text-[#E2E8F0]"
+                      pendingLabel="Đang lên..."
+                    >
                       Lên
-                    </button>
+                    </PendingButton>
                   </form>
                   <form action={moveExerciseAction} className="min-w-0">
                     <input type="hidden" name="templateExerciseId" value={exercise.id} />
                     <input type="hidden" name="direction" value="down" />
-                    <button className="min-h-[44px] w-full rounded-[13px] border border-[#334155] bg-[#111827] px-2 text-[13px] font-black text-[#E2E8F0]">
+                    <PendingButton
+                      className="min-h-[44px] w-full rounded-[13px] border border-[#334155] bg-[#111827] px-2 text-[13px] font-black text-[#E2E8F0]"
+                      pendingLabel="Đang xuống..."
+                    >
                       Xuống
-                    </button>
+                    </PendingButton>
                   </form>
                   <button
                     type="button"
@@ -244,9 +255,12 @@ export function TemplateDayCard({
                   </button>
                   <form action={removeExerciseAction} className="min-w-0">
                     <input type="hidden" name="templateExerciseId" value={exercise.id} />
-                    <button className="min-h-[44px] w-full rounded-[13px] border border-[#7F1D1D] bg-[#3B0C0C] px-2 text-[13px] font-black text-[#FCA5A5]">
+                    <PendingButton
+                      className="min-h-[44px] w-full rounded-[13px] border border-[#7F1D1D] bg-[#3B0C0C] px-2 text-[13px] font-black text-[#FCA5A5]"
+                      pendingLabel="Đang xóa..."
+                    >
                       Xóa
-                    </button>
+                    </PendingButton>
                   </form>
                 </div>
 
@@ -273,9 +287,12 @@ export function TemplateDayCard({
                       <h4 className="text-[15px] font-black text-[#F8FAFC]">Sửa set</h4>
                       <form action={addSetAction}>
                         <input type="hidden" name="templateExerciseId" value={exercise.id} />
-                        <button className="min-h-[40px] rounded-[13px] border border-[#0EA5E9]/40 bg-[#0C2537] px-3 text-[12px] font-black text-[#7DD3FC]">
+                        <PendingButton
+                          className="min-h-[40px] rounded-[13px] border border-[#0EA5E9]/40 bg-[#0C2537] px-3 text-[12px] font-black text-[#7DD3FC]"
+                          pendingLabel="Đang thêm..."
+                        >
                           + Thêm set
-                        </button>
+                        </PendingButton>
                       </form>
                     </div>
 
@@ -300,13 +317,18 @@ export function TemplateDayCard({
                             <span className="text-[12px] font-bold text-[#94A3B8]">Tạ mục tiêu (kg)</span>
                             <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="40" inputMode="decimal" className="border-[#314155] bg-[#111C2E]" />
                           </label>
-                          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu set</AppButton>
+                          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]" pendingLabel="Đang lưu...">
+                            Lưu set
+                          </AppButton>
                         </form>
                         <form action={removeSetAction}>
                           <input type="hidden" name="templateSetId" value={set.id} />
-                          <button className="min-h-[40px] w-full rounded-[13px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 text-[12px] font-black text-[#FCA5A5]">
+                          <PendingButton
+                            className="min-h-[40px] w-full rounded-[13px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 text-[12px] font-black text-[#FCA5A5]"
+                            pendingLabel="Đang xóa..."
+                          >
                             Xóa set
-                          </button>
+                          </PendingButton>
                         </form>
                       </div>
                     ))}

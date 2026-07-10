@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AppButton, AppCard, AppInput, AppSelect, PageHeader } from "@/components/ui";
+import { AppButton, AppCard, AppInput, AppSelect, PageHeader, PendingButton } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { isAdminIdentifier } from "@/lib/admin-config";
 import { requireUser } from "@/lib/auth";
@@ -44,13 +44,18 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
               </option>
             ))}
           </AppSelect>
-          <AppButton className="w-full">Lưu hồ sơ</AppButton>
+          <AppButton className="w-full" pendingLabel="Đang lưu...">
+            Lưu hồ sơ
+          </AppButton>
         </form>
 
         <form action={logoutAction} className="mt-4">
-          <button className="min-h-[44px] w-full rounded-[14px] bg-[#EF4444] px-4 py-3 text-[15px] font-bold text-white">
+          <PendingButton
+            className="min-h-[44px] w-full rounded-[14px] bg-[#EF4444] px-4 py-3 text-[15px] font-bold text-white"
+            pendingLabel="Đang đăng xuất..."
+          >
             Đăng xuất
-          </button>
+          </PendingButton>
         </form>
       </AppCard>
 

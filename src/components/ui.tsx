@@ -1,17 +1,72 @@
+"use client";
+
 import Link from "next/link";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { useFormStatus } from "react-dom";
+
+const DEFAULT_PENDING_LABEL = "Đang xử lý...";
+
+type PendingButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  pendingLabel?: ReactNode;
+};
+
+function ButtonBusyContent({ children, pending, pendingLabel }: { children: ReactNode; pending: boolean; pendingLabel: ReactNode }) {
+  if (!pending) {
+    return <>{children}</>;
+  }
+
+  return (
+    <span className="inline-flex min-w-0 items-center justify-center gap-2">
+      <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+      <span className="min-w-0 truncate">{pendingLabel}</span>
+    </span>
+  );
+}
 
 export function AppCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`rounded-[20px] border border-[#374151] bg-[#111827] p-4 shadow-sm ${className}`}>{children}</div>;
 }
 
-export function AppButton({ children, className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+export function PendingButton({
+  children,
+  className = "",
+  disabled,
+  pendingLabel = DEFAULT_PENDING_LABEL,
+  type = "submit",
+  ...props
+}: PendingButtonProps) {
+  const { pending } = useFormStatus();
+  const isDisabled = disabled || pending;
+
   return (
     <button
       {...props}
-      className={`inline-flex min-h-[48px] items-center justify-center rounded-[14px] bg-[#22C55E] px-4 py-3 text-[15px] font-bold text-white transition active:scale-[0.99] hover:bg-[#16A34A] disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      type={type}
+      disabled={isDisabled}
+      aria-busy={pending}
+      className={`${className} disabled:cursor-not-allowed disabled:opacity-65 disabled:active:scale-100`}
     >
-      {children}
+      <ButtonBusyContent pending={pending} pendingLabel={pendingLabel}>
+        {children}
+      </ButtonBusyContent>
+    </button>
+  );
+}
+
+export function AppButton({ children, className = "", disabled, pendingLabel = DEFAULT_PENDING_LABEL, ...props }: PendingButtonProps) {
+  const { pending } = useFormStatus();
+  const isDisabled = disabled || pending;
+
+  return (
+    <button
+      {...props}
+      disabled={isDisabled}
+      aria-busy={pending}
+      className={`inline-flex min-h-[48px] items-center justify-center rounded-[14px] bg-[#22C55E] px-4 py-3 text-[15px] font-bold text-white transition active:scale-[0.99] hover:bg-[#16A34A] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${className}`}
+    >
+      <ButtonBusyContent pending={pending} pendingLabel={pendingLabel}>
+        {children}
+      </ButtonBusyContent>
     </button>
   );
 }

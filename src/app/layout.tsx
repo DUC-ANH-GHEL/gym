@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { GlobalLoadingFeedback } from "@/components/global-loading-feedback";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -40,7 +41,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="vi">
       <body>
-        <div className="min-h-screen bg-[#0B0F14]">{children}</div>
+        <div className="min-h-screen bg-[#0B0F14]">
+          <GlobalLoadingFeedback />
+          {children}
+        </div>
       </body>
     </html>
   );

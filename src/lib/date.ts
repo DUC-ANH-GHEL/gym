@@ -25,6 +25,15 @@ export function getDateKeyInTimeZone(date: Date, timeZone: string): string {
   }).format(date);
 }
 
+export function getWorkoutLogLookupWindow(date: Date) {
+  const marginMs = 48 * 60 * 60 * 1000;
+
+  return {
+    gte: new Date(date.getTime() - marginMs),
+    lte: new Date(date.getTime() + marginMs),
+  };
+}
+
 export function formatWorkoutDate(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("vi-VN", {
     timeZone,

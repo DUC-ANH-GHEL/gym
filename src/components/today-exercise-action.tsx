@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { PendingButton } from "@/components/ui";
 import { getTodayExerciseHref } from "@/lib/workout-today-flow";
 
 const TEXT = {
   waitRest: "\u0110\u1ee3i ngh\u1ec9",
   waitTitle: "H\u1ebft gi\u1edd ngh\u1ec9 r\u1ed3i h\u00e3y t\u1eadp ti\u1ebfp",
+  starting: "\u0110ang m\u1edf...",
 };
 
 function useRestLocked(restDueAtMs: number | null) {
@@ -92,7 +94,9 @@ export function TodayExerciseAction({
   return (
     <form action={action} className={wide ? "w-full" : "shrink-0"}>
       <input type="hidden" name="workoutDayExerciseId" value={workoutDayExerciseId} />
-      <button className={className}>{cta}</button>
+      <PendingButton className={className} pendingLabel={TEXT.starting}>
+        {cta}
+      </PendingButton>
     </form>
   );
 }

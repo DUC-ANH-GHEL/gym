@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AppCard } from "@/components/ui";
+import { AppCard, PendingButton } from "@/components/ui";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { getExerciseMedia } from "@/lib/exercise-media";
 
@@ -46,9 +46,12 @@ export function ExerciseCard({
         {typeof exercise.setsCount === "number" ? <p className="text-[13px] text-[#9CA3AF]">{exercise.setsCount} set</p> : null}
         {action ? (
           <form action={action}>
-            <button className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#22C55E] px-4 py-3 text-[15px] font-bold text-white">
+            <PendingButton
+              className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#22C55E] px-4 py-3 text-[15px] font-bold text-white"
+              pendingLabel="Đang mở..."
+            >
               {ctaLabel}
-            </button>
+            </PendingButton>
           </form>
         ) : href ? (
           <Link href={href} className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#22C55E] px-4 py-3 text-[15px] font-bold text-white">

@@ -15,7 +15,7 @@ import {
 } from "@/lib/admin-template-actions";
 import { AdminRouteLinks } from "@/components/admin-route-links";
 import { AppShell } from "@/components/app-shell";
-import { AppButton, AppCard, AppInput, AppTextarea, PageHeader } from "@/components/ui";
+import { AppButton, AppCard, AppInput, AppTextarea, PageHeader, PendingButton } from "@/components/ui";
 import { TemplateDayCard } from "@/components/template-day-card";
 
 type SearchParams = {
@@ -170,7 +170,9 @@ export default async function AdminTemplatesPage({
             <input type="checkbox" name="isActive" defaultChecked className="h-5 w-5 shrink-0 accent-[#0EA5E9]" />
             Hiện cho học viên
           </label>
-          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Tạo mẫu</AppButton>
+          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]" pendingLabel="Đang tạo...">
+            Tạo mẫu
+          </AppButton>
         </form>
       </details>
 
@@ -264,15 +266,21 @@ export default async function AdminTemplatesPage({
                     <input type="hidden" name="sessionsPerWeek" value={selectedTemplate.sessionsPerWeek} />
                     <input type="hidden" name="sortOrder" value={selectedTemplate.sortOrder} />
                     {!selectedTemplate.isActive ? <input type="hidden" name="isActive" value="on" /> : null}
-                    <button className="min-h-[44px] w-full rounded-[14px] border border-[#334155] bg-[#111827] px-3 py-2 text-[13px] font-black text-[#E2E8F0]">
+                    <PendingButton
+                      className="min-h-[44px] w-full rounded-[14px] border border-[#334155] bg-[#111827] px-3 py-2 text-[13px] font-black text-[#E2E8F0]"
+                      pendingLabel="Đang đổi..."
+                    >
                       {selectedTemplate.isActive ? "Ẩn mẫu" : "Hiện mẫu"}
-                    </button>
+                    </PendingButton>
                   </form>
                   <form action={deleteWorkoutTemplateAction}>
                     <input type="hidden" name="templateId" value={selectedTemplate.id} />
-                    <button className="min-h-[44px] w-full rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 py-2 text-[13px] font-black text-[#FCA5A5]">
+                    <PendingButton
+                      className="min-h-[44px] w-full rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 py-2 text-[13px] font-black text-[#FCA5A5]"
+                      pendingLabel="Đang xóa..."
+                    >
                       Xóa mẫu
-                    </button>
+                    </PendingButton>
                   </form>
                   </div>
                 </AppCard>
@@ -292,7 +300,9 @@ export default async function AdminTemplatesPage({
                     <input type="checkbox" name="isActive" defaultChecked={selectedTemplate.isActive} className="h-5 w-5 shrink-0 accent-[#0EA5E9]" />
                     Hiện cho học viên
                   </label>
-                  <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu mẫu</AppButton>
+                  <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]" pendingLabel="Đang lưu...">
+                    Lưu mẫu
+                  </AppButton>
                 </form>
               </details>
 

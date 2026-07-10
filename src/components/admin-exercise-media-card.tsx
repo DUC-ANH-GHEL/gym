@@ -102,7 +102,7 @@ function PreviewBlock({
 export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
   const [datasetFolderName, setDatasetFolderName] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  const [savingAction, setSavingAction] = useState<MediaAction | null>(null);
   const [manualUploadKind, setManualUploadKind] = useState<UploadKind | null>(null);
   const [media, setMedia] = useState<MediaState>({
     imageUrl: item.imageUrl,
@@ -110,6 +110,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
     updatedAtLabel: item.updatedAtLabel,
   });
   const hasGif = hasAnimationUrl(media.animationUrl);
+  const isSaving = savingAction !== null;
 
   async function handleCopySlug() {
     try {
@@ -198,7 +199,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
       return;
     }
 
-    setIsSaving(true);
+    setSavingAction(action);
     setStatusMessage(action === "check" ? TEXT.checkingFolder : TEXT.updatingMedia);
 
     try {
@@ -232,7 +233,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
     } catch {
       setStatusMessage(TEXT.toolFailed);
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   }
 
@@ -312,7 +313,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
           disabled={isSaving}
           onClick={() => handleMediaAction("check")}
         >
-          Kiểm tra folder
+          {savingAction === "check" ? TEXT.checkingFolder : "Kiểm tra folder"}
         </button>
         <button
           type="button"
@@ -320,7 +321,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
           disabled={isSaving}
           onClick={() => handleMediaAction("update")}
         >
-          Cập nhật media
+          {savingAction === "update" ? TEXT.updatingMedia : "Cập nhật media"}
         </button>
       </div>
 

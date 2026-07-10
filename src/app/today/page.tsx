@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, todayLabel } from "@/lib/date";
-import { AppCard, EmptyState } from "@/components/ui";
+import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, getWorkoutLogLookupWindow, todayLabel } from "@/lib/date";
+import { AppCard, EmptyState, PendingButton } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { RestCountdownPill } from "@/components/rest-countdown-pill";
@@ -27,6 +27,7 @@ const TEXT = {
   image: "\u1ea2nh",
   today: "H\u00f4m nay",
   finish: "Ho\u00e0n th\u00e0nh",
+  finishing: "\u0110ang ho\u00e0n th\u00e0nh...",
   progress: "ti\u1ebfn \u0111\u1ed9",
   resting: "\u0110ang ngh\u1ec9",
   completedExercise: "B\u00e0i \u0111\u00e3 xong",
@@ -185,9 +186,12 @@ function ProgressCard({
         ) : todayLogId && totalSets > 0 && completedSets === totalSets ? (
           <form action={finishWorkoutAction} className="shrink-0">
             <input type="hidden" name="workoutLogId" value={todayLogId} />
-            <button className="min-h-[50px] rounded-[16px] bg-[#22C55E] px-5 py-2 text-[15px] font-black text-white active:scale-[0.98]">
+            <PendingButton
+              className="min-h-[50px] rounded-[16px] bg-[#22C55E] px-5 py-2 text-[15px] font-black text-white active:scale-[0.98]"
+              pendingLabel={TEXT.finishing}
+            >
               {TEXT.finish}
-            </button>
+            </PendingButton>
           </form>
         ) : (
           <div className="shrink-0 rounded-[14px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5 text-right">
@@ -333,7 +337,7 @@ async function getTodayPageData(params: SearchParams) {
   });
 
   const workoutLogs = await prisma.workoutLog.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, workoutDate: getWorkoutLogLookupWindow(today) },
     include: {
       exerciseLogs: {
         orderBy: { orderIndex: "asc" },

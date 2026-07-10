@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import { getDateKeyInTimeZone, getDayOfWeekInTimeZone } from "@/lib/date";
+import { getDateKeyInTimeZone, getDayOfWeekInTimeZone, getWorkoutLogLookupWindow } from "@/lib/date";
 import { planTodayWorkoutLogSync } from "@/lib/workout-log-sync";
 
 const DEFAULT_SET_TEMPLATE = [
@@ -21,8 +21,9 @@ export function buildDefaultPlanSets(weight?: number | null) {
 export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string, timeZone: string) {
   const profile = await prisma.gymProfile.findUnique({ where: { userId } });
   const actualTimeZone = profile?.timezone || timeZone;
-  const todayKey = getDateKeyInTimeZone(new Date(), actualTimeZone);
-  const todayDayOfWeek = getDayOfWeekInTimeZone(new Date(), actualTimeZone);
+  const now = new Date();
+  const todayKey = getDateKeyInTimeZone(now, actualTimeZone);
+  const todayDayOfWeek = getDayOfWeekInTimeZone(now, actualTimeZone);
   const workoutDay = await prisma.workoutDay.findUnique({
     where: { userId_dayOfWeek: { userId, dayOfWeek: todayDayOfWeek } },
     include: {
@@ -37,7 +38,7 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
   });
 
   const existingLogs = await prisma.workoutLog.findMany({
-    where: { userId },
+    where: { userId, workoutDate: getWorkoutLogLookupWindow(now) },
     orderBy: { startedAt: "desc" },
     include: {
       exerciseLogs: {
