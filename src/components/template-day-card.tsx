@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
+import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { AppButton, AppCard, AppInput, PendingButton } from "@/components/ui";
+import { getExerciseMedia } from "@/lib/exercise-media";
 
 type CatalogItem = {
   id: string;
@@ -10,6 +12,8 @@ type CatalogItem = {
   muscleGroup: string | null;
   note?: string | null;
   defaultWeightKg?: number | null;
+  imageUrl?: string | null;
+  animationUrl?: string | null;
 };
 
 type TemplateSet = {
@@ -196,19 +200,40 @@ export function TemplateDayCard({
           {day.exercises.map((exercise, exerciseIndex) => {
             const isEditingSets = editingExerciseId === exercise.id;
             const isReplacingExercise = replacingExerciseId === exercise.id;
+            const media = getExerciseMedia(exercise.catalogItem, "list");
 
             return (
               <article key={exercise.id} className="min-w-0 rounded-[18px] border border-[#243041] bg-[#0F172A] p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[12px] font-black text-[#38BDF8]">Bài {exerciseIndex + 1}</p>
-                    <h3 className="mt-1 break-words text-[18px] font-black leading-6 text-[#F8FAFC]">{exercise.catalogItem.name}</h3>
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="relative w-[104px] shrink-0">
+                    <ExerciseMediaPreview
+                      media={media}
+                      alt={exercise.catalogItem.name}
+                      width={208}
+                      height={156}
+                      imageClassName="aspect-[4/3] w-full rounded-[14px] object-cover"
+                      placeholderClassName="flex aspect-[4/3] w-full items-center justify-center rounded-[14px] border border-dashed border-[#334155] bg-[#111827] px-2 text-center text-[12px] font-bold leading-4 text-[#94A3B8]"
+                      placeholderLabel="Chưa có ảnh"
+                      buttonClassName="block w-full rounded-[14px]"
+                      sizes="104px"
+                    />
+                    {media.kind === "animation" ? (
+                      <span className="absolute bottom-1 right-1 rounded-full bg-[#123522] px-1.5 py-0.5 text-[10px] font-black text-[#BBF7D0]">GIF</span>
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-[12px] font-black text-[#38BDF8]">Bài {exerciseIndex + 1}</p>
+                        <h3 className="mt-1 break-words text-[18px] font-black leading-6 text-[#F8FAFC]">{exercise.catalogItem.name}</h3>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-[#0EA5E9]/12 px-2.5 py-1 text-[12px] font-black text-[#7DD3FC]">
+                        #{exerciseIndex + 1}
+                      </span>
+                    </div>
                     <p className="mt-2 text-[14px] font-semibold leading-6 text-[#CBD5E1]">{getExerciseSummary(exercise)}</p>
                     <p className="mt-1 text-[13px] font-bold leading-5 text-[#94A3B8]">{formatSet(exercise.sets[0])}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-[#0EA5E9]/12 px-3 py-1 text-[12px] font-black text-[#7DD3FC]">
-                    #{exerciseIndex + 1}
-                  </span>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
