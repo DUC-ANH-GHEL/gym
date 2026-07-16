@@ -323,29 +323,43 @@ async function getTodayPageData(params: SearchParams) {
   const todayDayOfWeek = getDayOfWeekInTimeZone(today, timezone);
   const todayKey = getDateKeyInTimeZone(today, timezone);
 
-  const workoutDay = await prisma.workoutDay.findUnique({
-    where: { userId_dayOfWeek: { userId: user.id, dayOfWeek: todayDayOfWeek } },
-    include: {
-      exercises: {
-        orderBy: { orderIndex: "asc" },
-        include: {
-          catalogItem: true,
-          sets: { orderBy: { setIndex: "asc" } },
+  const [workoutDay, workoutLogs, activeRestReminder] = await Promise.all([
+    prisma.workoutDay.findUnique({
+      where: { userId_dayOfWeek: { userId: user.id, dayOfWeek: todayDayOfWeek } },
+      include: {
+        exercises: {
+          orderBy: { orderIndex: "asc" },
+          include: {
+            catalogItem: true,
+            sets: { orderBy: { setIndex: "asc" } },
+          },
         },
       },
-    },
-  });
-
-  const workoutLogs = await prisma.workoutLog.findMany({
-    where: { userId: user.id, workoutDate: getWorkoutLogLookupWindow(today) },
-    include: {
-      exerciseLogs: {
-        orderBy: { orderIndex: "asc" },
-        include: { setLogs: { orderBy: { setIndex: "asc" } } },
+    }),
+    prisma.workoutLog.findMany({
+      where: { userId: user.id, workoutDate: getWorkoutLogLookupWindow(today) },
+      include: {
+        exerciseLogs: {
+          orderBy: { orderIndex: "asc" },
+          include: { setLogs: { orderBy: { setIndex: "asc" } } },
+        },
       },
-    },
-    orderBy: { startedAt: "desc" },
-  });
+      orderBy: { startedAt: "desc" },
+    }),
+    prisma.workoutRestReminder.findFirst({
+      where: {
+        userId: user.id,
+        sentAt: null,
+        dueAt: { gt: new Date(nowMs) },
+      },
+      orderBy: { dueAt: "desc" },
+      select: {
+        dueAt: true,
+        title: true,
+        body: true,
+      },
+    }),
+  ]);
 
   const todayLog = workoutLogs.find((log) => getDateKeyInTimeZone(log.workoutDate, timezone) === todayKey) ?? null;
   const displayName = profile?.displayName || user.name || TEXT.fallbackName;
@@ -419,19 +433,6 @@ async function getTodayPageData(params: SearchParams) {
     : null;
 
   const urlRestLock = getRestLockFromSearchParams(params, nowMs);
-  const activeRestReminder = await prisma.workoutRestReminder.findFirst({
-    where: {
-      userId: user.id,
-      sentAt: null,
-      dueAt: { gt: new Date(nowMs) },
-    },
-    orderBy: { dueAt: "desc" },
-    select: {
-      dueAt: true,
-      title: true,
-      body: true,
-    },
-  });
   const dbRestLock =
     activeRestReminder && isRestLocked(activeRestReminder.dueAt.getTime(), nowMs)
       ? {

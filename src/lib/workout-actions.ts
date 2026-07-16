@@ -47,21 +47,26 @@ async function redirectIfRestIsActive(userId: string): Promise<void> {
 
 export async function startWorkoutExerciseAction(formData: FormData) {
   const user = await requireUser();
-  await redirectIfRestIsActive(user.id);
-  const profile = user.gymProfile ?? (await prisma.gymProfile.findUnique({ where: { userId: user.id } }));
-  const timezone = profile?.timezone || "Asia/Bangkok";
+  const timezone = user.gymProfile?.timezone || "Asia/Bangkok";
   const workoutDayExerciseId = String(formData.get("workoutDayExerciseId") || "");
-  const todayDayOfWeek = getDayOfWeekInTimeZone(new Date(), timezone);
+  const now = new Date();
+  const todayDayOfWeek = getDayOfWeekInTimeZone(now, timezone);
 
-  const workoutDay = await prisma.workoutDay.findUnique({
-    where: { userId_dayOfWeek: { userId: user.id, dayOfWeek: todayDayOfWeek } },
-    include: {
-      exercises: {
-        orderBy: { orderIndex: "asc" },
-        include: { catalogItem: true },
+  const [, workoutDay] = await Promise.all([
+    redirectIfRestIsActive(user.id),
+    prisma.workoutDay.findUnique({
+      where: { userId_dayOfWeek: { userId: user.id, dayOfWeek: todayDayOfWeek } },
+      include: {
+        exercises: {
+          orderBy: { orderIndex: "asc" },
+          include: {
+            catalogItem: true,
+            sets: { orderBy: { setIndex: "asc" } },
+          },
+        },
       },
-    },
-  });
+    }),
+  ]);
 
   if (!workoutDay || workoutDay.isRestDay) {
     redirect("/today");
@@ -74,7 +79,7 @@ export async function startWorkoutExerciseAction(formData: FormData) {
     redirect("/today");
   }
 
-  const { log } = await ensureTodayWorkoutLog(prisma, user.id, timezone);
+  const { log } = await ensureTodayWorkoutLog(prisma, user.id, timezone, { now, workoutDay });
   const exerciseLog = log.exerciseLogs.find(
     (exercise) => exercise.catalogItemId === selectedExercise.catalogItemId && exercise.orderIndex === selectedIndex,
   );

@@ -18,32 +18,56 @@ export function buildDefaultPlanSets(weight?: number | null) {
   }));
 }
 
-export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string, timeZone: string) {
-  const profile = await prisma.gymProfile.findUnique({ where: { userId } });
-  const actualTimeZone = profile?.timezone || timeZone;
-  const now = new Date();
+type WorkoutDayForTodayLog = {
+  id: string;
+  title: string;
+  isRestDay: boolean;
+  exercises: Parameters<typeof planTodayWorkoutLogSync>[0];
+};
+
+type EnsureTodayWorkoutLogOptions = {
+  now?: Date;
+  workoutDay?: WorkoutDayForTodayLog | null;
+};
+
+export async function ensureTodayWorkoutLog(
+  prisma: PrismaClient,
+  userId: string,
+  timeZone: string,
+  { now = new Date(), workoutDay: suppliedWorkoutDay }: EnsureTodayWorkoutLogOptions = {},
+) {
+  const actualTimeZone = timeZone;
   const todayKey = getDateKeyInTimeZone(now, actualTimeZone);
   const todayDayOfWeek = getDayOfWeekInTimeZone(now, actualTimeZone);
-  const workoutDay = await prisma.workoutDay.findUnique({
-    where: { userId_dayOfWeek: { userId, dayOfWeek: todayDayOfWeek } },
-    include: {
-      exercises: {
-        orderBy: { orderIndex: "asc" },
-        include: {
-          catalogItem: true,
-          sets: { orderBy: { setIndex: "asc" } },
+  const workoutDay =
+    suppliedWorkoutDay ??
+    (await prisma.workoutDay.findUnique({
+      where: { userId_dayOfWeek: { userId, dayOfWeek: todayDayOfWeek } },
+      include: {
+        exercises: {
+          orderBy: { orderIndex: "asc" },
+          include: {
+            catalogItem: true,
+            sets: { orderBy: { setIndex: "asc" } },
+          },
         },
       },
-    },
-  });
+    }));
 
   const existingLogs = await prisma.workoutLog.findMany({
     where: { userId, workoutDate: getWorkoutLogLookupWindow(now) },
     orderBy: { startedAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      workoutDate: true,
       exerciseLogs: {
         orderBy: { orderIndex: "asc" },
-        include: { setLogs: { orderBy: { setIndex: "asc" } } },
+        select: {
+          id: true,
+          catalogItemId: true,
+          orderIndex: true,
+          startedAt: true,
+        },
       },
     },
   });
@@ -74,10 +98,17 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
 
     const syncedLog = await prisma.workoutLog.findUnique({
       where: { id: existingToday.id },
-      include: {
+      select: {
+        id: true,
+        workoutDate: true,
         exerciseLogs: {
           orderBy: { orderIndex: "asc" },
-          include: { setLogs: { orderBy: { setIndex: "asc" } } },
+          select: {
+            id: true,
+            catalogItemId: true,
+            orderIndex: true,
+            startedAt: true,
+          },
         },
       },
     });
@@ -92,17 +123,24 @@ export async function ensureTodayWorkoutLog(prisma: PrismaClient, userId: string
   const createdLog = await prisma.workoutLog.create({
     data: {
       userId,
-      workoutDate: new Date(),
+      workoutDate: now,
       dayOfWeek: todayDayOfWeek,
       title: workoutDay.title,
       exerciseLogs: {
         create: planTodayWorkoutLogSync(workoutDay.exercises, []).createRows,
       },
     },
-    include: {
+    select: {
+      id: true,
+      workoutDate: true,
       exerciseLogs: {
         orderBy: { orderIndex: "asc" },
-        include: { setLogs: { orderBy: { setIndex: "asc" } } },
+        select: {
+          id: true,
+          catalogItemId: true,
+          orderIndex: true,
+          startedAt: true,
+        },
       },
     },
   });
