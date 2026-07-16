@@ -19,41 +19,22 @@ const TEXT = {
   increaseWeight: "T\u0103ng t\u1ea1",
   repUnit: "l\u1ea7n",
   waitRest: "\u0110ang ngh\u1ec9",
-  saving: "\u0110ang l\u01b0u...",
+  saving: "\u0110ang ghi nh\u1eadn...",
 };
-
-function FullScreenLoading() {
-  const { pending } = useFormStatus();
-
-  if (!pending) {
-    return null;
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B0F14]/75 px-6 backdrop-blur-sm" aria-live="polite">
-      <div className="flex min-h-[112px] w-full max-w-[260px] flex-col items-center justify-center rounded-[22px] border border-[#263241] bg-[#111827] px-5 py-4 text-center shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-[#334155] border-t-[#38BDF8]" />
-        <p className="mt-3 text-[17px] font-black text-[#F9FAFB]">{TEXT.saving}</p>
-      </div>
-    </div>
-  );
-}
 
 function SubmitSetButton({ restLocked, setNumber }: { restLocked: boolean; setNumber: number }) {
   const { pending } = useFormStatus();
   const disabled = restLocked || pending;
 
   return (
-    <>
-      <button
-        type="submit"
-        disabled={disabled}
-        className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-30 min-h-[52px] w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 rounded-[16px] bg-[#22C55E] px-4 py-2.5 text-[18px] font-black text-white shadow-[0_14px_28px_rgba(34,197,94,0.22)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#334155] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
-      >
-        {pending ? TEXT.saving : restLocked ? TEXT.waitRest : `Xong set ${setNumber}`}
-      </button>
-      <FullScreenLoading />
-    </>
+    <button
+      type="submit"
+      disabled={disabled}
+      className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-30 min-h-[52px] w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 rounded-[16px] bg-[#22C55E] px-4 py-2.5 text-[18px] font-black text-white shadow-[0_14px_28px_rgba(34,197,94,0.22)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#334155] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
+      aria-live="polite"
+    >
+      {pending ? TEXT.saving : restLocked ? TEXT.waitRest : `Xong set ${setNumber}`}
+    </button>
   );
 }
 

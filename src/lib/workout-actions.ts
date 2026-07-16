@@ -1,8 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ensureTodayWorkoutLog, parseNullableNumber, recalculateExerciseCompletion, updateWorkoutLogCompletion } from "@/lib/workout";
+import { ensureTodayWorkoutLog, parseNullableNumber } from "@/lib/workout";
 import { requireUser } from "@/lib/auth";
 import { getDayOfWeekInTimeZone } from "@/lib/date";
 import { getRestReminderPlan } from "@/lib/workout-rest";
@@ -100,7 +101,10 @@ export async function saveWorkoutSetAction(formData: FormData) {
 
   const setLog = await prisma.workoutSetLog.findFirst({
     where: { id: setLogId, workoutExerciseLog: { workoutLog: { userId: user.id } } },
-    include: { workoutExerciseLog: true },
+    select: {
+      workoutExerciseLogId: true,
+      workoutExerciseLog: { select: { workoutLogId: true } },
+    },
   });
 
   if (!setLog) {
@@ -120,40 +124,61 @@ export async function saveWorkoutSetAction(formData: FormData) {
     },
   });
 
-  await recalculateExerciseCompletion(prisma, setLog.workoutExerciseLogId);
-  await updateWorkoutLogCompletion(prisma, setLog.workoutExerciseLog.workoutLogId);
+  const workoutLogId = setLog.workoutExerciseLog.workoutLogId;
+  const [exerciseSetStates, workoutSetStates] = await Promise.all([
+    prisma.workoutSetLog.findMany({
+      where: { workoutExerciseLogId: setLog.workoutExerciseLogId },
+      select: { isCompleted: true },
+    }),
+    prisma.workoutSetLog.findMany({
+      where: { workoutExerciseLog: { workoutLogId } },
+      select: { isCompleted: true },
+    }),
+  ]);
+  const exerciseIsCompleted = exerciseSetStates.length > 0 && exerciseSetStates.every((item) => item.isCompleted);
+  const workoutIsCompleted = workoutSetStates.length > 0 && workoutSetStates.every((item) => item.isCompleted);
 
-  const updatedExercise = await prisma.workoutExerciseLog.findUnique({
-    where: { id: setLog.workoutExerciseLogId },
-    select: {
-      id: true,
-      isCompleted: true,
-      orderIndex: true,
-      workoutLogId: true,
-      setLogs: {
-        orderBy: { setIndex: "asc" },
-        select: {
-          id: true,
-          setIndex: true,
-          isCompleted: true,
+  await Promise.all([
+    prisma.workoutExerciseLog.update({
+      where: { id: setLog.workoutExerciseLogId },
+      data: { isCompleted: exerciseIsCompleted },
+    }),
+    prisma.workoutLog.update({
+      where: { id: workoutLogId },
+      data: { completedAt: workoutIsCompleted ? new Date() : null },
+    }),
+  ]);
+
+  const [updatedExercise, workoutExercises] = await Promise.all([
+    prisma.workoutExerciseLog.findUnique({
+      where: { id: setLog.workoutExerciseLogId },
+      select: {
+        id: true,
+        isCompleted: true,
+        orderIndex: true,
+        workoutLogId: true,
+        setLogs: {
+          orderBy: { setIndex: "asc" },
+          select: {
+            id: true,
+            setIndex: true,
+            isCompleted: true,
+          },
         },
       },
-    },
-  });
-
-  const workoutExercises = updatedExercise
-    ? await prisma.workoutExerciseLog.findMany({
-        where: { workoutLogId: updatedExercise.workoutLogId },
-        orderBy: { orderIndex: "asc" },
-        select: {
-          id: true,
-          exerciseName: true,
-          orderIndex: true,
-          isCompleted: true,
-          startedAt: true,
-        },
-      })
-    : [];
+    }),
+    prisma.workoutExerciseLog.findMany({
+      where: { workoutLogId },
+      orderBy: { orderIndex: "asc" },
+      select: {
+        id: true,
+        exerciseName: true,
+        orderIndex: true,
+        isCompleted: true,
+        startedAt: true,
+      },
+    }),
+  ]);
   const currentExerciseForFlow = workoutExercises.find((exercise) => exercise.id === updatedExercise?.id) ?? null;
   const nextExercise = currentExerciseForFlow ? getNextExerciseAfterSetSave(workoutExercises, currentExerciseForFlow) : null;
   const nextSet = updatedExercise ? getNextSetToFill(updatedExercise.setLogs) : null;
@@ -168,7 +193,7 @@ export async function saveWorkoutSetAction(formData: FormData) {
   const restPlan = getRestReminderPlan({
     setWasCompleted: isCompleted,
     exerciseIsCompleted: Boolean(updatedExercise?.isCompleted),
-      nextExerciseName: updatedExercise?.isCompleted ? nextExercise?.exerciseName ?? null : null,
+    nextExerciseName: updatedExercise?.isCompleted ? nextExercise?.exerciseName ?? null : null,
   });
 
   if (restPlan && updatedExercise) {
@@ -188,15 +213,16 @@ export async function saveWorkoutSetAction(formData: FormData) {
         dueAt,
       },
     });
-    try {
-      await scheduleWorkoutRestReminder({ reminderId: reminder.id, dueAt });
-    } catch (error) {
-      await prisma.workoutRestReminder.update({
-        where: { id: reminder.id },
-        data: { lastError: error instanceof Error ? error.message.slice(0, 500) : "qstash_schedule_failed" },
-      });
-      throw error;
-    }
+    after(async () => {
+      try {
+        await scheduleWorkoutRestReminder({ reminderId: reminder.id, dueAt });
+      } catch (error) {
+        await prisma.workoutRestReminder.update({
+          where: { id: reminder.id },
+          data: { lastError: error instanceof Error ? error.message.slice(0, 500) : "qstash_schedule_failed" },
+        });
+      }
+    });
 
     const params = new URLSearchParams({
       rest: String(restPlan.seconds),
