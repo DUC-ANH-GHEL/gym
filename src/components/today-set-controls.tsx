@@ -1,8 +1,9 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import type { WorkoutNavigationResult } from "@/lib/workout-actions";
 import {
   clampWorkoutWeightKg,
   finalizeWorkoutWeightInput,
@@ -22,9 +23,8 @@ const TEXT = {
   saving: "\u0110ang ghi nh\u1eadn...",
 };
 
-function SubmitSetButton({ restLocked, setNumber }: { restLocked: boolean; setNumber: number }) {
-  const { pending } = useFormStatus();
-  const disabled = restLocked || pending;
+function SubmitSetButton({ restLocked, setNumber, saving }: { restLocked: boolean; setNumber: number; saving: boolean }) {
+  const disabled = restLocked || saving;
 
   return (
     <button
@@ -33,7 +33,7 @@ function SubmitSetButton({ restLocked, setNumber }: { restLocked: boolean; setNu
       className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-30 min-h-[52px] w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 rounded-[16px] bg-[#22C55E] px-4 py-2.5 text-[18px] font-black text-white shadow-[0_14px_28px_rgba(34,197,94,0.22)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#334155] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
       aria-live="polite"
     >
-      {pending ? TEXT.saving : restLocked ? TEXT.waitRest : `Xong set ${setNumber}`}
+      {saving ? TEXT.saving : restLocked ? TEXT.waitRest : `Xong set ${setNumber}`}
     </button>
   );
 }
@@ -51,8 +51,10 @@ export function TodaySetControls({
   defaultWeightKg: number | null;
   defaultReps: number | null;
   restDueAtMs: number | null;
-  action: (formData: FormData) => void | Promise<void>;
+  action: (formData: FormData) => Promise<WorkoutNavigationResult>;
 }) {
+  const router = useRouter();
+  const [isSaving, startTransition] = useTransition();
   const [weightKg, setWeightKg] = useState(() => clampWorkoutWeightKg(defaultWeightKg ?? 0));
   const [weightText, setWeightText] = useState(() => formatWorkoutWeightKg(clampWorkoutWeightKg(defaultWeightKg ?? 0)));
   const reps = defaultReps ?? 0;
@@ -60,6 +62,7 @@ export function TodaySetControls({
   const restLocked = typeof restDueAtMs === "number" && restDueAtMs > now;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     const weightInput = event.currentTarget.elements.namedItem("actualWeightKg");
     if (!(weightInput instanceof HTMLInputElement)) {
       return;
@@ -70,6 +73,12 @@ export function TodaySetControls({
     weightInput.value = nextText;
     setWeightText(nextText);
     setWeightKg(nextWeight);
+
+    const formData = new FormData(event.currentTarget);
+    startTransition(async () => {
+      const result = await action(formData);
+      router.replace(result.nextUrl);
+    });
   }
 
   useEffect(() => {
@@ -82,7 +91,7 @@ export function TodaySetControls({
   }, [restLocked]);
 
   return (
-    <form action={action} onSubmit={handleSubmit} noValidate className="space-y-1.5">
+    <form onSubmit={handleSubmit} noValidate className="space-y-1.5">
       <input type="hidden" name="setLogId" value={setLogId} />
       <input type="hidden" name="isCompleted" value="on" />
       <input type="hidden" name="actualReps" value={formatWorkoutWeightKg(reps)} />
@@ -160,7 +169,7 @@ export function TodaySetControls({
         </div>
       </div>
 
-      <SubmitSetButton restLocked={restLocked} setNumber={setNumber} />
+      <SubmitSetButton restLocked={restLocked} setNumber={setNumber} saving={isSaving} />
     </form>
   );
 }

@@ -11,7 +11,9 @@ import { scheduleWorkoutRestReminder } from "@/lib/workout-qstash";
 import { getNextExerciseAfterSetSave, getNextSetToFill } from "@/lib/workout-today-flow";
 import { clampWorkoutWeightKg } from "@/lib/workout-set-entry";
 
-async function redirectIfRestIsActive(userId: string): Promise<void> {
+export type WorkoutNavigationResult = { nextUrl: string };
+
+async function getRestRedirectUrl(userId: string): Promise<string | null> {
   const reminder = await prisma.workoutRestReminder.findFirst({
     where: {
       userId,
@@ -29,7 +31,7 @@ async function redirectIfRestIsActive(userId: string): Promise<void> {
   });
 
   if (!reminder) {
-    return;
+    return null;
   }
 
   const params = new URLSearchParams({
@@ -42,18 +44,18 @@ async function redirectIfRestIsActive(userId: string): Promise<void> {
   const targetUrl = reminder.url || "/today";
   const separator = targetUrl.includes("?") ? "&" : "?";
 
-  redirect(`${targetUrl}${separator}${params.toString()}`);
+  return `${targetUrl}${separator}${params.toString()}`;
 }
 
-export async function startWorkoutExerciseAction(formData: FormData) {
+async function startWorkoutExercise(formData: FormData): Promise<WorkoutNavigationResult> {
   const user = await requireUser();
   const timezone = user.gymProfile?.timezone || "Asia/Bangkok";
   const workoutDayExerciseId = String(formData.get("workoutDayExerciseId") || "");
   const now = new Date();
   const todayDayOfWeek = getDayOfWeekInTimeZone(now, timezone);
 
-  const [, workoutDay] = await Promise.all([
-    redirectIfRestIsActive(user.id),
+  const [restRedirectUrl, workoutDay] = await Promise.all([
+    getRestRedirectUrl(user.id),
     prisma.workoutDay.findUnique({
       where: { userId_dayOfWeek: { userId: user.id, dayOfWeek: todayDayOfWeek } },
       include: {
@@ -68,15 +70,19 @@ export async function startWorkoutExerciseAction(formData: FormData) {
     }),
   ]);
 
+  if (restRedirectUrl) {
+    return { nextUrl: restRedirectUrl };
+  }
+
   if (!workoutDay || workoutDay.isRestDay) {
-    redirect("/today");
+    return { nextUrl: "/today" };
   }
 
   const selectedIndex = workoutDay.exercises.findIndex((exercise) => exercise.id === workoutDayExerciseId);
   const selectedExercise = selectedIndex >= 0 ? workoutDay.exercises[selectedIndex] : null;
 
   if (!selectedExercise) {
-    redirect("/today");
+    return { nextUrl: "/today" };
   }
 
   const { log } = await ensureTodayWorkoutLog(prisma, user.id, timezone, { now, workoutDay });
@@ -85,7 +91,7 @@ export async function startWorkoutExerciseAction(formData: FormData) {
   );
 
   if (!exerciseLog) {
-    redirect("/today");
+    return { nextUrl: "/today" };
   }
 
   if (!exerciseLog.startedAt) {
@@ -95,12 +101,23 @@ export async function startWorkoutExerciseAction(formData: FormData) {
     });
   }
 
-  redirect(`/today?exercise=${exerciseLog.id}`);
+  return { nextUrl: `/today?exercise=${exerciseLog.id}` };
 }
 
-export async function saveWorkoutSetAction(formData: FormData) {
+export async function startWorkoutExerciseAction(formData: FormData) {
+  redirect((await startWorkoutExercise(formData)).nextUrl);
+}
+
+export async function startTodayWorkoutExerciseAction(formData: FormData) {
+  return startWorkoutExercise(formData);
+}
+
+async function saveWorkoutSet(formData: FormData): Promise<WorkoutNavigationResult> {
   const user = await requireUser();
-  await redirectIfRestIsActive(user.id);
+  const restRedirectUrl = await getRestRedirectUrl(user.id);
+  if (restRedirectUrl) {
+    return { nextUrl: restRedirectUrl };
+  }
   const setLogId = String(formData.get("setLogId") || "");
   const isCompleted = formData.get("isCompleted") === "on";
 
@@ -113,7 +130,7 @@ export async function saveWorkoutSetAction(formData: FormData) {
   });
 
   if (!setLog) {
-    return;
+    return { nextUrl: "/today" };
   }
 
   const actualWeightKg = parseNullableNumber(formData.get("actualWeightKg"));
@@ -245,7 +262,7 @@ export async function saveWorkoutSetAction(formData: FormData) {
       params.set("set", nextSet.id);
     }
 
-    redirect(`/today?${params.toString()}`);
+    return { nextUrl: `/today?${params.toString()}` };
   }
 
   const targetExerciseId = updatedExercise?.isCompleted ? nextExercise?.id : setLog.workoutExerciseLogId;
@@ -259,7 +276,15 @@ export async function saveWorkoutSetAction(formData: FormData) {
     params.set("set", nextSet.id);
   }
 
-  redirect(params.size > 0 ? `/today?${params.toString()}` : "/today");
+  return { nextUrl: params.size > 0 ? `/today?${params.toString()}` : "/today" };
+}
+
+export async function saveWorkoutSetAction(formData: FormData) {
+  redirect((await saveWorkoutSet(formData)).nextUrl);
+}
+
+export async function saveTodayWorkoutSetAction(formData: FormData) {
+  return saveWorkoutSet(formData);
 }
 
 export async function finishWorkoutAction(formData: FormData) {

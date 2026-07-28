@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
 import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { getExerciseMedia } from "@/lib/exercise-media";
+import type { WorkoutNavigationResult } from "@/lib/workout-actions";
 
 const TEXT = {
   active: "Đang tập",
@@ -50,7 +51,7 @@ export function TodayExercisePicker({
   rows,
   triggerClassName,
 }: {
-  action: (formData: FormData) => void | Promise<void>;
+  action: (formData: FormData) => Promise<WorkoutNavigationResult>;
   restDueAtMs: number | null;
   rows: TodayExercisePickerRow[];
   triggerClassName?: string;

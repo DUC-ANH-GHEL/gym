@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { PendingButton } from "@/components/ui";
+import { useEffect, useState, useTransition } from "react";
+import type { WorkoutNavigationResult } from "@/lib/workout-actions";
 import { getTodayExerciseHref } from "@/lib/workout-today-flow";
 
 const TEXT = {
@@ -40,7 +40,7 @@ export function TodayExerciseAction({
   wide = false,
   workoutDayExerciseId,
 }: {
-  action: (formData: FormData) => void | Promise<void>;
+  action: (formData: FormData) => Promise<WorkoutNavigationResult>;
   className: string;
   cta: string;
   exerciseLogId: string | null;
@@ -52,6 +52,7 @@ export function TodayExerciseAction({
   workoutDayExerciseId: string;
 }) {
   const router = useRouter();
+  const [isStarting, startTransition] = useTransition();
   const restLocked = useRestLocked(restDueAtMs);
   const href = getTodayExerciseHref({ exerciseLogId, isCompleted, isStarted });
 
@@ -92,11 +93,21 @@ export function TodayExerciseAction({
   }
 
   return (
-    <form action={action} className={wide ? "w-full" : "shrink-0"}>
+    <form
+      className={wide ? "w-full" : "shrink-0"}
+      onSubmit={(event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        startTransition(async () => {
+          const result = await action(formData);
+          router.replace(result.nextUrl);
+        });
+      }}
+    >
       <input type="hidden" name="workoutDayExerciseId" value={workoutDayExerciseId} />
-      <PendingButton className={className} pendingLabel={TEXT.starting}>
-        {cta}
-      </PendingButton>
+      <button type="submit" disabled={isStarting} className={className} aria-busy={isStarting}>
+        {isStarting ? TEXT.starting : cta}
+      </button>
     </form>
   );
 }

@@ -25,12 +25,38 @@ export function getDateKeyInTimeZone(date: Date, timeZone: string): string {
   }).format(date);
 }
 
-export function getWorkoutLogLookupWindow(date: Date) {
-  const marginMs = 48 * 60 * 60 * 1000;
+function getTimeZoneOffsetMs(date: Date, timeZone: string) {
+  const value = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "longOffset",
+  })
+    .formatToParts(date)
+    .find((part) => part.type === "timeZoneName")?.value;
+  const match = value?.match(/^GMT([+-])(\d{2}):(\d{2})$/);
+
+  if (!match) {
+    return 0;
+  }
+
+  const offsetMs = (Number(match[2]) * 60 + Number(match[3])) * 60 * 1000;
+  return match[1] === "+" ? offsetMs : -offsetMs;
+}
+
+function getTimeZoneDayBoundary(dateKey: string, timeZone: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const utcMidnightMs = Date.UTC(year, month - 1, day);
+
+  return new Date(utcMidnightMs - getTimeZoneOffsetMs(new Date(utcMidnightMs), timeZone));
+}
+
+export function getWorkoutLogLookupWindow(date: Date, timeZone: string) {
+  const dateKey = getDateKeyInTimeZone(date, timeZone);
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const nextDayKey = new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
 
   return {
-    gte: new Date(date.getTime() - marginMs),
-    lte: new Date(date.getTime() + marginMs),
+    gte: getTimeZoneDayBoundary(dateKey, timeZone),
+    lt: getTimeZoneDayBoundary(nextDayKey, timeZone),
   };
 }
 

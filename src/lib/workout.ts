@@ -55,7 +55,7 @@ export async function ensureTodayWorkoutLog(
     }));
 
   const existingLogs = await prisma.workoutLog.findMany({
-    where: { userId, workoutDate: getWorkoutLogLookupWindow(now) },
+    where: { userId, workoutDate: getWorkoutLogLookupWindow(now, actualTimeZone) },
     orderBy: { startedAt: "desc" },
     select: {
       id: true,

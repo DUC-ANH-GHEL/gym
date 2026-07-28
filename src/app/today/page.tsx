@@ -11,7 +11,7 @@ import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodayExerciseReviewSheet, type TodayExerciseReview } from "@/components/today-exercise-review-sheet";
 import { TodaySetControls } from "@/components/today-set-controls";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
-import { finishWorkoutAction, saveWorkoutSetAction, startWorkoutExerciseAction } from "@/lib/workout-actions";
+import { finishWorkoutAction, saveTodayWorkoutSetAction, startTodayWorkoutExerciseAction } from "@/lib/workout-actions";
 import { buildLastSetHint, getRestLockFromSearchParams, isRestLocked } from "@/lib/workout-rest";
 import { getExerciseMedia } from "@/lib/exercise-media";
 import { getCurrentExerciseRow, getSelectedSetToFill, getSetDisplayNumber, getSetEntryDefaults } from "@/lib/workout-today-flow";
@@ -146,7 +146,7 @@ function StartExerciseButton({ restLock, row, wide = false }: { restLock: RestLo
 
   return (
     <TodayExerciseAction
-      action={startWorkoutExerciseAction}
+      action={startTodayWorkoutExerciseAction}
       className={className}
       cta={status.cta}
       exerciseLogId={row.exerciseLogId}
@@ -250,7 +250,7 @@ function CurrentExerciseCard({
         triggerClassName={guideButtonClassName}
       />
       <TodayExercisePicker
-        action={startWorkoutExerciseAction}
+        action={startTodayWorkoutExerciseAction}
         restDueAtMs={restLock?.dueAtMs ?? null}
         rows={rows}
         triggerClassName={pickerButtonClassName}
@@ -287,7 +287,7 @@ function CurrentExerciseCard({
               defaultWeightKg={setDefaults.weightKg}
               defaultReps={setDefaults.reps}
               restDueAtMs={restLock?.dueAtMs ?? null}
-              action={saveWorkoutSetAction}
+              action={saveTodayWorkoutSetAction}
             />
             <div className="pb-[92px]">{setProgressSummary}</div>
           </>
@@ -326,22 +326,61 @@ async function getTodayPageData(params: SearchParams) {
   const [workoutDay, workoutLogs, activeRestReminder] = await Promise.all([
     prisma.workoutDay.findUnique({
       where: { userId_dayOfWeek: { userId: user.id, dayOfWeek: todayDayOfWeek } },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        isRestDay: true,
         exercises: {
           orderBy: { orderIndex: "asc" },
-          include: {
-            catalogItem: true,
-            sets: { orderBy: { setIndex: "asc" } },
+          select: {
+            id: true,
+            catalogItemId: true,
+            catalogItem: {
+              select: {
+                name: true,
+                muscleGroup: true,
+                imageUrl: true,
+                animationUrl: true,
+                note: true,
+                defaultWeightKg: true,
+              },
+            },
+            sets: { select: { id: true } },
           },
         },
       },
     }),
     prisma.workoutLog.findMany({
-      where: { userId: user.id, workoutDate: getWorkoutLogLookupWindow(today) },
-      include: {
+      where: { userId: user.id, workoutDate: getWorkoutLogLookupWindow(today, timezone) },
+      select: {
+        id: true,
+        workoutDate: true,
         exerciseLogs: {
           orderBy: { orderIndex: "asc" },
-          include: { setLogs: { orderBy: { setIndex: "asc" } } },
+          select: {
+            id: true,
+            catalogItemId: true,
+            exerciseName: true,
+            muscleGroup: true,
+            imageUrl: true,
+            animationUrl: true,
+            orderIndex: true,
+            startedAt: true,
+            isCompleted: true,
+            setLogs: {
+              orderBy: { setIndex: "asc" },
+              select: {
+                id: true,
+                setIndex: true,
+                targetReps: true,
+                targetWeightKg: true,
+                actualReps: true,
+                actualWeightKg: true,
+                note: true,
+                isCompleted: true,
+              },
+            },
+          },
         },
       },
       orderBy: { startedAt: "desc" },
