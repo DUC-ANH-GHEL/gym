@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useId, useState, useTransition } from "react";
+import { useEffect, useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { WorkoutNavigationResult } from "@/lib/workout-actions";
 import {
@@ -28,12 +28,12 @@ export function TodayCompleteExercise({
   action,
   defaultWeightKg,
   exerciseLogId,
-  restLocked,
+  restDueAtMs,
 }: {
   action: (formData: FormData) => Promise<WorkoutNavigationResult>;
   defaultWeightKg: number | null;
   exerciseLogId: string;
-  restLocked: boolean;
+  restDueAtMs: number | null;
 }) {
   const router = useRouter();
   const titleId = useId();
@@ -42,6 +42,17 @@ export function TodayCompleteExercise({
   const initialWeight = clampWorkoutWeightKg(defaultWeightKg ?? 0);
   const [weightKg, setWeightKg] = useState(initialWeight);
   const [weightText, setWeightText] = useState(() => formatWorkoutWeightKg(initialWeight));
+  const [now, setNow] = useState(() => Date.now());
+  const restLocked = typeof restDueAtMs === "number" && restDueAtMs > now;
+
+  useEffect(() => {
+    if (!restLocked) {
+      return;
+    }
+
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, [restLocked]);
 
   function close() {
     if (!isSaving) {
@@ -75,7 +86,7 @@ export function TodayCompleteExercise({
         type="button"
         disabled={restLocked}
         onClick={() => setOpen(true)}
-        className="fixed bottom-[calc(126px+env(safe-area-inset-bottom))] left-1/2 z-30 min-h-[44px] w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 rounded-[14px] border border-[#38BDF8]/50 bg-[#082F49] px-4 py-2 text-[15px] font-black text-[#7DD3FC] shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
+        className="min-h-[50px] w-full rounded-[14px] border border-[#38BDF8]/50 bg-[#082F49] px-4 py-2 text-[16px] font-black text-[#7DD3FC] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
       >
         {TEXT.open}
       </button>

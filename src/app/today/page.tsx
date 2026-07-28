@@ -299,7 +299,7 @@ function CurrentExerciseCard({
               action={completeTodayWorkoutExerciseAction}
               defaultWeightKg={setDefaults.weightKg}
               exerciseLogId={exercise?.id ?? ""}
-              restLocked={Boolean(restLock)}
+              restDueAtMs={restLock?.dueAtMs ?? null}
             />
             <div className="pb-[92px]">{setProgressSummary}</div>
           </>
