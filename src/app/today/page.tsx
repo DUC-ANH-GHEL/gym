@@ -296,6 +296,7 @@ function CurrentExerciseCard({
               action={saveTodayWorkoutSetAction}
             />
             <TodayCompleteExercise
+              key={`${exercise?.id ?? "exercise"}-${selectedSet.id}`}
               action={completeTodayWorkoutExerciseAction}
               defaultWeightKg={setDefaults.weightKg}
               exerciseLogId={exercise?.id ?? ""}
