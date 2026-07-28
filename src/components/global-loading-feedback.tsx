@@ -56,9 +56,17 @@ export function GlobalLoadingFeedback() {
 
   useEffect(() => {
     function handleSubmit(event: SubmitEvent) {
-      if (!event.defaultPrevented) {
+      const form = event.target;
+      queueMicrotask(() => {
+        if (
+          event.defaultPrevented ||
+          !(form instanceof HTMLFormElement) ||
+          form.closest("[data-no-global-loading]")
+        ) {
+          return;
+        }
         startLoading(12000);
-      }
+      });
     }
 
     function handleClick(event: MouseEvent) {
@@ -73,7 +81,7 @@ export function GlobalLoadingFeedback() {
       }
 
       if (interactive instanceof HTMLAnchorElement) {
-        if (!shouldIgnoreAnchor(interactive)) {
+        if (!shouldIgnoreAnchor(interactive) && interactive.pathname !== window.location.pathname) {
           startLoading(4500);
         }
         return;
@@ -86,7 +94,6 @@ export function GlobalLoadingFeedback() {
         return;
       }
 
-      startLoading(520);
     }
 
     document.addEventListener("submit", handleSubmit, true);
