@@ -287,6 +287,135 @@ export async function saveTodayWorkoutSetAction(formData: FormData) {
   return saveWorkoutSet(formData);
 }
 
+async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavigationResult> {
+  const user = await requireUser();
+  const restRedirectUrl = await getRestRedirectUrl(user.id);
+  if (restRedirectUrl) {
+    return { nextUrl: restRedirectUrl };
+  }
+
+  const exerciseLogId = String(formData.get("exerciseLogId") || "");
+  const rawWeightKg = parseNullableNumber(formData.get("actualWeightKg"));
+  if (typeof rawWeightKg !== "number") {
+    return { nextUrl: exerciseLogId ? `/today?exercise=${encodeURIComponent(exerciseLogId)}` : "/today" };
+  }
+
+  const completedAt = new Date();
+  const actualWeightKg = clampWorkoutWeightKg(rawWeightKg);
+  const exercise = await prisma.workoutExerciseLog.findFirst({
+    where: { id: exerciseLogId, workoutLog: { userId: user.id } },
+    select: { id: true, workoutLogId: true, startedAt: true, isCompleted: true },
+  });
+
+  if (!exercise || !exercise.startedAt || exercise.isCompleted) {
+    return { nextUrl: "/today" };
+  }
+
+  const { lastSetLogId, workoutIsCompleted } = await prisma.$transaction(async (tx) => {
+    const setLogs = await tx.workoutSetLog.findMany({
+      where: { workoutExerciseLogId: exercise.id },
+      orderBy: { setIndex: "asc" },
+      select: { id: true, isCompleted: true },
+    });
+
+    if (setLogs.length === 0) {
+      return { lastSetLogId: null, workoutIsCompleted: false };
+    }
+
+    await tx.workoutSetLog.updateMany({
+      where: { workoutExerciseLogId: exercise.id },
+      data: { actualWeightKg },
+    });
+    await tx.workoutSetLog.updateMany({
+      where: { workoutExerciseLogId: exercise.id, isCompleted: false },
+      data: { isCompleted: true, completedAt },
+    });
+    await tx.workoutExerciseLog.update({
+      where: { id: exercise.id },
+      data: { isCompleted: true },
+    });
+
+    const remainingSet = await tx.workoutSetLog.findFirst({
+      where: { workoutExerciseLog: { workoutLogId: exercise.workoutLogId }, isCompleted: false },
+      select: { id: true },
+    });
+    const isWorkoutCompleted = !remainingSet;
+    await tx.workoutLog.update({
+      where: { id: exercise.workoutLogId },
+      data: { completedAt: isWorkoutCompleted ? completedAt : null },
+    });
+
+    return { lastSetLogId: setLogs.at(-1)?.id ?? null, workoutIsCompleted: isWorkoutCompleted };
+  });
+
+  const workoutExercises = await prisma.workoutExerciseLog.findMany({
+    where: { workoutLogId: exercise.workoutLogId },
+    orderBy: { orderIndex: "asc" },
+    select: { id: true, exerciseName: true, orderIndex: true, isCompleted: true, startedAt: true },
+  });
+  const completedExercise = workoutExercises.find((item) => item.id === exercise.id) ?? null;
+  const nextExercise = completedExercise ? getNextExerciseAfterSetSave(workoutExercises, completedExercise) : null;
+
+  if (nextExercise && !nextExercise.startedAt) {
+    await prisma.workoutExerciseLog.update({ where: { id: nextExercise.id }, data: { startedAt: completedAt } });
+  }
+
+  const restPlan = getRestReminderPlan({
+    setWasCompleted: true,
+    exerciseIsCompleted: true,
+    nextExerciseName: nextExercise?.exerciseName ?? null,
+  });
+
+  if (restPlan && lastSetLogId) {
+    const dueAt = new Date(Date.now() + restPlan.seconds * 1000);
+    const targetExerciseId = nextExercise?.id ?? null;
+    const reminder = await prisma.workoutRestReminder.create({
+      data: {
+        userId: user.id,
+        workoutSetLogId: lastSetLogId,
+        workoutExerciseLogId: exercise.id,
+        kind: restPlan.kind,
+        title: restPlan.title,
+        body: restPlan.body,
+        url: targetExerciseId ? `/today?exercise=${targetExerciseId}` : "/today",
+        dueAt,
+      },
+    });
+    after(async () => {
+      try {
+        await scheduleWorkoutRestReminder({ reminderId: reminder.id, dueAt });
+      } catch (error) {
+        await prisma.workoutRestReminder.update({
+          where: { id: reminder.id },
+          data: { lastError: error instanceof Error ? error.message.slice(0, 500) : "qstash_schedule_failed" },
+        });
+      }
+    });
+
+    const params = new URLSearchParams({
+      rest: String(restPlan.seconds),
+      restKind: restPlan.kind,
+      restTitle: restPlan.title,
+      restBody: restPlan.body,
+      restDueAt: String(dueAt.getTime()),
+    });
+    if (targetExerciseId) {
+      params.set("exercise", targetExerciseId);
+    }
+    return { nextUrl: `/today?${params.toString()}` };
+  }
+
+  if (nextExercise) {
+    return { nextUrl: `/today?exercise=${nextExercise.id}` };
+  }
+
+  return { nextUrl: workoutIsCompleted ? "/today" : `/today?exercise=${exercise.id}` };
+}
+
+export async function completeTodayWorkoutExerciseAction(formData: FormData) {
+  return completeWorkoutExercise(formData);
+}
+
 export async function finishWorkoutAction(formData: FormData) {
   const user = await requireUser();
   const workoutLogId = String(formData.get("workoutLogId") || "");

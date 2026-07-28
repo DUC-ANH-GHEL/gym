@@ -10,8 +10,14 @@ import { TodayExerciseGuideSheet } from "@/components/today-exercise-guide-sheet
 import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodayExerciseReviewSheet, type TodayExerciseReview } from "@/components/today-exercise-review-sheet";
 import { TodaySetControls } from "@/components/today-set-controls";
+import { TodayCompleteExercise } from "@/components/today-complete-exercise";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
-import { finishWorkoutAction, saveTodayWorkoutSetAction, startTodayWorkoutExerciseAction } from "@/lib/workout-actions";
+import {
+  completeTodayWorkoutExerciseAction,
+  finishWorkoutAction,
+  saveTodayWorkoutSetAction,
+  startTodayWorkoutExerciseAction,
+} from "@/lib/workout-actions";
 import { buildLastSetHint, getRestLockFromSearchParams, isRestLocked } from "@/lib/workout-rest";
 import { getExerciseMedia } from "@/lib/exercise-media";
 import { getCurrentExerciseRow, getSelectedSetToFill, getSetDisplayNumber, getSetEntryDefaults } from "@/lib/workout-today-flow";
@@ -288,6 +294,12 @@ function CurrentExerciseCard({
               defaultReps={setDefaults.reps}
               restDueAtMs={restLock?.dueAtMs ?? null}
               action={saveTodayWorkoutSetAction}
+            />
+            <TodayCompleteExercise
+              action={completeTodayWorkoutExerciseAction}
+              defaultWeightKg={setDefaults.weightKg}
+              exerciseLogId={exercise?.id ?? ""}
+              restLocked={Boolean(restLock)}
             />
             <div className="pb-[92px]">{setProgressSummary}</div>
           </>
