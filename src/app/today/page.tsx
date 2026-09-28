@@ -140,6 +140,7 @@ function ExerciseMediaFrame({
   );
 }
 
+
 function StartExerciseButton({ restLock, row, wide = false }: { restLock: RestLock | null; row: ExerciseRow; wide?: boolean }) {
   const status = getExerciseStatus(row);
   const className = `inline-flex min-h-[48px] items-center justify-center rounded-[14px] px-4 py-2 text-[15px] font-black transition active:scale-[0.98] ${
