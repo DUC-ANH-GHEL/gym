@@ -2,8 +2,6 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import type { WorkoutNavigationResult } from "@/lib/workout-actions";
 import {
   clampWorkoutWeightKg,
   finalizeWorkoutWeightInput,
@@ -51,9 +49,8 @@ export function TodaySetControls({
   defaultWeightKg: number | null;
   defaultReps: number | null;
   restDueAtMs: number | null;
-  action: (formData: FormData) => Promise<WorkoutNavigationResult>;
+  action: (formData: FormData) => Promise<void>;
 }) {
-  const router = useRouter();
   const [isSaving, startTransition] = useTransition();
   const [weightKg, setWeightKg] = useState(() => clampWorkoutWeightKg(defaultWeightKg ?? 0));
   const [weightText, setWeightText] = useState(() => formatWorkoutWeightKg(clampWorkoutWeightKg(defaultWeightKg ?? 0)));
@@ -76,8 +73,7 @@ export function TodaySetControls({
 
     const formData = new FormData(event.currentTarget);
     startTransition(async () => {
-      const result = await action(formData);
-      router.replace(result.nextUrl);
+      await action(formData);
     });
   }
 

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureTodayWorkoutLog, parseNullableNumber } from "@/lib/workout";
-import { requireUser } from "@/lib/auth";
+import { getSessionUserId, requireUser } from "@/lib/auth";
 import { getDayOfWeekInTimeZone } from "@/lib/date";
 import { getRestReminderPlan } from "@/lib/workout-rest";
 import { scheduleWorkoutRestReminder } from "@/lib/workout-qstash";
@@ -112,22 +112,34 @@ export async function startTodayWorkoutExerciseAction(formData: FormData) {
   return startWorkoutExercise(formData);
 }
 
-async function saveWorkoutSet(formData: FormData): Promise<WorkoutNavigationResult> {
-  const user = await requireUser();
-  const restRedirectUrl = await getRestRedirectUrl(user.id);
-  if (restRedirectUrl) {
-    return { nextUrl: restRedirectUrl };
+async function requireSessionUserId() {
+  const userId = await getSessionUserId();
+  if (!userId) {
+    redirect("/login");
   }
+
+  return userId;
+}
+
+async function saveWorkoutSet(formData: FormData): Promise<WorkoutNavigationResult> {
+  const userId = await requireSessionUserId();
   const setLogId = String(formData.get("setLogId") || "");
   const isCompleted = formData.get("isCompleted") === "on";
 
-  const setLog = await prisma.workoutSetLog.findFirst({
-    where: { id: setLogId, workoutExerciseLog: { workoutLog: { userId: user.id } } },
-    select: {
-      workoutExerciseLogId: true,
-      workoutExerciseLog: { select: { workoutLogId: true } },
-    },
-  });
+  const [restRedirectUrl, setLog] = await Promise.all([
+    getRestRedirectUrl(userId),
+    prisma.workoutSetLog.findFirst({
+      where: { id: setLogId, workoutExerciseLog: { workoutLog: { userId } } },
+      select: {
+        workoutExerciseLogId: true,
+        workoutExerciseLog: { select: { workoutLogId: true } },
+      },
+    }),
+  ]);
+
+  if (restRedirectUrl) {
+    return { nextUrl: restRedirectUrl };
+  }
 
   if (!setLog) {
     return { nextUrl: "/today" };
@@ -147,20 +159,41 @@ async function saveWorkoutSet(formData: FormData): Promise<WorkoutNavigationResu
   });
 
   const workoutLogId = setLog.workoutExerciseLog.workoutLogId;
-  const [exerciseSetStates, workoutSetStates] = await Promise.all([
-    prisma.workoutSetLog.findMany({
-      where: { workoutExerciseLogId: setLog.workoutExerciseLogId },
-      select: { isCompleted: true },
-    }),
-    prisma.workoutSetLog.findMany({
-      where: { workoutExerciseLog: { workoutLogId } },
-      select: { isCompleted: true },
-    }),
-  ]);
-  const exerciseIsCompleted = exerciseSetStates.length > 0 && exerciseSetStates.every((item) => item.isCompleted);
-  const workoutIsCompleted = workoutSetStates.length > 0 && workoutSetStates.every((item) => item.isCompleted);
+  const workoutExercises = await prisma.workoutExerciseLog.findMany({
+    where: { workoutLogId },
+    orderBy: { orderIndex: "asc" },
+    select: {
+      id: true,
+      exerciseName: true,
+      orderIndex: true,
+      isCompleted: true,
+      startedAt: true,
+      setLogs: {
+        orderBy: { setIndex: "asc" },
+        select: { id: true, setIndex: true, isCompleted: true },
+      },
+    },
+  });
+  const updatedExercise = workoutExercises.find((exercise) => exercise.id === setLog.workoutExerciseLogId) ?? null;
+  const exerciseIsCompleted = Boolean(
+    updatedExercise && updatedExercise.setLogs.length > 0 && updatedExercise.setLogs.every((item) => item.isCompleted),
+  );
+  const allSetLogs = workoutExercises.flatMap((exercise) => exercise.setLogs);
+  const workoutIsCompleted = allSetLogs.length > 0 && allSetLogs.every((item) => item.isCompleted);
+  const nextExercise = updatedExercise
+    ? getNextExerciseAfterSetSave(workoutExercises, { ...updatedExercise, isCompleted: exerciseIsCompleted })
+    : null;
+  const nextSet = updatedExercise ? getNextSetToFill(updatedExercise.setLogs) : null;
 
-  await Promise.all([
+  const restPlan = getRestReminderPlan({
+    setWasCompleted: isCompleted,
+    exerciseIsCompleted,
+    nextExerciseName: exerciseIsCompleted ? nextExercise?.exerciseName ?? null : null,
+  });
+  const targetExerciseId = exerciseIsCompleted ? nextExercise?.id : setLog.workoutExerciseLogId;
+  const dueAt = restPlan ? new Date(Date.now() + restPlan.seconds * 1000) : null;
+
+  const [, , reminder] = await Promise.all([
     prisma.workoutExerciseLog.update({
       where: { id: setLog.workoutExerciseLogId },
       data: { isCompleted: exerciseIsCompleted },
@@ -169,72 +202,28 @@ async function saveWorkoutSet(formData: FormData): Promise<WorkoutNavigationResu
       where: { id: workoutLogId },
       data: { completedAt: workoutIsCompleted ? new Date() : null },
     }),
-  ]);
-
-  const [updatedExercise, workoutExercises] = await Promise.all([
-    prisma.workoutExerciseLog.findUnique({
-      where: { id: setLog.workoutExerciseLogId },
-      select: {
-        id: true,
-        isCompleted: true,
-        orderIndex: true,
-        workoutLogId: true,
-        setLogs: {
-          orderBy: { setIndex: "asc" },
-          select: {
-            id: true,
-            setIndex: true,
-            isCompleted: true,
+    restPlan && dueAt && updatedExercise
+      ? prisma.workoutRestReminder.create({
+          data: {
+            userId,
+            workoutSetLogId: setLogId,
+            workoutExerciseLogId: setLog.workoutExerciseLogId,
+            kind: restPlan.kind,
+            title: restPlan.title,
+            body: restPlan.body,
+            url: targetExerciseId ? `/today?exercise=${targetExerciseId}` : "/today",
+            dueAt,
           },
-        },
-      },
-    }),
-    prisma.workoutExerciseLog.findMany({
-      where: { workoutLogId },
-      orderBy: { orderIndex: "asc" },
-      select: {
-        id: true,
-        exerciseName: true,
-        orderIndex: true,
-        isCompleted: true,
-        startedAt: true,
-      },
-    }),
+        })
+      : Promise.resolve(null),
+    nextExercise && !nextExercise.startedAt
+      ? prisma.workoutExerciseLog.update({ where: { id: nextExercise.id }, data: { startedAt: new Date() } })
+      : Promise.resolve(null),
   ]);
-  const currentExerciseForFlow = workoutExercises.find((exercise) => exercise.id === updatedExercise?.id) ?? null;
-  const nextExercise = currentExerciseForFlow ? getNextExerciseAfterSetSave(workoutExercises, currentExerciseForFlow) : null;
-  const nextSet = updatedExercise ? getNextSetToFill(updatedExercise.setLogs) : null;
 
-  if (nextExercise && !nextExercise.startedAt) {
-    await prisma.workoutExerciseLog.update({
-      where: { id: nextExercise.id },
-      data: { startedAt: new Date() },
-    });
-  }
+  const params = new URLSearchParams();
 
-  const restPlan = getRestReminderPlan({
-    setWasCompleted: isCompleted,
-    exerciseIsCompleted: Boolean(updatedExercise?.isCompleted),
-    nextExerciseName: updatedExercise?.isCompleted ? nextExercise?.exerciseName ?? null : null,
-  });
-
-  if (restPlan && updatedExercise) {
-    const dueAt = new Date(Date.now() + restPlan.seconds * 1000);
-    const targetExerciseId = updatedExercise?.isCompleted ? nextExercise?.id : setLog.workoutExerciseLogId;
-    const reminderUrl = targetExerciseId ? `/today?exercise=${targetExerciseId}` : "/today";
-
-    const reminder = await prisma.workoutRestReminder.create({
-      data: {
-        userId: user.id,
-        workoutSetLogId: setLogId,
-        workoutExerciseLogId: setLog.workoutExerciseLogId,
-        kind: restPlan.kind,
-        title: restPlan.title,
-        body: restPlan.body,
-        url: reminderUrl,
-        dueAt,
-      },
-    });
+  if (reminder && restPlan && dueAt) {
     after(async () => {
       try {
         await scheduleWorkoutRestReminder({ reminderId: reminder.id, dueAt });
@@ -246,33 +235,18 @@ async function saveWorkoutSet(formData: FormData): Promise<WorkoutNavigationResu
       }
     });
 
-    const params = new URLSearchParams({
-      rest: String(restPlan.seconds),
-      restKind: restPlan.kind,
-      restTitle: restPlan.title,
-      restBody: restPlan.body,
-      restDueAt: String(dueAt.getTime()),
-    });
-
-    if (targetExerciseId) {
-      params.set("exercise", targetExerciseId);
-    }
-
-    if (!updatedExercise?.isCompleted && nextSet) {
-      params.set("set", nextSet.id);
-    }
-
-    return { nextUrl: `/today?${params.toString()}` };
+    params.set("rest", String(restPlan.seconds));
+    params.set("restKind", restPlan.kind);
+    params.set("restTitle", restPlan.title);
+    params.set("restBody", restPlan.body);
+    params.set("restDueAt", String(dueAt.getTime()));
   }
-
-  const targetExerciseId = updatedExercise?.isCompleted ? nextExercise?.id : setLog.workoutExerciseLogId;
-  const params = new URLSearchParams();
 
   if (targetExerciseId) {
     params.set("exercise", targetExerciseId);
   }
 
-  if (!updatedExercise?.isCompleted && nextSet) {
+  if (!exerciseIsCompleted && nextSet) {
     params.set("set", nextSet.id);
   }
 
@@ -283,18 +257,26 @@ export async function saveWorkoutSetAction(formData: FormData) {
   redirect((await saveWorkoutSet(formData)).nextUrl);
 }
 
+// Redirecting from the action lets Next send the next /today payload in the same
+// response, instead of the client making a second request after the action.
 export async function saveTodayWorkoutSetAction(formData: FormData) {
-  return saveWorkoutSet(formData);
+  redirect((await saveWorkoutSet(formData)).nextUrl);
 }
 
 async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavigationResult> {
-  const user = await requireUser();
-  const restRedirectUrl = await getRestRedirectUrl(user.id);
+  const userId = await requireSessionUserId();
+  const exerciseLogId = String(formData.get("exerciseLogId") || "");
+  const [restRedirectUrl, exercise] = await Promise.all([
+    getRestRedirectUrl(userId),
+    prisma.workoutExerciseLog.findFirst({
+      where: { id: exerciseLogId, workoutLog: { userId } },
+      select: { id: true, workoutLogId: true, startedAt: true, isCompleted: true },
+    }),
+  ]);
   if (restRedirectUrl) {
     return { nextUrl: restRedirectUrl };
   }
 
-  const exerciseLogId = String(formData.get("exerciseLogId") || "");
   const rawWeightKg = parseNullableNumber(formData.get("actualWeightKg"));
   if (typeof rawWeightKg !== "number") {
     return { nextUrl: exerciseLogId ? `/today?exercise=${encodeURIComponent(exerciseLogId)}` : "/today" };
@@ -302,63 +284,54 @@ async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavig
 
   const completedAt = new Date();
   const actualWeightKg = clampWorkoutWeightKg(rawWeightKg);
-  const exercise = await prisma.workoutExerciseLog.findFirst({
-    where: { id: exerciseLogId, workoutLog: { userId: user.id } },
-    select: { id: true, workoutLogId: true, startedAt: true, isCompleted: true },
-  });
 
   if (!exercise || !exercise.startedAt || exercise.isCompleted) {
     return { nextUrl: "/today" };
   }
 
-  const { lastSetLogId, workoutIsCompleted } = await prisma.$transaction(async (tx) => {
-    const setLogs = await tx.workoutSetLog.findMany({
-      where: { workoutExerciseLogId: exercise.id },
-      orderBy: { setIndex: "asc" },
-      select: { id: true, isCompleted: true },
-    });
+  const lastSetLog = await prisma.workoutSetLog.findFirst({
+    where: { workoutExerciseLogId: exercise.id },
+    orderBy: { setIndex: "desc" },
+    select: { id: true },
+  });
+  const lastSetLogId = lastSetLog?.id ?? null;
 
-    if (setLogs.length === 0) {
-      return { lastSetLogId: null, workoutIsCompleted: false };
-    }
+  if (!lastSetLogId) {
+    return { nextUrl: `/today?exercise=${exercise.id}` };
+  }
 
-    await tx.workoutSetLog.updateMany({
-      where: { workoutExerciseLogId: exercise.id },
-      data: { actualWeightKg },
-    });
-    await tx.workoutSetLog.updateMany({
+  await prisma.$transaction([
+    prisma.workoutSetLog.updateMany({ where: { workoutExerciseLogId: exercise.id }, data: { actualWeightKg } }),
+    prisma.workoutSetLog.updateMany({
       where: { workoutExerciseLogId: exercise.id, isCompleted: false },
       data: { isCompleted: true, completedAt },
-    });
-    await tx.workoutExerciseLog.update({
-      where: { id: exercise.id },
-      data: { isCompleted: true },
-    });
+    }),
+    prisma.workoutExerciseLog.update({ where: { id: exercise.id }, data: { isCompleted: true } }),
+  ]);
 
-    const remainingSet = await tx.workoutSetLog.findFirst({
+  const [workoutExercises, remainingSet] = await Promise.all([
+    prisma.workoutExerciseLog.findMany({
+      where: { workoutLogId: exercise.workoutLogId },
+      orderBy: { orderIndex: "asc" },
+      select: { id: true, exerciseName: true, orderIndex: true, isCompleted: true, startedAt: true },
+    }),
+    prisma.workoutSetLog.findFirst({
       where: { workoutExerciseLog: { workoutLogId: exercise.workoutLogId }, isCompleted: false },
       select: { id: true },
-    });
-    const isWorkoutCompleted = !remainingSet;
-    await tx.workoutLog.update({
-      where: { id: exercise.workoutLogId },
-      data: { completedAt: isWorkoutCompleted ? completedAt : null },
-    });
-
-    return { lastSetLogId: setLogs.at(-1)?.id ?? null, workoutIsCompleted: isWorkoutCompleted };
-  });
-
-  const workoutExercises = await prisma.workoutExerciseLog.findMany({
-    where: { workoutLogId: exercise.workoutLogId },
-    orderBy: { orderIndex: "asc" },
-    select: { id: true, exerciseName: true, orderIndex: true, isCompleted: true, startedAt: true },
-  });
+    }),
+  ]);
+  const workoutIsCompleted = !remainingSet;
   const completedExercise = workoutExercises.find((item) => item.id === exercise.id) ?? null;
   const nextExercise = completedExercise ? getNextExerciseAfterSetSave(workoutExercises, completedExercise) : null;
+  const updateWorkoutCompletion = prisma.workoutLog.update({
+    where: { id: exercise.workoutLogId },
+    data: { completedAt: workoutIsCompleted ? completedAt : null },
+  });
 
-  if (nextExercise && !nextExercise.startedAt) {
-    await prisma.workoutExerciseLog.update({ where: { id: nextExercise.id }, data: { startedAt: completedAt } });
-  }
+  const startNextExercise =
+    nextExercise && !nextExercise.startedAt
+      ? prisma.workoutExerciseLog.update({ where: { id: nextExercise.id }, data: { startedAt: completedAt } })
+      : null;
 
   const restPlan = getRestReminderPlan({
     setWasCompleted: true,
@@ -369,9 +342,10 @@ async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavig
   if (restPlan && lastSetLogId) {
     const dueAt = new Date(Date.now() + restPlan.seconds * 1000);
     const targetExerciseId = nextExercise?.id ?? null;
-    const reminder = await prisma.workoutRestReminder.create({
+    const [reminder] = await Promise.all([
+      prisma.workoutRestReminder.create({
       data: {
-        userId: user.id,
+        userId,
         workoutSetLogId: lastSetLogId,
         workoutExerciseLogId: exercise.id,
         kind: restPlan.kind,
@@ -380,7 +354,10 @@ async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavig
         url: targetExerciseId ? `/today?exercise=${targetExerciseId}` : "/today",
         dueAt,
       },
-    });
+      }),
+      startNextExercise,
+      updateWorkoutCompletion,
+    ]);
     after(async () => {
       try {
         await scheduleWorkoutRestReminder({ reminderId: reminder.id, dueAt });
@@ -405,6 +382,8 @@ async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavig
     return { nextUrl: `/today?${params.toString()}` };
   }
 
+  await Promise.all([startNextExercise, updateWorkoutCompletion]);
+
   if (nextExercise) {
     return { nextUrl: `/today?exercise=${nextExercise.id}` };
   }
@@ -413,7 +392,7 @@ async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavig
 }
 
 export async function completeTodayWorkoutExerciseAction(formData: FormData) {
-  return completeWorkoutExercise(formData);
+  redirect((await completeWorkoutExercise(formData)).nextUrl);
 }
 
 export async function finishWorkoutAction(formData: FormData) {

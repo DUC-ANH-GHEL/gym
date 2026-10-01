@@ -2,8 +2,6 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useId, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import type { WorkoutNavigationResult } from "@/lib/workout-actions";
 import {
   clampWorkoutWeightKg,
   finalizeWorkoutWeightInput,
@@ -30,12 +28,11 @@ export function TodayCompleteExercise({
   exerciseLogId,
   restDueAtMs,
 }: {
-  action: (formData: FormData) => Promise<WorkoutNavigationResult>;
+  action: (formData: FormData) => Promise<void>;
   defaultWeightKg: number | null;
   exerciseLogId: string;
   restDueAtMs: number | null;
 }) {
-  const router = useRouter();
   const titleId = useId();
   const [open, setOpen] = useState(false);
   const [isSaving, startTransition] = useTransition();
@@ -74,9 +71,7 @@ export function TodayCompleteExercise({
 
     const formData = new FormData(event.currentTarget);
     startTransition(async () => {
-      const result = await action(formData);
-      setOpen(false);
-      router.replace(result.nextUrl);
+      await action(formData);
     });
   }
 
