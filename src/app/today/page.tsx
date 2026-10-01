@@ -294,6 +294,7 @@ function CurrentExerciseCard({
               defaultWeightKg={setDefaults.weightKg}
               defaultReps={setDefaults.reps}
               restDueAtMs={restLock?.dueAtMs ?? null}
+              isLastSet={row.completedSets + 1 >= row.setCount}
               action={saveTodayWorkoutSetAction}
             />
             <TodayCompleteExercise
@@ -328,6 +329,30 @@ function CurrentExerciseCard({
   );
 }
 
+type ExerciseIdentity = { id: string; catalogItemId: string | null; exerciseName: string };
+
+async function findPreviousFinalSet(userId: string, exercise: ExerciseIdentity) {
+  const previousExerciseLog = await prisma.workoutExerciseLog.findFirst({
+    where: {
+      id: { not: exercise.id },
+      workoutLog: { userId },
+      ...(exercise.catalogItemId ? { catalogItemId: exercise.catalogItemId } : { exerciseName: exercise.exerciseName }),
+      setLogs: { some: { OR: [{ actualReps: { not: null } }, { actualWeightKg: { not: null } }] } },
+    },
+    orderBy: [{ workoutLog: { workoutDate: "desc" } }, { updatedAt: "desc" }],
+    select: {
+      setLogs: {
+        where: { OR: [{ actualReps: { not: null } }, { actualWeightKg: { not: null } }] },
+        orderBy: { setIndex: "desc" },
+        select: { actualReps: true, actualWeightKg: true },
+        take: 1,
+      },
+    },
+  });
+
+  return previousExerciseLog?.setLogs[0] ?? null;
+}
+
 async function getTodayPageData(params: SearchParams) {
   const user = await requireUser();
   const profile = user.gymProfile ?? (await prisma.gymProfile.findUnique({ where: { userId: user.id } }));
@@ -336,6 +361,17 @@ async function getTodayPageData(params: SearchParams) {
   const nowMs = today.getTime();
   const todayDayOfWeek = getDayOfWeekInTimeZone(today, timezone);
   const todayKey = getDateKeyInTimeZone(today, timezone);
+
+  // When the URL names the exercise, look up its history alongside the main queries
+  // instead of waiting for them to finish first.
+  const earlyPreviousFinalSet = params.exercise
+    ? prisma.workoutExerciseLog
+        .findFirst({
+          where: { id: params.exercise, workoutLog: { userId: user.id } },
+          select: { id: true, catalogItemId: true, exerciseName: true },
+        })
+        .then((exercise) => (exercise ? findPreviousFinalSet(user.id, exercise) : null))
+    : null;
 
   const [workoutDay, workoutLogs, activeRestReminder] = await Promise.all([
     prisma.workoutDay.findUnique({
@@ -359,7 +395,7 @@ async function getTodayPageData(params: SearchParams) {
                 defaultWeightKg: true,
               },
             },
-            sets: { select: { id: true } },
+            _count: { select: { sets: true } },
           },
         },
       },
@@ -424,7 +460,7 @@ async function getTodayPageData(params: SearchParams) {
       const exerciseLog =
         todayLog?.exerciseLogs.find((log) => log.catalogItemId === entry.catalogItemId && log.orderIndex === index) ?? null;
       const completedSets = exerciseLog?.setLogs.filter((setLog) => setLog.isCompleted).length ?? 0;
-      const setCount = exerciseLog?.setLogs.length ?? entry.sets.length;
+      const setCount = exerciseLog?.setLogs.length ?? entry._count.sets;
       const isStarted = Boolean(exerciseLog?.startedAt || completedSets > 0);
       const isCompleted = setCount > 0 && completedSets === setCount;
 
@@ -449,29 +485,11 @@ async function getTodayPageData(params: SearchParams) {
   const activeRow = getCurrentExerciseRow(rows, params.exercise);
   const activeExerciseId = params.exercise ?? activeRow?.exerciseLogId ?? null;
   const activeExercise = activeExerciseId ? todayLog?.exerciseLogs.find((exercise) => exercise.id === activeExerciseId) ?? null : null;
-  const previousExerciseLog = activeExercise
-    ? await prisma.workoutExerciseLog.findFirst({
-        where: {
-          id: { not: activeExercise.id },
-          workoutLog: { userId: user.id },
-          ...(activeExercise.catalogItemId ? { catalogItemId: activeExercise.catalogItemId } : { exerciseName: activeExercise.exerciseName }),
-          setLogs: { some: { OR: [{ actualReps: { not: null } }, { actualWeightKg: { not: null } }] } },
-        },
-        orderBy: [{ workoutLog: { workoutDate: "desc" } }, { updatedAt: "desc" }],
-        select: {
-          setLogs: {
-            where: { OR: [{ actualReps: { not: null } }, { actualWeightKg: { not: null } }] },
-            orderBy: { setIndex: "desc" },
-            select: {
-              actualReps: true,
-              actualWeightKg: true,
-            },
-            take: 1,
-          },
-        },
-      })
-    : null;
-  const previousFinalSet = previousExerciseLog?.setLogs[0] ?? null;
+  const previousFinalSet = earlyPreviousFinalSet
+    ? await earlyPreviousFinalSet
+    : activeExercise
+      ? await findPreviousFinalSet(user.id, activeExercise)
+      : null;
 
   const activeExerciseWithHistory = activeExercise
     ? {

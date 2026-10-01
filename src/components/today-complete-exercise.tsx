@@ -9,6 +9,7 @@ import {
   MAX_WORKOUT_WEIGHT_KG,
   updateWorkoutWeightInput,
 } from "@/lib/workout-set-entry";
+import { EXERCISE_REST_SECONDS } from "@/lib/workout-rest";
 
 const TEXT = {
   open: "Xong cả bài",
@@ -40,7 +41,8 @@ export function TodayCompleteExercise({
   const [weightKg, setWeightKg] = useState(initialWeight);
   const [weightText, setWeightText] = useState(() => formatWorkoutWeightKg(initialWeight));
   const [now, setNow] = useState(() => Date.now());
-  const restLocked = typeof restDueAtMs === "number" && restDueAtMs > now;
+  const [optimisticDueAtMs, setOptimisticDueAtMs] = useState<number | null>(null);
+  const restLocked = Math.max(restDueAtMs ?? 0, optimisticDueAtMs ?? 0) > now;
 
   useEffect(() => {
     if (!restLocked) {
@@ -70,8 +72,17 @@ export function TodayCompleteExercise({
     setWeightKg(clampWorkoutWeightKg(Number(nextText)));
 
     const formData = new FormData(event.currentTarget);
+    const startedAt = Date.now();
+    setNow(startedAt);
+    setOptimisticDueAtMs(startedAt + EXERCISE_REST_SECONDS * 1000);
+    setOpen(false);
     startTransition(async () => {
-      await action(formData);
+      try {
+        await action(formData);
+      } catch (error) {
+        setOptimisticDueAtMs(null);
+        throw error;
+      }
     });
   }
 
