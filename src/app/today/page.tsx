@@ -11,16 +11,20 @@ import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodayExerciseReviewSheet, type TodayExerciseReview } from "@/components/today-exercise-review-sheet";
 import { TodaySetControls } from "@/components/today-set-controls";
 import { TodayCompleteExercise } from "@/components/today-complete-exercise";
+import { TodayRestScreen } from "@/components/today-rest-screen";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import {
   completeTodayWorkoutExerciseAction,
+  extendTodayRestAction,
   finishWorkoutAction,
+  skipTodayRestAction,
   saveTodayWorkoutSetAction,
   startTodayWorkoutExerciseAction,
 } from "@/lib/workout-actions";
 import { buildLastSetHint, getRestLockFromSearchParams, isRestLocked } from "@/lib/workout-rest";
 import { getExerciseMedia } from "@/lib/exercise-media";
 import { getCurrentExerciseRow, getSelectedSetToFill, getSetDisplayNumber, getSetEntryDefaults } from "@/lib/workout-today-flow";
+import { formatWorkoutWeightKg } from "@/lib/workout-set-entry";
 
 const TEXT = {
   done: "Xong",
@@ -368,6 +372,42 @@ async function findPreviousFinalSet(userId: string, exercise: ExerciseIdentity) 
   return previousExerciseLog?.setLogs[0] ?? null;
 }
 
+function getRestContinueUrl(exerciseLogId: string | null, setLogId: string | null) {
+  if (!exerciseLogId) {
+    return "/today";
+  }
+
+  const params = new URLSearchParams({ exercise: exerciseLogId });
+  if (setLogId) {
+    params.set("set", setLogId);
+  }
+
+  return `/today?${params.toString()}`;
+}
+
+function getRestNextDetail(
+  row: ExerciseRow,
+  exercise: ActiveExercise | null,
+  selectedSet: ActiveSet | null,
+  setDefaults: { weightKg: number | null; reps: number | null },
+) {
+  if (row.isCompleted) {
+    return `${row.completedSets}/${row.setCount} set`;
+  }
+
+  const setNumber =
+    selectedSet && exercise ? getSetDisplayNumber(exercise.setLogs, selectedSet) : Math.min(row.completedSets + 1, row.setCount || 1);
+  const parts = [`Set ${setNumber}`];
+  if (typeof setDefaults.weightKg === "number") {
+    parts.push(`${formatWorkoutWeightKg(setDefaults.weightKg)} kg`);
+  }
+  if (typeof setDefaults.reps === "number" && setDefaults.reps > 0) {
+    parts.push(`${setDefaults.reps} l\u1ea7n`);
+  }
+
+  return parts.join(" \u00b7 ");
+}
+
 async function getTodayPageData(params: SearchParams) {
   const user = await requireUser();
   const profile = user.gymProfile ?? (await prisma.gymProfile.findUnique({ where: { userId: user.id } }));
@@ -607,7 +647,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
           </div>
         </div>
 
-        <ProgressStrip completedSets={completedSets} restLock={restLock} totalSets={totalSets} todayLogId={todayLogId} />
+        <ProgressStrip completedSets={completedSets} restLock={activeRow ? null : restLock} totalSets={totalSets} todayLogId={todayLogId} />
       </div>
 
       {!workoutDay ? (
@@ -629,7 +669,18 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
         </div>
       ) : (
         <>
-          {activeRow ? (
+          {activeRow && restLock ? (
+            <TodayRestScreen
+              key={restLock.dueAtMs}
+              continueUrl={getRestContinueUrl(activeExerciseWithHistory?.id ?? null, selectedSet?.id ?? null)}
+              detail={getRestNextDetail(activeRow, activeExerciseWithHistory, selectedSet, setDefaults)}
+              dueAtMs={restLock.dueAtMs}
+              extendAction={extendTodayRestAction}
+              skipAction={skipTodayRestAction}
+              title={activeRow.isCompleted ? TEXT.completedExercise : activeRow.name}
+              totalSeconds={restLock.restSeconds}
+            />
+          ) : activeRow ? (
             <CurrentExerciseCard
               row={activeRow}
               exercise={activeExerciseWithHistory}

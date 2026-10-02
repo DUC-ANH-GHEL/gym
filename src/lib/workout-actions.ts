@@ -394,6 +394,50 @@ export async function completeTodayWorkoutExerciseAction(formData: FormData) {
   redirect((await completeWorkoutExercise(formData)).nextUrl);
 }
 
+const REST_EXTEND_SECONDS = 15;
+
+async function findActiveRestReminder(userId: string) {
+  return prisma.workoutRestReminder.findFirst({
+    where: { userId, sentAt: null, dueAt: { gt: new Date() } },
+    orderBy: { dueAt: "desc" },
+    select: { id: true, dueAt: true, url: true },
+  });
+}
+
+export async function extendTodayRestAction() {
+  const userId = await requireSessionUserId();
+  const reminder = await findActiveRestReminder(userId);
+
+  if (reminder) {
+    const dueAt = new Date(reminder.dueAt.getTime() + REST_EXTEND_SECONDS * 1000);
+    await prisma.workoutRestReminder.update({ where: { id: reminder.id }, data: { dueAt } });
+    // The original QStash message fires early and is ignored as "not due"; this one delivers.
+    after(() => scheduleAndRecordReminder(reminder.id, dueAt));
+  }
+
+  redirect((await getRestRedirectUrl(userId)) ?? "/today");
+}
+
+function isSafeTodayUrl(value: string) {
+  return /^\/today(\?\S*)?$/.test(value);
+}
+
+export async function skipTodayRestAction(formData: FormData) {
+  const userId = await requireSessionUserId();
+  const reminder = await findActiveRestReminder(userId);
+  const requestedUrl = String(formData.get("continueUrl") || "");
+
+  if (reminder) {
+    await prisma.workoutRestReminder.update({
+      where: { id: reminder.id },
+      data: { sentAt: new Date(), lastError: "skipped" },
+    });
+  }
+
+  const fallbackUrl = reminder?.url && isSafeTodayUrl(reminder.url) ? reminder.url : "/today";
+  redirect(isSafeTodayUrl(requestedUrl) ? requestedUrl : fallbackUrl);
+}
+
 export async function finishWorkoutAction(formData: FormData) {
   const user = await requireUser();
   const workoutLogId = String(formData.get("workoutLogId") || "");
