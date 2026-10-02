@@ -88,20 +88,20 @@ export default async function AdminExerciseMediaPage({
         action={<AdminRouteLinks current="exercise-media" />}
       />
 
-      <AppCard className="sticky top-2 z-20 space-y-3 border-[#38BDF8]/35 bg-[#0F172A]/95 shadow-xl backdrop-blur">
+      <AppCard className="sticky top-2 z-20 space-y-3 border-[#C8F31D]/35 bg-[#0A0B0D]/95 shadow-xl backdrop-blur">
         <form method="get" className="space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row">
             <AppInput
               name="search"
               defaultValue={search}
               placeholder="Gõ tên bài, ví dụ: squat, bench, lateral..."
-              className="flex-1 border-[#38BDF8]/45 bg-[#111827] text-[17px]"
+              className="flex-1 border-[#C8F31D]/45 bg-[#14161A] text-[17px]"
               autoComplete="off"
             />
             <AppSelect
               name="missingAnimation"
               defaultValue={missingAnimation === true ? "true" : missingAnimation === false ? "false" : ""}
-              className="border-[#38BDF8]/45 bg-[#111827] text-[17px] sm:max-w-[220px]"
+              className="border-[#C8F31D]/45 bg-[#14161A] text-[17px] sm:max-w-[220px]"
             >
               <option value="">Tất cả bài</option>
               <option value="true">Chỉ bài thiếu GIF</option>
@@ -120,29 +120,29 @@ export default async function AdminExerciseMediaPage({
           </Link>
           <Link
             href={buildExerciseMediaFilterHref({ search, missingAnimation: false })}
-            className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#22C55E]/45 bg-[#12301F] px-4 text-[13px] font-black text-[#86EFAC]"
+            className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#C8F31D]/45 bg-[#1B2208] px-4 text-[13px] font-black text-[#C8F31D]"
           >
             Có GIF
           </Link>
           {hasFilter ? (
             <Link
               href="/admin/exercise-media"
-              className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#374151] bg-[#111827] px-4 text-[13px] font-black text-[#F9FAFB]"
+              className="inline-flex min-h-[40px] items-center justify-center rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[13px] font-black text-[#F4F5F7]"
             >
               Xóa lọc
             </Link>
           ) : null}
         </div>
 
-        <p className="text-[13px] font-semibold text-[#CBD5E1]">
+        <p className="text-[13px] font-semibold text-[#B6BBC4]">
           Đang thấy {formattedItems.length} bài · {missingCount} bài thiếu GIF trong kết quả này
         </p>
       </AppCard>
 
-      <AppCard className="space-y-3 border-[#243041] bg-[#121A2B]">
+      <AppCard className="space-y-3 border-[#1F2329] bg-[#14161A]">
         <div className="space-y-2">
-          <h2 className="text-[18px] font-bold text-[#F8FAFC]">Cách làm nhanh</h2>
-          <ol className="space-y-1 text-[14px] leading-6 text-[#CBD5E1]">
+          <h2 className="text-[18px] font-bold text-[#F4F5F7]">Cách làm nhanh</h2>
+          <ol className="space-y-1 text-[14px] leading-6 text-[#B6BBC4]">
             <li>1. Gõ tên bài vào ô tìm kiếm ở trên.</li>
             <li>2. Nếu bài chưa có GIF, bấm Upload GIF ngay trong thẻ bài đó.</li>
             <li>3. Nếu bài có trong free-exercise-db, vẫn có thể nhập folder và bấm Cập nhật media.</li>

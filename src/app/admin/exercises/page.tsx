@@ -131,22 +131,22 @@ export default async function AdminExercisesPage({
       ) : null}
 
       {params?.created || params?.updated ? (
-        <p className="rounded-[14px] border border-[#22C55E]/50 bg-[#22C55E]/10 px-3 py-2 text-[13px] font-semibold text-[#86EFAC]">
+        <p className="rounded-[14px] border border-[#C8F31D]/50 bg-[#C8F31D]/10 px-3 py-2 text-[13px] font-semibold text-[#C8F31D]">
           {params.created ? "Đã thêm bài mới vào kho." : "Đã lưu metadata bài tập."}
         </p>
       ) : null}
 
-      <AppCard className="sticky top-2 z-20 space-y-3 border-[#38BDF8]/35 bg-[#0F172A]/95 shadow-xl backdrop-blur">
+      <AppCard className="sticky top-2 z-20 space-y-3 border-[#C8F31D]/35 bg-[#0A0B0D]/95 shadow-xl backdrop-blur">
         <form method="get" className="space-y-3">
           <AppInput
             name="search"
             defaultValue={search}
             placeholder="Tìm tên bài, nhóm cơ, slug"
-            className="border-[#38BDF8]/45 bg-[#111827] text-[17px]"
+            className="border-[#C8F31D]/45 bg-[#14161A] text-[17px]"
             autoComplete="off"
           />
           {status ? <input type="hidden" name="status" value={status} /> : null}
-          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]" pendingLabel="Đang tìm...">
+          <AppButton className="w-full bg-[#C8F31D] text-[#14161A] hover:bg-[#C8F31D]" pendingLabel="Đang tìm...">
             Tìm metadata
           </AppButton>
         </form>
@@ -165,7 +165,7 @@ export default async function AdminExercisesPage({
                 key={item.label}
                 href={buildAdminExercisesFilterHref({ search, status: item.value })}
                 className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-black ${
-                  isCurrent ? "border-[#0EA5E9] bg-[#0EA5E9] text-[#082F49]" : "border-[#334155] bg-[#111827] text-[#CBD5E1]"
+                  isCurrent ? "border-[#C8F31D] bg-[#C8F31D] text-[#14161A]" : "border-[#2A2F36] bg-[#14161A] text-[#B6BBC4]"
                 }`}
               >
                 {item.label}
@@ -173,16 +173,16 @@ export default async function AdminExercisesPage({
             );
           })}
           {hasFilter ? (
-            <Link href="/admin/exercises" className="shrink-0 rounded-full border border-[#374151] bg-[#111827] px-4 py-2 text-[13px] font-black text-[#F8FAFC]">
+            <Link href="/admin/exercises" className="shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 py-2 text-[13px] font-black text-[#F4F5F7]">
               Xóa lọc
             </Link>
           ) : null}
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-[14px] bg-[#0B1220] px-3 py-2">
-            <p className="text-[18px] font-black text-[#F8FAFC]">{totalCount}</p>
-            <p className="text-[11px] font-bold text-[#94A3B8]">bài</p>
+          <div className="rounded-[14px] bg-[#0A0B0D] px-3 py-2">
+            <p className="text-[18px] font-black text-[#F4F5F7]">{totalCount}</p>
+            <p className="text-[11px] font-bold text-[#8B919B]">bài</p>
           </div>
           <div className="rounded-[14px] bg-[#2A1F08] px-3 py-2">
             <p className="text-[18px] font-black text-[#FCD34D]">{missingImageCount}</p>
@@ -194,15 +194,15 @@ export default async function AdminExercisesPage({
           </div>
         </div>
 
-        <p className="text-[13px] font-semibold text-[#CBD5E1]">
+        <p className="text-[13px] font-semibold text-[#B6BBC4]">
           Đang xem {catalogItems.length} bài · Bộ lọc: {getFilterLabel(status)}{hiddenCount > 0 ? ` · ${hiddenCount} bài đang ẩn` : ""}
         </p>
       </AppCard>
 
-      <details className="rounded-[20px] border border-[#243041] bg-[#111827] p-4">
-        <summary className="cursor-pointer list-none text-[17px] font-black text-[#F8FAFC] [&::-webkit-details-marker]:hidden">
+      <details className="rounded-[20px] border border-[#1F2329] bg-[#14161A] p-4">
+        <summary className="cursor-pointer list-none text-[17px] font-black text-[#F4F5F7] [&::-webkit-details-marker]:hidden">
           Thêm metadata mới
-          <span className="mt-1 block text-[13px] font-semibold leading-5 text-[#94A3B8]">
+          <span className="mt-1 block text-[13px] font-semibold leading-5 text-[#8B919B]">
             Mở khi cần thêm bài, không chiếm hết màn hình.
           </span>
         </summary>
@@ -226,8 +226,8 @@ export default async function AdminExercisesPage({
             <ImageUpload name="animationUrl" kind="animation" label="Upload GIF" />
           </div>
           <AppTextarea name="note" rows={4} placeholder="Ghi chú kỹ thuật" />
-          <label className="flex min-h-[48px] items-center gap-3 rounded-[14px] bg-[#1F2937] px-3 text-[14px] font-bold text-[#F9FAFB]">
-            <input type="checkbox" name="isActive" defaultChecked className="h-6 w-6 accent-[#22C55E]" />
+          <label className="flex min-h-[48px] items-center gap-3 rounded-[14px] bg-[#1B1E23] px-3 text-[14px] font-bold text-[#F4F5F7]">
+            <input type="checkbox" name="isActive" defaultChecked className="h-6 w-6 accent-[#C8F31D]" />
             Hiện trong kho bài tập
           </label>
           <AppButton className="w-full" pendingLabel="Đang lưu...">
@@ -239,8 +239,8 @@ export default async function AdminExercisesPage({
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="text-[18px] font-black text-[#F9FAFB]">Kho bài tập</h2>
-            <p className="mt-1 text-[13px] text-[#9CA3AF]">{catalogItems.length} kết quả</p>
+            <h2 className="text-[18px] font-black text-[#F4F5F7]">Kho bài tập</h2>
+            <p className="mt-1 text-[13px] text-[#8B919B]">{catalogItems.length} kết quả</p>
           </div>
         </div>
 
@@ -258,7 +258,7 @@ export default async function AdminExercisesPage({
               const media = getMediaForPreview(item);
               const statusClassName =
                 mediaStatus.tone === "ready"
-                  ? "border-[#22C55E]/35 bg-[#12301F] text-[#86EFAC]"
+                  ? "border-[#C8F31D]/35 bg-[#1B2208] text-[#C8F31D]"
                   : mediaStatus.tone === "danger"
                     ? "border-[#EF4444]/35 bg-[#3B0C0C] text-[#FCA5A5]"
                     : "border-[#F59E0B]/35 bg-[#2A1F08] text-[#FCD34D]";
@@ -271,7 +271,7 @@ export default async function AdminExercisesPage({
                     width={640}
                     height={360}
                     imageClassName="aspect-[16/9] w-full rounded-[16px] object-cover"
-                    placeholderClassName="flex aspect-[16/9] w-full items-center justify-center rounded-[16px] border border-dashed border-[#334155] bg-[#0B1220] px-3 text-center text-[14px] font-black text-[#94A3B8]"
+                    placeholderClassName="flex aspect-[16/9] w-full items-center justify-center rounded-[16px] border border-dashed border-[#2A2F36] bg-[#0A0B0D] px-3 text-center text-[14px] font-black text-[#8B919B]"
                     placeholderLabel="Chưa có ảnh"
                     buttonClassName="block w-full rounded-[16px]"
                     sizes="(max-width: 480px) calc(100vw - 56px), 424px"
@@ -280,27 +280,27 @@ export default async function AdminExercisesPage({
                   <div className="min-w-0 space-y-2">
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h3 className="break-words text-[19px] font-black leading-6 text-[#F9FAFB]">{item.name}</h3>
-                        <p className="mt-1 break-all text-[12px] font-semibold text-[#94A3B8]">{item.slug}</p>
+                        <h3 className="break-words text-[19px] font-black leading-6 text-[#F4F5F7]">{item.name}</h3>
+                        <p className="mt-1 break-all text-[12px] font-semibold text-[#8B919B]">{item.slug}</p>
                       </div>
-                      <StatusPill label={item.isActive ? "Đang hiện" : "Đã ẩn"} className={item.isActive ? "bg-[#22C55E]/15 text-[#86EFAC]" : "bg-[#EF4444]/15 text-[#FCA5A5]"} />
+                      <StatusPill label={item.isActive ? "Đang hiện" : "Đã ẩn"} className={item.isActive ? "bg-[#C8F31D]/15 text-[#C8F31D]" : "bg-[#EF4444]/15 text-[#FCA5A5]"} />
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <StatusPill label={item.muscleGroup || "Chưa nhóm cơ"} className="bg-[#0EA5E9]/12 text-[#7DD3FC]" />
-                      <StatusPill label={`${item.defaultWeightKg ?? 0} kg`} className="bg-[#1F2937] text-[#CBD5E1]" />
+                      <StatusPill label={item.muscleGroup || "Chưa nhóm cơ"} className="bg-[#C8F31D]/12 text-[#C8F31D]" />
+                      <StatusPill label={`${item.defaultWeightKg ?? 0} kg`} className="bg-[#1B1E23] text-[#B6BBC4]" />
                       <StatusPill label={mediaStatus.label} className={`border ${statusClassName}`} />
                     </div>
 
-                    {item.note ? <p className="line-clamp-3 text-[14px] leading-6 text-[#CBD5E1]">{item.note}</p> : null}
+                    {item.note ? <p className="line-clamp-3 text-[14px] leading-6 text-[#B6BBC4]">{item.note}</p> : null}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <details className="min-w-0 rounded-[14px] border border-[#334155] bg-[#172234]">
-                      <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-center px-3 text-[14px] font-black text-[#F8FAFC] [&::-webkit-details-marker]:hidden">
+                    <details className="min-w-0 rounded-[14px] border border-[#2A2F36] bg-[#172234]">
+                      <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-center px-3 text-[14px] font-black text-[#F4F5F7] [&::-webkit-details-marker]:hidden">
                         Sửa
                       </summary>
-                      <form action={updateCatalogItemAction} className="space-y-3 border-t border-[#334155] p-3">
+                      <form action={updateCatalogItemAction} className="space-y-3 border-t border-[#2A2F36] p-3">
                         <input type="hidden" name="id" value={item.id} />
                         <input type="hidden" name="imageUrl" value={item.imageUrl || ""} />
                         <input type="hidden" name="animationUrl" value={item.animationUrl || ""} />
@@ -318,8 +318,8 @@ export default async function AdminExercisesPage({
                           <AppInput name="sortOrder" type="number" defaultValue={item.sortOrder} placeholder="Thứ tự" inputMode="numeric" className="text-[15px]" />
                         </div>
                         <AppTextarea name="note" rows={3} defaultValue={item.note || ""} placeholder="Ghi chú kỹ thuật" className="text-[15px]" />
-                        <label className="flex min-h-[44px] items-center gap-3 rounded-[12px] bg-[#0B1220] px-3 text-[13px] font-bold text-[#F9FAFB]">
-                          <input type="checkbox" name="isActive" defaultChecked={item.isActive} className="h-5 w-5 accent-[#22C55E]" />
+                        <label className="flex min-h-[44px] items-center gap-3 rounded-[12px] bg-[#0A0B0D] px-3 text-[13px] font-bold text-[#F4F5F7]">
+                          <input type="checkbox" name="isActive" defaultChecked={item.isActive} className="h-5 w-5 accent-[#C8F31D]" />
                           Hiện trong kho
                         </label>
                         <AppButton className="w-full min-h-[44px] text-[14px]" pendingLabel="Đang lưu...">
@@ -332,7 +332,7 @@ export default async function AdminExercisesPage({
                       <input type="hidden" name="id" value={item.id} />
                       <input type="hidden" name="isActive" value={item.isActive ? "" : "on"} />
                       <PendingButton
-                        className="min-h-[44px] w-full rounded-[14px] border border-[#334155] bg-[#172234] px-3 text-[14px] font-black text-[#F8FAFC]"
+                        className="min-h-[44px] w-full rounded-[14px] border border-[#2A2F36] bg-[#172234] px-3 text-[14px] font-black text-[#F4F5F7]"
                         pendingLabel="Đang đổi..."
                       >
                         {item.isActive ? "Ẩn" : "Hiện lại"}

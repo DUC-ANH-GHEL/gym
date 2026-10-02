@@ -126,8 +126,8 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
       <div className="space-y-5">
         <header className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-[28px] font-black leading-none tracking-[-0.04em] text-[#F7FAFC]">Lịch tập</h1>
-            <p className="mt-2 max-w-[250px] text-[14px] leading-5 text-[#B7C6D8]">
+            <h1 className="text-[28px] font-black leading-none tracking-[-0.04em] text-[#F4F5F7]">Lịch tập</h1>
+            <p className="mt-2 max-w-[250px] text-[14px] leading-5 text-[#B6BBC4]">
               Xem tuần này trước, chỉnh từng buổi sau. Mẫu có sẵn nằm gọn bên dưới.
             </p>
           </div>
@@ -141,37 +141,37 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
           </Link>
         </header>
 
-        <section className="rounded-[24px] border border-[#22C55E]/35 bg-[linear-gradient(145deg,rgba(34,197,94,0.18),rgba(14,165,233,0.10)_42%,#101821_74%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+        <section className="rounded-[24px] border border-[#C8F31D]/35 bg-[linear-gradient(145deg,rgba(34,197,94,0.18),rgba(14,165,233,0.10)_42%,#14161A_74%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[12px] font-black uppercase tracking-[0.03em] text-[#86EFAC]">Hôm nay</p>
-              <h2 className="mt-1 truncate text-[21px] font-black leading-tight tracking-[-0.03em] text-[#F7FAFC]">
+              <p className="text-[12px] font-black uppercase tracking-[0.03em] text-[#C8F31D]">Hôm nay</p>
+              <h2 className="mt-1 truncate text-[21px] font-black leading-tight tracking-[-0.03em] text-[#F4F5F7]">
                 {todayTitle}
               </h2>
             </div>
-            <span className="shrink-0 rounded-full border border-[#86EFAC]/25 bg-[#080D12]/50 px-3 py-1.5 text-[12px] font-black text-[#BBF7D0]">
+            <span className="shrink-0 rounded-full border border-[#C8F31D]/25 bg-[#080D12]/50 px-3 py-1.5 text-[12px] font-black text-[#C8F31D]">
               {todayDay?.exercises.length ?? 0} bài
             </span>
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="min-w-0 rounded-[16px] border border-white/5 bg-[#080D12]/40 p-3">
-              <strong className="block text-[18px] leading-none text-[#F7FAFC]">{summary.stats.exerciseCount}</strong>
+              <strong className="block text-[18px] leading-none text-[#F4F5F7]">{summary.stats.exerciseCount}</strong>
               <span className="mt-1 block text-[11px] leading-tight text-[#A7B3C2]">bài trong tuần</span>
             </div>
             <div className="min-w-0 rounded-[16px] border border-white/5 bg-[#080D12]/40 p-3">
-              <strong className="block text-[18px] leading-none text-[#F7FAFC]">{summary.stats.trainingDayCount}</strong>
+              <strong className="block text-[18px] leading-none text-[#F4F5F7]">{summary.stats.trainingDayCount}</strong>
               <span className="mt-1 block text-[11px] leading-tight text-[#A7B3C2]">buổi tập</span>
             </div>
             <div className="min-w-0 rounded-[16px] border border-white/5 bg-[#080D12]/40 p-3">
-              <strong className="block text-[18px] leading-none text-[#F7FAFC]">{summary.stats.restDayCount}</strong>
+              <strong className="block text-[18px] leading-none text-[#F4F5F7]">{summary.stats.restDayCount}</strong>
               <span className="mt-1 block text-[11px] leading-tight text-[#A7B3C2]">ngày nghỉ</span>
             </div>
           </div>
 
           <Link
             href="/today"
-            className="mt-4 flex min-h-[50px] w-full items-center justify-center rounded-[18px] bg-[#22C55E] px-4 py-3 text-[16px] font-black text-white shadow-[0_10px_24px_rgba(34,197,94,0.28)] active:scale-[0.99]"
+            className="mt-4 flex min-h-[50px] w-full items-center justify-center rounded-[18px] bg-[#C8F31D] px-4 py-3 text-[16px] font-black text-[#0A0B0D] shadow-[0_10px_24px_rgba(34,197,94,0.28)] active:scale-[0.99]"
           >
             Bắt đầu buổi tập
           </Link>
@@ -179,8 +179,8 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
 
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-3">
-            <h2 className="text-[18px] font-black tracking-[-0.02em] text-[#F7FAFC]">Tuần của tôi</h2>
-            <Link href="#mau-goi-y" className="text-[13px] font-black text-[#7DD3FC]">
+            <h2 className="text-[18px] font-black tracking-[-0.02em] text-[#F4F5F7]">Tuần của tôi</h2>
+            <Link href="#mau-goi-y" className="text-[13px] font-black text-[#C8F31D]">
               Đổi mẫu
             </Link>
           </div>
@@ -192,27 +192,27 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                 href={`/schedule?day=${day.dayOfWeek}`}
                 className={`min-w-0 rounded-[18px] border px-1.5 py-2 text-center ${
                   day.isSelected
-                    ? "border-[#22C55E] bg-[#183421] outline outline-2 outline-offset-2 outline-[#22C55E]"
+                    ? "border-[#C8F31D] bg-[#183421] outline outline-2 outline-offset-2 outline-[#C8F31D]"
                     : day.isRestDay
-                      ? "border-[#273444] bg-[#101821]/70 opacity-70"
-                      : "border-[#22C55E]/50 bg-[#183421]"
+                      ? "border-[#1F2329] bg-[#14161A]/70 opacity-70"
+                      : "border-[#C8F31D]/50 bg-[#183421]"
                 }`}
               >
-                <b className="block text-[12px] leading-5 text-[#F7FAFC]">{day.shortName}</b>
-                <span className="block truncate text-[11px] leading-4 text-[#B7C6D8]">{day.shortTitle}</span>
+                <b className="block text-[12px] leading-5 text-[#F4F5F7]">{day.shortName}</b>
+                <span className="block truncate text-[11px] leading-4 text-[#B6BBC4]">{day.shortTitle}</span>
               </Link>
             ))}
           </div>
         </section>
 
         {selectedDay ? (
-          <section className="overflow-hidden rounded-[22px] border border-[#273444] bg-[#101821]">
+          <section className="overflow-hidden rounded-[22px] border border-[#1F2329] bg-[#14161A]">
             <div className="flex items-start justify-between gap-3 border-b border-white/5 p-4">
               <div className="min-w-0">
-                <h2 className="text-[18px] font-black leading-tight tracking-[-0.02em] text-[#F7FAFC]">
+                <h2 className="text-[18px] font-black leading-tight tracking-[-0.02em] text-[#F4F5F7]">
                   {DAY_LABELS[selectedDay.dayOfWeek]} · {selectedDayTitle}
                 </h2>
-                <p className="mt-1 text-[13px] leading-5 text-[#B7C6D8]">
+                <p className="mt-1 text-[13px] leading-5 text-[#B6BBC4]">
                   {selectedDay.isRestDay
                     ? "Ngày này đang để nghỉ. Bấm sửa lịch nếu muốn đổi thành buổi tập."
                     : `${getMuscleSummary(selectedDay.exercises)}. Có thể đổi thứ tự trong phần sửa lịch.`}
@@ -220,7 +220,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
               </div>
               <Link
                 href="#them-bai"
-                className="shrink-0 rounded-[14px] border border-[#334155] bg-[#182433] px-4 py-3 text-[14px] font-black text-[#E2E8F0]"
+                className="shrink-0 rounded-[14px] border border-[#2A2F36] bg-[#182433] px-4 py-3 text-[14px] font-black text-[#B6BBC4]"
               >
                 Thêm
               </Link>
@@ -234,26 +234,26 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                       {exerciseIndex + 1}
                     </div>
                     <div className="min-w-0">
-                      <b className="block truncate text-[15px] leading-tight text-[#F7FAFC]">{entry.catalogItem.name}</b>
-                      <span className="mt-1 block truncate text-[12px] text-[#B7C6D8]">
+                      <b className="block truncate text-[15px] leading-tight text-[#F4F5F7]">{entry.catalogItem.name}</b>
+                      <span className="mt-1 block truncate text-[12px] text-[#B6BBC4]">
                         {entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"} · nghỉ 120 giây
                       </span>
                     </div>
-                    <span className="shrink-0 rounded-full border border-[#22C55E]/20 bg-[#22C55E]/12 px-2.5 py-1.5 text-[12px] font-black text-[#D1FAE5]">
+                    <span className="shrink-0 rounded-full border border-[#C8F31D]/20 bg-[#C8F31D]/12 px-2.5 py-1.5 text-[12px] font-black text-[#D1FAE5]">
                       {getSetLabel(entry.sets.length)}
                     </span>
                   </div>
                 ))}
                 {selectedDay.exercises.length > 5 ? (
-                  <p className="border-t border-white/5 px-4 py-3 text-[13px] font-bold text-[#B7C6D8]">
+                  <p className="border-t border-white/5 px-4 py-3 text-[13px] font-bold text-[#B6BBC4]">
                     Còn {selectedDay.exercises.length - 5} bài khác trong buổi này.
                   </p>
                 ) : null}
               </div>
             ) : (
               <div className="px-4 py-5">
-                <p className="text-[14px] font-bold text-[#E2E8F0]">Buổi này chưa có bài tập.</p>
-                <p className="mt-1 text-[13px] leading-5 text-[#B7C6D8]">Bấm thêm để chọn bài phù hợp cho ngày này.</p>
+                <p className="text-[14px] font-bold text-[#B6BBC4]">Buổi này chưa có bài tập.</p>
+                <p className="mt-1 text-[13px] leading-5 text-[#B6BBC4]">Bấm thêm để chọn bài phù hợp cho ngày này.</p>
               </div>
             )}
           </section>
@@ -261,39 +261,39 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
 
         <section id="mau-goi-y" className="scroll-mt-8 space-y-3">
           <div className="flex items-end justify-between gap-3">
-            <h2 className="text-[18px] font-black tracking-[-0.02em] text-[#F7FAFC]">Mẫu gợi ý</h2>
+            <h2 className="text-[18px] font-black tracking-[-0.02em] text-[#F4F5F7]">Mẫu gợi ý</h2>
             {templates.length > 1 ? (
-              <Link href="#tat-ca-mau" className="text-[13px] font-black text-[#7DD3FC]">
+              <Link href="#tat-ca-mau" className="text-[13px] font-black text-[#C8F31D]">
                 Xem tất cả
               </Link>
             ) : null}
           </div>
 
           {featuredTemplate && featuredTemplateStats ? (
-            <article className="rounded-[22px] border border-[#38BDF8]/20 bg-[#0E1722] p-4">
+            <article className="rounded-[22px] border border-[#C8F31D]/20 bg-[#0E1722] p-4">
               <div className="flex items-start justify-between gap-3">
-                <h3 className="text-[16px] font-black leading-snug text-[#F7FAFC]">{featuredTemplate.name}</h3>
+                <h3 className="text-[16px] font-black leading-snug text-[#F4F5F7]">{featuredTemplate.name}</h3>
                 {profile?.appliedWorkoutTemplateId === featuredTemplate.id ? (
-                  <span className="shrink-0 rounded-full border border-[#86EFAC]/25 bg-[#080D12]/50 px-3 py-1.5 text-[12px] font-black text-[#BBF7D0]">
+                  <span className="shrink-0 rounded-full border border-[#C8F31D]/25 bg-[#080D12]/50 px-3 py-1.5 text-[12px] font-black text-[#C8F31D]">
                     Đang dùng
                   </span>
                 ) : null}
               </div>
-              <p className="mt-2 text-[13px] leading-5 text-[#B7C6D8]">
+              <p className="mt-2 text-[13px] leading-5 text-[#B6BBC4]">
                 {featuredTemplate.description ||
                   `Có ${featuredTemplateStats.sessionsPerWeek} buổi mỗi tuần, gồm ${featuredTemplateStats.exerciseCount} bài tập.`}
               </p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Link
                   href="#tat-ca-mau"
-                  className="flex min-h-[44px] items-center justify-center rounded-[15px] border border-[#2A3A4D] bg-[#152232] px-3 text-center text-[13px] font-black text-[#E2E8F0]"
+                  className="flex min-h-[44px] items-center justify-center rounded-[15px] border border-[#2A3A4D] bg-[#152232] px-3 text-center text-[13px] font-black text-[#B6BBC4]"
                 >
                   Xem chi tiết
                 </Link>
                 <form action={applyWorkoutTemplateAction}>
                   <input type="hidden" name="templateId" value={featuredTemplate.id} />
                   <PendingButton
-                    className="min-h-[44px] w-full rounded-[15px] bg-[#22C55E] px-3 text-[13px] font-black text-white active:scale-[0.99]"
+                    className="min-h-[44px] w-full rounded-[15px] bg-[#C8F31D] px-3 text-[13px] font-black text-[#0A0B0D] active:scale-[0.99]"
                     pendingLabel="Đang áp..."
                   >
                     Áp lại mẫu
@@ -302,28 +302,28 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
               </div>
             </article>
           ) : (
-            <div className="rounded-[22px] border border-[#273444] bg-[#101821] p-4">
-              <p className="text-[14px] font-bold text-[#E2E8F0]">Chưa có mẫu gợi ý.</p>
-              <p className="mt-1 text-[13px] leading-5 text-[#B7C6D8]">Bạn vẫn có thể tự thêm bài vào từng buổi bên dưới.</p>
+            <div className="rounded-[22px] border border-[#1F2329] bg-[#14161A] p-4">
+              <p className="text-[14px] font-bold text-[#B6BBC4]">Chưa có mẫu gợi ý.</p>
+              <p className="mt-1 text-[13px] leading-5 text-[#B6BBC4]">Bạn vẫn có thể tự thêm bài vào từng buổi bên dưới.</p>
             </div>
           )}
         </section>
 
         {selectedDay ? (
-          <section id="chinh-buoi" className="scroll-mt-8 space-y-3 rounded-[22px] border border-[#273444] bg-[#101821] p-4">
+          <section id="chinh-buoi" className="scroll-mt-8 space-y-3 rounded-[22px] border border-[#1F2329] bg-[#14161A] p-4">
             <div>
-              <h2 className="text-[18px] font-black text-[#F7FAFC]">Sửa buổi này</h2>
-              <p className="mt-1 text-[13px] leading-5 text-[#B7C6D8]">Đổi tên buổi, bật ngày nghỉ hoặc thêm bài mới.</p>
+              <h2 className="text-[18px] font-black text-[#F4F5F7]">Sửa buổi này</h2>
+              <p className="mt-1 text-[13px] leading-5 text-[#B6BBC4]">Đổi tên buổi, bật ngày nghỉ hoặc thêm bài mới.</p>
             </div>
 
-            <form action={updateWorkoutDayAction} className="space-y-3 rounded-[18px] border border-[#273444] bg-[#0B1220] p-3">
+            <form action={updateWorkoutDayAction} className="space-y-3 rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-3">
               <input type="hidden" name="dayOfWeek" value={selectedDay.dayOfWeek} />
               <label className="block space-y-1">
-                <span className="text-[12px] font-bold text-[#B7C6D8]">Tên buổi</span>
-                <AppInput name="title" defaultValue={selectedDay.title} placeholder="Tên buổi tập" className="border-[#314155] bg-[#111C2E]" />
+                <span className="text-[12px] font-bold text-[#B6BBC4]">Tên buổi</span>
+                <AppInput name="title" defaultValue={selectedDay.title} placeholder="Tên buổi tập" className="border-[#2A2F36] bg-[#14161A]" />
               </label>
-              <label className="flex min-h-[48px] items-center gap-3 rounded-[16px] border border-[#273444] bg-[#111827] px-3 text-[14px] font-bold text-[#F7FAFC]">
-                <input type="checkbox" name="isRestDay" defaultChecked={selectedDay.isRestDay} className="h-5 w-5 accent-[#22C55E]" />
+              <label className="flex min-h-[48px] items-center gap-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] px-3 text-[14px] font-bold text-[#F4F5F7]">
+                <input type="checkbox" name="isRestDay" defaultChecked={selectedDay.isRestDay} className="h-5 w-5 accent-[#C8F31D]" />
                 Đánh dấu là ngày nghỉ
               </label>
               <AppButton className="w-full" pendingLabel="Đang lưu...">
@@ -344,19 +344,19 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
             </form>
 
             {selectedDay.exercises.length > 0 ? (
-              <details className="rounded-[18px] border border-[#273444] bg-[#0B1220] p-3">
+              <details className="rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-3">
                 <summary className="cursor-pointer list-none text-[14px] font-black text-[#DBEAFE] [&::-webkit-details-marker]:hidden">
                   Chỉnh bài đã có
                 </summary>
                 <div className="mt-3 space-y-3">
                   {selectedDay.exercises.map((entry, exerciseIndex) => (
-                    <div key={entry.id} className="space-y-3 rounded-[16px] border border-[#273444] bg-[#111827] p-3">
+                    <div key={entry.id} className="space-y-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-[14px] font-black text-[#F7FAFC]">
+                          <p className="text-[14px] font-black text-[#F4F5F7]">
                             {exerciseIndex + 1}. {entry.catalogItem.name}
                           </p>
-                          <p className="mt-1 text-[12px] text-[#B7C6D8]">{entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"}</p>
+                          <p className="mt-1 text-[12px] text-[#B6BBC4]">{entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"}</p>
                         </div>
                         <form action={removeExerciseFromDayAction}>
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
@@ -374,7 +374,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
                           <input type="hidden" name="direction" value="up" />
                           <PendingButton
-                            className="min-h-[42px] w-full rounded-[14px] border border-[#273444] bg-[#182433] text-[13px] font-bold text-[#E2E8F0]"
+                            className="min-h-[42px] w-full rounded-[14px] border border-[#1F2329] bg-[#182433] text-[13px] font-bold text-[#B6BBC4]"
                             pendingLabel="Đang đưa lên..."
                           >
                             Đưa lên
@@ -384,7 +384,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
                           <input type="hidden" name="direction" value="down" />
                           <PendingButton
-                            className="min-h-[42px] w-full rounded-[14px] border border-[#273444] bg-[#182433] text-[13px] font-bold text-[#E2E8F0]"
+                            className="min-h-[42px] w-full rounded-[14px] border border-[#1F2329] bg-[#182433] text-[13px] font-bold text-[#B6BBC4]"
                             pendingLabel="Đang đưa xuống..."
                           >
                             Đưa xuống
@@ -394,25 +394,25 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
 
                       <div className="space-y-2">
                         {entry.sets.map((set) => (
-                          <div key={set.id} className="space-y-2 rounded-[14px] border border-[#273444] bg-[#0B1220] p-3">
-                            <p className="text-[13px] font-bold text-[#CBD5E1]">Hiệp {set.setIndex + 1}</p>
+                          <div key={set.id} className="space-y-2 rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] p-3">
+                            <p className="text-[13px] font-bold text-[#B6BBC4]">Hiệp {set.setIndex + 1}</p>
                             <form action={updateWorkoutSetPlanAction} className="space-y-3">
                               <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
                               <input type="hidden" name="planSetId" value={set.id} />
                               <input type="hidden" name="setIndex" value={set.setIndex} />
                               <div className="grid grid-cols-2 gap-2">
                                 <label className="space-y-1">
-                                  <span className="text-[12px] font-bold text-[#B7C6D8]">Mức nặng (%)</span>
-                                  <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="70" inputMode="numeric" className="border-[#314155] bg-[#111C2E]" />
+                                  <span className="text-[12px] font-bold text-[#B6BBC4]">Mức nặng (%)</span>
+                                  <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="70" inputMode="numeric" className="border-[#2A2F36] bg-[#14161A]" />
                                 </label>
                                 <label className="space-y-1">
-                                  <span className="text-[12px] font-bold text-[#B7C6D8]">Số lần</span>
-                                  <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="12" inputMode="numeric" className="border-[#314155] bg-[#111C2E]" />
+                                  <span className="text-[12px] font-bold text-[#B6BBC4]">Số lần</span>
+                                  <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="12" inputMode="numeric" className="border-[#2A2F36] bg-[#14161A]" />
                                 </label>
                               </div>
                               <label className="space-y-1">
-                                <span className="text-[12px] font-bold text-[#B7C6D8]">Tạ mục tiêu (kg)</span>
-                                <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="40" inputMode="decimal" className="border-[#314155] bg-[#111C2E]" />
+                                <span className="text-[12px] font-bold text-[#B6BBC4]">Tạ mục tiêu (kg)</span>
+                                <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="40" inputMode="decimal" className="border-[#2A2F36] bg-[#14161A]" />
                               </label>
                               <AppButton className="w-full" pendingLabel="Đang lưu...">
                                 Lưu hiệp
@@ -432,7 +432,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                         <form action={addWorkoutSetPlanAction}>
                           <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
                           <PendingButton
-                            className="min-h-[44px] w-full rounded-[14px] border border-[#22C55E]/40 bg-[#0C2537] px-3 text-[13px] font-bold text-[#BBF7D0]"
+                            className="min-h-[44px] w-full rounded-[14px] border border-[#C8F31D]/40 bg-[#0C2537] px-3 text-[13px] font-bold text-[#C8F31D]"
                             pendingLabel="Đang thêm..."
                           >
                             Thêm hiệp mới
@@ -449,27 +449,27 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
 
         {templates.length > 1 ? (
           <section id="tat-ca-mau" className="scroll-mt-8 space-y-3">
-            <h2 className="text-[18px] font-black text-[#F7FAFC]">Tất cả mẫu</h2>
+            <h2 className="text-[18px] font-black text-[#F4F5F7]">Tất cả mẫu</h2>
             {templates.map((template) => {
               const stats = getTemplateStats(template);
 
               return (
-                <article key={template.id} className="rounded-[18px] border border-[#273444] bg-[#101821] p-4">
+                <article key={template.id} className="rounded-[18px] border border-[#1F2329] bg-[#14161A] p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h3 className="text-[15px] font-black text-[#F7FAFC]">{template.name}</h3>
-                      <p className="mt-1 text-[12px] text-[#B7C6D8]">
+                      <h3 className="text-[15px] font-black text-[#F4F5F7]">{template.name}</h3>
+                      <p className="mt-1 text-[12px] text-[#B6BBC4]">
                         {stats.sessionsPerWeek} buổi mỗi tuần · {stats.exerciseCount} bài
                       </p>
                     </div>
                     {profile?.appliedWorkoutTemplateId === template.id ? (
-                      <span className="shrink-0 rounded-full bg-[#22C55E]/12 px-3 py-1 text-[12px] font-black text-[#BBF7D0]">Đang dùng</span>
+                      <span className="shrink-0 rounded-full bg-[#C8F31D]/12 px-3 py-1 text-[12px] font-black text-[#C8F31D]">Đang dùng</span>
                     ) : null}
                   </div>
                   <form action={applyWorkoutTemplateAction} className="mt-3">
                     <input type="hidden" name="templateId" value={template.id} />
                     <PendingButton
-                      className="min-h-[44px] w-full rounded-[15px] bg-[#22C55E] px-3 text-[13px] font-black text-white active:scale-[0.99]"
+                      className="min-h-[44px] w-full rounded-[15px] bg-[#C8F31D] px-3 text-[13px] font-black text-[#0A0B0D] active:scale-[0.99]"
                       pendingLabel="Đang áp..."
                     >
                       Áp mẫu này

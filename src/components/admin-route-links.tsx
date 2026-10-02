@@ -19,8 +19,8 @@ export function AdminRouteLinks({ current }: { current: (typeof adminLinks)[numb
             aria-current={isCurrent ? "page" : undefined}
             className={`min-h-[44px] rounded-[14px] border px-4 py-3 text-[14px] font-semibold transition ${
               isCurrent
-                ? "border-[#22C55E]/50 bg-[#22C55E]/12 text-[#86EFAC]"
-                : "border-[#243041] bg-[#121A2B] text-[#F8FAFC]"
+                ? "border-[#C8F31D]/50 bg-[#C8F31D]/12 text-[#C8F31D]"
+                : "border-[#1F2329] bg-[#14161A] text-[#F4F5F7]"
             }`}
           >
             {item.label}

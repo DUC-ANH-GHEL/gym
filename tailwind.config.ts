@@ -6,18 +6,18 @@ const config: Config = {
     extend: {
       colors: {
         gym: {
-          bg: "#0B0F14",
-          card: "#111827",
-          card2: "#1F2937",
-          primary: "#22C55E",
-          primaryHover: "#16A34A",
-          accent: "#38BDF8",
-          text: "#F9FAFB",
-          muted: "#9CA3AF",
-          border: "#374151",
+          bg: "#0A0B0D",
+          card: "#14161A",
+          card2: "#1B1E23",
+          primary: "#C8F31D",
+          primaryHover: "#B2D918",
+          accent: "#C8F31D",
+          text: "#F4F5F7",
+          muted: "#8B919B",
+          border: "#2A2F36",
           danger: "#EF4444",
           warning: "#F59E0B",
-          success: "#22C55E",
+          success: "#C8F31D",
         },
       },
       borderRadius: {

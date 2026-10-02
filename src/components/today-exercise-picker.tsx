@@ -42,7 +42,7 @@ function getStatus(row: TodayExercisePickerRow) {
     return { label: TEXT.active, cta: TEXT.continue, className: "border-[#C8F31D]/40 bg-[#14161A] text-[#C8F31D]" };
   }
 
-  return { label: TEXT.notStarted, cta: TEXT.start, className: "border-[#4B5563] bg-[#1B1E23] text-[#D1D5DB]" };
+  return { label: TEXT.notStarted, cta: TEXT.start, className: "border-[#4B5563] bg-[#1B1E23] text-[#B6BBC4]" };
 }
 
 export function TodayExercisePicker({
@@ -85,12 +85,12 @@ export function TodayExercisePicker({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-3 border-b border-[#1F2329] px-4 py-3">
-              <h2 id={titleId} className="min-w-0 flex-1 break-words text-[19px] font-black text-[#F9FAFB]">
+              <h2 id={titleId} className="min-w-0 flex-1 break-words text-[19px] font-black text-[#F4F5F7]">
                 {TEXT.title}
               </h2>
               <button
                 type="button"
-                className="min-h-[42px] shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[14px] font-black text-[#F9FAFB]"
+                className="min-h-[42px] shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[14px] font-black text-[#F4F5F7]"
                 onClick={() => setOpen(false)}
               >
                 {TEXT.close}
@@ -120,7 +120,7 @@ export function TodayExercisePicker({
                     />
                     <div className="min-w-0">
                       <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                        <h3 className="min-w-0 break-words text-[15px] font-black leading-5 text-[#F9FAFB]">{row.name}</h3>
+                        <h3 className="min-w-0 break-words text-[15px] font-black leading-5 text-[#F4F5F7]">{row.name}</h3>
                         <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-black ${status.className}`}>
                           {status.label}
                         </span>
@@ -128,7 +128,7 @@ export function TodayExercisePicker({
                       <p className="mt-0.5 break-words text-[12px] font-semibold leading-4 text-[#8B919B]">
                         {row.muscleGroup || TEXT.noMuscleGroup}
                       </p>
-                      <p className="mt-0.5 text-[12px] font-bold text-[#D1D5DB]">
+                      <p className="mt-0.5 text-[12px] font-bold text-[#B6BBC4]">
                         {row.completedSets}/{row.setCount} set
                       </p>
                     </div>
@@ -136,7 +136,7 @@ export function TodayExercisePicker({
                       action={action}
                       className={`inline-flex min-h-[44px] w-full items-center justify-center rounded-[14px] px-2 text-[14px] font-black transition active:scale-[0.98] ${
                         row.isCompleted
-                          ? "border border-[#2A2F36] bg-[#0A0B0D] text-[#F9FAFB]"
+                          ? "border border-[#2A2F36] bg-[#0A0B0D] text-[#F4F5F7]"
                           : row.isStarted
                             ? "bg-[#C8F31D] text-[#0A0B0D]"
                             : "bg-[#C8F31D] text-[#0A0B0D]"

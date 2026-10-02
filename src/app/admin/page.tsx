@@ -31,9 +31,9 @@ export default async function AdminPage() {
       <section className="space-y-3">
         {adminSections.map((section) => (
           <Link key={section.href} href={section.href} className="block">
-            <AppCard className="space-y-2 border-[#243041] bg-[#121A2B] transition hover:border-[#38BDF8]/50">
-              <h2 className="text-[18px] font-bold text-[#F8FAFC]">{section.title}</h2>
-              <p className="text-[14px] leading-6 text-[#94A3B8]">{section.description}</p>
+            <AppCard className="space-y-2 border-[#1F2329] bg-[#14161A] transition hover:border-[#C8F31D]/50">
+              <h2 className="text-[18px] font-bold text-[#F4F5F7]">{section.title}</h2>
+              <p className="text-[14px] leading-6 text-[#8B919B]">{section.description}</p>
             </AppCard>
           </Link>
         ))}

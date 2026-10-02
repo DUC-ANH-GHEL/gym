@@ -81,14 +81,14 @@ export function TodayExerciseReviewSheet({
             <div className="flex items-center justify-between gap-3 border-b border-[#1F2329] px-4 py-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[12px] font-black text-[#C8F31D]">{TEXT.reviewTitle}</p>
-                <h2 id={titleId} className="break-words text-[20px] font-black leading-6 text-[#F9FAFB]">
+                <h2 id={titleId} className="break-words text-[20px] font-black leading-6 text-[#F4F5F7]">
                   {exercise.name}
                 </h2>
-                <p className="text-[13px] font-semibold text-[#D1D5DB]">{exercise.muscleGroup || ""}</p>
+                <p className="text-[13px] font-semibold text-[#B6BBC4]">{exercise.muscleGroup || ""}</p>
               </div>
               <button
                 type="button"
-                className="min-h-[42px] shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[14px] font-black text-[#F9FAFB]"
+                className="min-h-[42px] shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[14px] font-black text-[#F4F5F7]"
                 onClick={() => setOpen(false)}
               >
                 {TEXT.close}
@@ -113,7 +113,7 @@ export function TodayExerciseReviewSheet({
               <div className="mt-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[13px] font-bold text-[#8B919B]">{TEXT.completed}</p>
-                  <p className="text-[22px] font-black leading-none text-[#F9FAFB]">
+                  <p className="text-[22px] font-black leading-none text-[#F4F5F7]">
                     {exercise.completedSets}/{exercise.setCount} set
                   </p>
                 </div>
@@ -128,7 +128,7 @@ export function TodayExerciseReviewSheet({
                     <div key={setLog.id} className="rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-[16px] font-black text-[#F9FAFB]">
+                          <p className="text-[16px] font-black text-[#F4F5F7]">
                             {TEXT.set} {setLog.setNumber}
                           </p>
                           <p className="text-[12px] font-bold text-[#8B919B]">
@@ -136,13 +136,13 @@ export function TodayExerciseReviewSheet({
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[18px] font-black text-[#F9FAFB]">{formatNumber(weight)} kg</p>
-                          <p className="text-[14px] font-bold text-[#D1D5DB]">
+                          <p className="text-[18px] font-black text-[#F4F5F7]">{formatNumber(weight)} kg</p>
+                          <p className="text-[14px] font-bold text-[#B6BBC4]">
                             {formatNumber(reps)} {TEXT.reps}
                           </p>
                         </div>
                       </div>
-                      {setLog.note ? <p className="mt-2 rounded-[12px] bg-[#0A0B0D] px-3 py-2 text-[13px] font-semibold text-[#D1D5DB]">{TEXT.note}: {setLog.note}</p> : null}
+                      {setLog.note ? <p className="mt-2 rounded-[12px] bg-[#0A0B0D] px-3 py-2 text-[13px] font-semibold text-[#B6BBC4]">{TEXT.note}: {setLog.note}</p> : null}
                     </div>
                   );
                 })}

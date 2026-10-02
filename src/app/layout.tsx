@@ -34,14 +34,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#0B0F14",
+  themeColor: "#0A0B0D",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="vi">
       <body>
-        <div className="min-h-screen bg-[#0B0F14]">
+        <div className="min-h-screen bg-[#0A0B0D]">
           <Suspense fallback={null}>
             <GlobalLoadingFeedback />
           </Suspense>

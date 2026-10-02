@@ -25,8 +25,8 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
           </p>
         ) : null}
 
-        <p className="text-[15px] text-[#9CA3AF]">Tài khoản: {user.email}</p>
-        <p className={`mt-1 text-[13px] font-semibold ${isAdmin ? "text-[#86EFAC]" : "text-[#FBBF24]"}`}>
+        <p className="text-[15px] text-[#8B919B]">Tài khoản: {user.email}</p>
+        <p className={`mt-1 text-[13px] font-semibold ${isAdmin ? "text-[#C8F31D]" : "text-[#FBBF24]"}`}>
           {isAdmin ? "Quyền hiện tại: Admin" : "Quyền hiện tại: User thường"}
         </p>
 
@@ -62,12 +62,12 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
       {isAdmin ? (
         <AppCard className="space-y-3">
           <div>
-            <h2 className="text-[18px] font-bold text-[#F9FAFB]">Admin</h2>
-            <p className="mt-1 text-[14px] text-[#9CA3AF]">Mở khu quản lý admin riêng.</p>
+            <h2 className="text-[18px] font-bold text-[#F4F5F7]">Admin</h2>
+            <p className="mt-1 text-[14px] text-[#8B919B]">Mở khu quản lý admin riêng.</p>
           </div>
           <Link
             href="/admin"
-            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#38BDF8] px-4 py-3 text-[15px] font-bold text-[#0B0F14]"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[14px] bg-[#C8F31D] px-4 py-3 text-[15px] font-bold text-[#0A0B0D]"
           >
             Mở admin
           </Link>

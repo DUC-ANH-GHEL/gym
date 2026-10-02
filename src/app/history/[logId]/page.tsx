@@ -28,12 +28,12 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
         {workoutLog.exerciseLogs.map((exercise) => (
           <AppCard key={exercise.id} className="space-y-3">
             <div>
-              <h2 className="text-[18px] font-bold text-[#F9FAFB]">{exercise.exerciseName}</h2>
-              <p className="text-[13px] text-[#9CA3AF]">{exercise.muscleGroup || ""}</p>
+              <h2 className="text-[18px] font-bold text-[#F4F5F7]">{exercise.exerciseName}</h2>
+              <p className="text-[13px] text-[#8B919B]">{exercise.muscleGroup || ""}</p>
             </div>
             <div className="space-y-2">
               {exercise.setLogs.map((setLog) => (
-                <div key={setLog.id} className="rounded-[14px] border border-[#374151] bg-[#1F2937] p-3 text-[15px] text-[#F9FAFB]">
+                <div key={setLog.id} className="rounded-[14px] border border-[#2A2F36] bg-[#1B1E23] p-3 text-[15px] text-[#F4F5F7]">
                   Set {setLog.setIndex + 1}: {setLog.actualWeightKg ?? setLog.targetWeightKg ?? 0}kg · {setLog.actualReps ?? setLog.targetReps ?? 0} reps
                 </div>
               ))}

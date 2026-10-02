@@ -41,42 +41,42 @@ export function ScheduleDayCard({ day, catalogItems, exercisesNode, updateAction
   const hasExercises = day.exercises.length > 0;
 
   return (
-    <AppCard className="space-y-4 border-[#243041] bg-[#121A2B] p-4">
+    <AppCard className="space-y-4 border-[#1F2329] bg-[#14161A] p-4">
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[13px] font-semibold text-[#38BDF8]">{dayNames[day.dayOfWeek] || "Ngày tập"}</p>
+          <p className="text-[13px] font-semibold text-[#C8F31D]">{dayNames[day.dayOfWeek] || "Ngày tập"}</p>
           <span
             className={`rounded-full px-3 py-1 text-[12px] font-semibold ${
-              isRestDay ? "bg-[#1E293B] text-[#CBD5E1]" : "bg-[#0EA5E9]/12 text-[#7DD3FC]"
+              isRestDay ? "bg-[#1B1E23] text-[#B6BBC4]" : "bg-[#C8F31D]/12 text-[#C8F31D]"
             }`}
           >
             {isRestDay ? "Ngày nghỉ" : "Ngày tập"}
           </span>
         </div>
-        <h2 className="text-[22px] font-bold leading-tight text-[#F8FAFC]">{day.title}</h2>
+        <h2 className="text-[22px] font-bold leading-tight text-[#F4F5F7]">{day.title}</h2>
       </div>
 
-      <form action={updateAction} className="space-y-3 rounded-[18px] border border-[#243041] bg-[#0F172A] p-4">
+      <form action={updateAction} className="space-y-3 rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-4">
         <input type="hidden" name="dayOfWeek" value={day.dayOfWeek} />
-        <AppInput name="title" defaultValue={day.title} placeholder="Tên buổi tập" className="border-[#314155] bg-[#111C2E]" />
-        <label className="flex min-h-[52px] items-center gap-3 rounded-[16px] border border-[#243041] bg-[#0B1220] px-4 text-[14px] font-semibold text-[#F8FAFC]">
+        <AppInput name="title" defaultValue={day.title} placeholder="Tên buổi tập" className="border-[#2A2F36] bg-[#14161A]" />
+        <label className="flex min-h-[52px] items-center gap-3 rounded-[16px] border border-[#1F2329] bg-[#0A0B0D] px-4 text-[14px] font-semibold text-[#F4F5F7]">
           <input
             type="checkbox"
             name="isRestDay"
             checked={isRestDay}
             onChange={(event) => setIsRestDay(event.target.checked)}
-            className="h-5 w-5 accent-[#0EA5E9]"
+            className="h-5 w-5 accent-[#C8F31D]"
           />
           Đánh dấu là ngày nghỉ
         </label>
-        <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]">Lưu ngày</AppButton>
+        <AppButton className="w-full bg-[#C8F31D] text-[#14161A] hover:bg-[#C8F31D]">Lưu ngày</AppButton>
       </form>
 
       {isRestDay ? (
-        <div className="rounded-[18px] border border-dashed border-[#243041] bg-[#0F172A] px-4 py-5">
-          <p className="text-[14px] font-semibold text-[#E2E8F0]">Ngày này đang là ngày nghỉ.</p>
-          <p className="mt-1 text-[13px] leading-5 text-[#94A3B8]">Bỏ tick là panel chọn bài hiện ngay. Không cần bấm lưu trước để nhìn thấy nó.</p>
-          {hasExercises ? <p className="mt-3 text-[13px] text-[#7DD3FC]">Buổi này đang có sẵn {day.exercises.length} bài đã lưu, hiện tạm ẩn vì đang bật ngày nghỉ.</p> : null}
+        <div className="rounded-[18px] border border-dashed border-[#1F2329] bg-[#0A0B0D] px-4 py-5">
+          <p className="text-[14px] font-semibold text-[#B6BBC4]">Ngày này đang là ngày nghỉ.</p>
+          <p className="mt-1 text-[13px] leading-5 text-[#8B919B]">Bỏ tick là panel chọn bài hiện ngay. Không cần bấm lưu trước để nhìn thấy nó.</p>
+          {hasExercises ? <p className="mt-3 text-[13px] text-[#C8F31D]">Buổi này đang có sẵn {day.exercises.length} bài đã lưu, hiện tạm ẩn vì đang bật ngày nghỉ.</p> : null}
         </div>
       ) : (
         <form action={addAction}>
@@ -93,8 +93,8 @@ export function ScheduleDayCard({ day, catalogItems, exercisesNode, updateAction
       )}
 
       {!hasExercises ? (
-        <AppCard className="border-[#243041] bg-[#0F172A]">
-          <p className="text-[14px] leading-6 text-[#94A3B8]">
+        <AppCard className="border-[#1F2329] bg-[#0A0B0D]">
+          <p className="text-[14px] leading-6 text-[#8B919B]">
             {isRestDay ? "Chưa có bài nào trong ngày nghỉ này." : "Buổi này chưa có bài nào. Chọn từ panel phía trên để thêm nhanh nhiều bài cùng lúc."}
           </p>
         </AppCard>

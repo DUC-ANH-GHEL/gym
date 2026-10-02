@@ -59,9 +59,9 @@ export default async function RegisterPage({ searchParams }: { searchParams?: Pr
               {TEXT.submit}
             </AppButton>
           </form>
-          <p className="mt-4 text-[13px] text-[#9CA3AF]">
+          <p className="mt-4 text-[13px] text-[#8B919B]">
             {TEXT.haveAccount}{" "}
-            <Link href="/login" className="text-[#38BDF8]">
+            <Link href="/login" className="text-[#C8F31D]">
               {TEXT.login}
             </Link>
           </p>

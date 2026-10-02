@@ -73,9 +73,9 @@ export function ImageUpload({
     <div className="space-y-2">
       <input type="hidden" name={name} value={mediaUrl} />
       <label className="block space-y-2">
-        <span className="text-[13px] font-bold text-[#D1D5DB]">{displayLabel}</span>
+        <span className="text-[13px] font-bold text-[#B6BBC4]">{displayLabel}</span>
         <input type="file" accept={policy.accept} onChange={handleUpload} className="sr-only" />
-        <span className="flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-[12px] border border-[#38BDF8]/45 bg-[#082F49] px-3 text-[15px] font-black text-[#7DD3FC]">
+        <span className="flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-[12px] border border-[#C8F31D]/45 bg-[#14161A] px-3 text-[15px] font-black text-[#C8F31D]">
           {kind === "animation" ? TEXT.chooseGif : TEXT.chooseImage}
         </span>
       </label>
@@ -91,8 +91,8 @@ export function ImageUpload({
           sizes="(max-width: 640px) 100vw, 640px"
         />
       ) : null}
-      {status ? <p className="text-[13px] font-semibold text-[#9CA3AF]">{status}</p> : null}
-      {!mediaUrl ? <p className="text-[13px] text-[#9CA3AF]">{kind === "animation" ? TEXT.animationHelp : TEXT.imageHelp}</p> : null}
+      {status ? <p className="text-[13px] font-semibold text-[#8B919B]">{status}</p> : null}
+      {!mediaUrl ? <p className="text-[13px] text-[#8B919B]">{kind === "animation" ? TEXT.animationHelp : TEXT.imageHelp}</p> : null}
     </div>
   );
 }

@@ -77,8 +77,8 @@ function PreviewBlock({
   alt: string;
 }) {
   return (
-    <div className="min-w-0 rounded-[16px] border border-[#243041] bg-[#0F172A] p-3">
-      <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#94A3B8]">{title}</p>
+    <div className="min-w-0 rounded-[16px] border border-[#1F2329] bg-[#0A0B0D] p-3">
+      <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#8B919B]">{title}</p>
       {src ? (
         <ExerciseMediaPreview
           media={{ src, kind, isPlaceholder: false }}
@@ -91,7 +91,7 @@ function PreviewBlock({
           sizes="(max-width: 640px) 100vw, 320px"
         />
       ) : (
-        <div className="flex h-32 items-center justify-center rounded-[12px] border border-dashed border-[#334155] bg-[#111827] px-3 text-center text-[13px] text-[#94A3B8]">
+        <div className="flex h-32 items-center justify-center rounded-[12px] border border-dashed border-[#2A2F36] bg-[#14161A] px-3 text-center text-[13px] text-[#8B919B]">
           {kind === "animation" ? TEXT.noGif : TEXT.noImage}
         </div>
       )}
@@ -241,24 +241,24 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
   const imagePolicy = getUploadPolicy("image");
 
   return (
-    <div className="space-y-4 rounded-[20px] border border-[#243041] bg-[#121A2B] p-4 shadow-sm">
+    <div className="space-y-4 rounded-[20px] border border-[#1F2329] bg-[#14161A] p-4 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="break-words text-[18px] font-bold text-[#F8FAFC]">{item.name}</h2>
-            <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${hasGif ? "bg-[#22C55E]/15 text-[#86EFAC]" : "bg-[#F59E0B]/15 text-[#FCD34D]"}`}>
+            <h2 className="break-words text-[18px] font-bold text-[#F4F5F7]">{item.name}</h2>
+            <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${hasGif ? "bg-[#C8F31D]/15 text-[#C8F31D]" : "bg-[#F59E0B]/15 text-[#FCD34D]"}`}>
               {hasGif ? "Có GIF" : "Thiếu GIF"}
             </span>
           </div>
-          <p className="break-all text-[13px] font-medium text-[#7DD3FC]">{item.slug}</p>
-          <p className="text-[13px] text-[#94A3B8]">
+          <p className="break-all text-[13px] font-medium text-[#C8F31D]">{item.slug}</p>
+          <p className="text-[13px] text-[#8B919B]">
             {item.muscleGroup || "Chưa có nhóm cơ"} · Cập nhật {media.updatedAtLabel}
           </p>
         </div>
 
         <button
           type="button"
-          className="min-h-[44px] rounded-[14px] border border-[#243041] bg-[#0F172A] px-4 py-3 text-[14px] font-semibold text-[#F8FAFC]"
+          className="min-h-[44px] rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] px-4 py-3 text-[14px] font-semibold text-[#F4F5F7]"
           onClick={handleCopySlug}
         >
           Copy slug
@@ -271,7 +271,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2">
-        <label className="flex min-h-[46px] cursor-pointer items-center justify-center rounded-[14px] border border-[#38BDF8]/50 bg-[#0F172A] px-3 py-2 text-center text-[13px] font-semibold text-[#E0F2FE]">
+        <label className="flex min-h-[46px] cursor-pointer items-center justify-center rounded-[14px] border border-[#C8F31D]/50 bg-[#0A0B0D] px-3 py-2 text-center text-[13px] font-semibold text-[#E0F2FE]">
           <input
             type="file"
             accept={imagePolicy.accept}
@@ -281,7 +281,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
           />
           {manualUploadKind === "image" ? "Đang tải ảnh..." : "Upload ảnh"}
         </label>
-        <label className="flex min-h-[46px] cursor-pointer items-center justify-center rounded-[14px] bg-[#38BDF8] px-3 py-2 text-center text-[13px] font-bold text-[#082F49]">
+        <label className="flex min-h-[46px] cursor-pointer items-center justify-center rounded-[14px] bg-[#C8F31D] px-3 py-2 text-center text-[13px] font-bold text-[#14161A]">
           <input
             type="file"
             accept={gifPolicy.accept}
@@ -294,14 +294,14 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
       </div>
 
       <label className="block space-y-2">
-        <span className="text-[13px] font-semibold text-[#CBD5E1]">Dataset folder name</span>
+        <span className="text-[13px] font-semibold text-[#B6BBC4]">Dataset folder name</span>
         <input
           value={datasetFolderName}
           onChange={(event) => setDatasetFolderName(event.target.value)}
           placeholder="Ví dụ: Romanian_Deadlift"
-          className="min-h-[48px] w-full rounded-[12px] border border-[#314155] bg-[#0F172A] px-3 text-[15px] text-[#F8FAFC] outline-none placeholder:text-[#64748B] focus:border-[#38BDF8]"
+          className="min-h-[48px] w-full rounded-[12px] border border-[#2A2F36] bg-[#0A0B0D] px-3 text-[15px] text-[#F4F5F7] outline-none placeholder:text-[#64748B] focus:border-[#C8F31D]"
         />
-        <p className="text-[12px] text-[#94A3B8]">
+        <p className="text-[12px] text-[#8B919B]">
           Nếu bài có trong free-exercise-db thì nhập folder. Nếu không có, dùng nút upload GIF ở trên.
         </p>
       </label>
@@ -309,7 +309,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
       <div className="grid gap-2 sm:grid-cols-2">
         <button
           type="button"
-          className="min-h-[44px] rounded-[14px] border border-[#38BDF8]/50 bg-[#0F172A] px-3 py-2 text-[13px] font-semibold text-[#E0F2FE] disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-[44px] rounded-[14px] border border-[#C8F31D]/50 bg-[#0A0B0D] px-3 py-2 text-[13px] font-semibold text-[#E0F2FE] disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSaving}
           onClick={() => handleMediaAction("check")}
         >
@@ -317,7 +317,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
         </button>
         <button
           type="button"
-          className="min-h-[44px] rounded-[14px] bg-[#38BDF8] px-3 py-2 text-[13px] font-bold text-[#082F49] disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-[44px] rounded-[14px] bg-[#C8F31D] px-3 py-2 text-[13px] font-bold text-[#14161A] disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSaving}
           onClick={() => handleMediaAction("update")}
         >
@@ -325,7 +325,7 @@ export function AdminExerciseMediaCard({ item }: AdminExerciseMediaCardProps) {
         </button>
       </div>
 
-      {statusMessage ? <p className="text-[13px] font-medium text-[#86EFAC]">{statusMessage}</p> : null}
+      {statusMessage ? <p className="text-[13px] font-medium text-[#C8F31D]">{statusMessage}</p> : null}
     </div>
   );
 }

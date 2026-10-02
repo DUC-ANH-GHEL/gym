@@ -27,12 +27,12 @@ export default async function HistoryPage() {
               <AppCard>
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-[18px] font-bold text-[#F9FAFB]">{log.title || formatWorkoutDate(log.workoutDate, timezone)}</h3>
-                    <p className="text-[13px] text-[#9CA3AF]">{getDateKeyInTimeZone(log.workoutDate, timezone)}</p>
+                    <h3 className="text-[18px] font-bold text-[#F4F5F7]">{log.title || formatWorkoutDate(log.workoutDate, timezone)}</h3>
+                    <p className="text-[13px] text-[#8B919B]">{getDateKeyInTimeZone(log.workoutDate, timezone)}</p>
                   </div>
-                  <div className="text-right text-[13px] text-[#9CA3AF]">
+                  <div className="text-right text-[13px] text-[#8B919B]">
                     <p>{completedSets}/{totalSets} set</p>
-                    <p className={log.completedAt ? "text-[#22C55E]" : "text-[#F59E0B]"}>{log.completedAt ? "Đã xong" : "Đang dở"}</p>
+                    <p className={log.completedAt ? "text-[#C8F31D]" : "text-[#F59E0B]"}>{log.completedAt ? "Đã xong" : "Đang dở"}</p>
                   </div>
                 </div>
               </AppCard>

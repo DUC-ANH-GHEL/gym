@@ -51,15 +51,15 @@ export default async function WorkoutPage({ params }: { params: Promise<{ logId:
               width={160}
               height={160}
               imageClassName="h-20 w-20 rounded-[14px] object-cover"
-              placeholderClassName="flex h-20 w-20 shrink-0 items-center justify-center rounded-[14px] bg-[#1F2937] text-[11px] text-[#9CA3AF]"
+              placeholderClassName="flex h-20 w-20 shrink-0 items-center justify-center rounded-[14px] bg-[#1B1E23] text-[11px] text-[#8B919B]"
               placeholderLabel="Ảnh"
               buttonClassName="shrink-0 rounded-[14px]"
               sizes="160px"
             />
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-[18px] font-bold text-[#F9FAFB]">{exercise.exerciseName}</h2>
-              <p className="text-[13px] text-[#9CA3AF]">{exercise.muscleGroup || "Chưa có nhóm cơ"}</p>
-              <p className="mt-1 text-[13px] font-semibold text-[#22C55E]">
+              <h2 className="truncate text-[18px] font-bold text-[#F4F5F7]">{exercise.exerciseName}</h2>
+              <p className="text-[13px] text-[#8B919B]">{exercise.muscleGroup || "Chưa có nhóm cơ"}</p>
+              <p className="mt-1 text-[13px] font-semibold text-[#C8F31D]">
                 {exercise.isCompleted ? "Hoàn thành" : "Đang tập"}
               </p>
             </div>

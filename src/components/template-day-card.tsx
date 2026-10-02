@@ -103,19 +103,19 @@ export function TemplateDayCard({
   const dayName = DAY_NAMES[day.dayOfWeek] || "Ngày tập";
 
   return (
-    <AppCard className="min-w-0 space-y-4 border-[#243041] bg-[#121A2B] p-4">
+    <AppCard className="min-w-0 space-y-4 border-[#1F2329] bg-[#14161A] p-4">
       <div className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[13px] font-black text-[#38BDF8]">{dayName}</p>
-            <h2 className="mt-1 break-words text-[24px] font-black leading-tight text-[#F8FAFC]">
+            <p className="text-[13px] font-black text-[#C8F31D]">{dayName}</p>
+            <h2 className="mt-1 break-words text-[24px] font-black leading-tight text-[#F4F5F7]">
               {dayName} · {day.title}
             </h2>
-            <p className="mt-2 text-[14px] font-semibold leading-6 text-[#94A3B8]">
+            <p className="mt-2 text-[14px] font-semibold leading-6 text-[#8B919B]">
               {day.isRestDay ? "Ngày nghỉ" : `${day.exercises.length} bài · ${setCount} set`}
             </p>
           </div>
-          <span className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-black ${day.isRestDay ? "bg-[#1E293B] text-[#CBD5E1]" : "bg-[#123522] text-[#BBF7D0]"}`}>
+          <span className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-black ${day.isRestDay ? "bg-[#1B1E23] text-[#B6BBC4]" : "bg-[#123522] text-[#C8F31D]"}`}>
             {day.isRestDay ? "Đang nghỉ" : "Đang tập"}
           </span>
         </div>
@@ -124,7 +124,7 @@ export function TemplateDayCard({
           <button
             type="button"
             onClick={() => setIsEditingDay((value) => !value)}
-            className="min-h-[44px] rounded-[14px] border border-[#334155] bg-[#111827] px-3 py-2 text-[13px] font-black text-[#E2E8F0]"
+            className="min-h-[44px] rounded-[14px] border border-[#2A2F36] bg-[#14161A] px-3 py-2 text-[13px] font-black text-[#B6BBC4]"
           >
             Sửa tên ngày
           </button>
@@ -133,7 +133,7 @@ export function TemplateDayCard({
             <input type="hidden" name="title" value={day.title} />
             {!day.isRestDay ? <input type="hidden" name="isRestDay" value="on" /> : null}
             <PendingButton
-              className="min-h-[44px] w-full rounded-[14px] border border-[#334155] bg-[#111827] px-3 py-2 text-[13px] font-black text-[#E2E8F0]"
+              className="min-h-[44px] w-full rounded-[14px] border border-[#2A2F36] bg-[#14161A] px-3 py-2 text-[13px] font-black text-[#B6BBC4]"
               pendingLabel="Đang đổi..."
             >
               {day.isRestDay ? "Đổi thành ngày tập" : "Đặt nghỉ"}
@@ -142,7 +142,7 @@ export function TemplateDayCard({
           <button
             type="button"
             onClick={() => setIsAddingExercises((value) => !value)}
-            className="col-span-2 min-h-[44px] rounded-[14px] border border-[#0EA5E9]/40 bg-[#0C2537] px-3 py-2 text-[13px] font-black text-[#7DD3FC] sm:col-span-1"
+            className="col-span-2 min-h-[44px] rounded-[14px] border border-[#C8F31D]/40 bg-[#0C2537] px-3 py-2 text-[13px] font-black text-[#C8F31D] sm:col-span-1"
           >
             + Thêm bài
           </button>
@@ -150,27 +150,27 @@ export function TemplateDayCard({
       </div>
 
       {isEditingDay ? (
-        <form action={updateAction} className="space-y-3 rounded-[18px] border border-[#243041] bg-[#0F172A] p-4">
+        <form action={updateAction} className="space-y-3 rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-4">
           <input type="hidden" name="templateDayId" value={day.id} />
           {day.isRestDay ? <input type="hidden" name="isRestDay" value="on" /> : null}
           <label className="space-y-2">
-            <span className="text-[13px] font-bold text-[#CBD5E1]">Tên ngày</span>
-            <AppInput name="title" defaultValue={day.title} placeholder="Ví dụ Ngực và tay sau" className="border-[#314155] bg-[#111C2E]" />
+            <span className="text-[13px] font-bold text-[#B6BBC4]">Tên ngày</span>
+            <AppInput name="title" defaultValue={day.title} placeholder="Ví dụ Ngực và tay sau" className="border-[#2A2F36] bg-[#14161A]" />
           </label>
-          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]" pendingLabel="Đang lưu...">
+          <AppButton className="w-full bg-[#C8F31D] text-[#14161A] hover:bg-[#C8F31D]" pendingLabel="Đang lưu...">
             Lưu tên ngày
           </AppButton>
         </form>
       ) : null}
 
       {day.isRestDay ? (
-        <div className="rounded-[18px] border border-dashed border-[#334155] bg-[#0F172A] px-4 py-5">
-          <h3 className="text-[17px] font-black text-[#F8FAFC]">Ngày này đang nghỉ</h3>
-          <p className="mt-2 text-[14px] leading-6 text-[#94A3B8]">
+        <div className="rounded-[18px] border border-dashed border-[#2A2F36] bg-[#0A0B0D] px-4 py-5">
+          <h3 className="text-[17px] font-black text-[#F4F5F7]">Ngày này đang nghỉ</h3>
+          <p className="mt-2 text-[14px] leading-6 text-[#8B919B]">
             Nếu muốn tập trong ngày này, bấm đổi thành ngày tập rồi thêm bài.
           </p>
           {hasExercises ? (
-            <p className="mt-3 rounded-[14px] border border-[#0EA5E9]/30 bg-[#0C2537] px-3 py-2 text-[13px] font-bold leading-5 text-[#7DD3FC]">
+            <p className="mt-3 rounded-[14px] border border-[#C8F31D]/30 bg-[#0C2537] px-3 py-2 text-[13px] font-bold leading-5 text-[#C8F31D]">
               Ngày này vẫn có {day.exercises.length} bài đã lưu. Các bài đang được giữ lại.
             </p>
           ) : null}
@@ -192,7 +192,7 @@ export function TemplateDayCard({
       ) : null}
 
       {!hasExercises ? (
-        <div className="rounded-[18px] border border-dashed border-[#334155] bg-[#0F172A] px-4 py-5 text-[14px] leading-6 text-[#94A3B8]">
+        <div className="rounded-[18px] border border-dashed border-[#2A2F36] bg-[#0A0B0D] px-4 py-5 text-[14px] leading-6 text-[#8B919B]">
           {day.isRestDay ? "Ngày nghỉ này chưa có bài nào." : "Ngày tập này chưa có bài nào. Bấm thêm bài để bắt đầu."}
         </div>
       ) : (
@@ -203,7 +203,7 @@ export function TemplateDayCard({
             const media = getExerciseMedia(exercise.catalogItem, "list");
 
             return (
-              <article key={exercise.id} className="min-w-0 rounded-[18px] border border-[#243041] bg-[#0F172A] p-4">
+              <article key={exercise.id} className="min-w-0 rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-4">
                 <div className="flex min-w-0 items-start gap-3">
                   <div className="relative w-[104px] shrink-0">
                     <ExerciseMediaPreview
@@ -212,27 +212,27 @@ export function TemplateDayCard({
                       width={208}
                       height={156}
                       imageClassName="aspect-[4/3] w-full rounded-[14px] object-cover"
-                      placeholderClassName="flex aspect-[4/3] w-full items-center justify-center rounded-[14px] border border-dashed border-[#334155] bg-[#111827] px-2 text-center text-[12px] font-bold leading-4 text-[#94A3B8]"
+                      placeholderClassName="flex aspect-[4/3] w-full items-center justify-center rounded-[14px] border border-dashed border-[#2A2F36] bg-[#14161A] px-2 text-center text-[12px] font-bold leading-4 text-[#8B919B]"
                       placeholderLabel="Chưa có ảnh"
                       buttonClassName="block w-full rounded-[14px]"
                       sizes="104px"
                     />
                     {media.kind === "animation" ? (
-                      <span className="absolute bottom-1 right-1 rounded-full bg-[#123522] px-1.5 py-0.5 text-[10px] font-black text-[#BBF7D0]">GIF</span>
+                      <span className="absolute bottom-1 right-1 rounded-full bg-[#123522] px-1.5 py-0.5 text-[10px] font-black text-[#C8F31D]">GIF</span>
                     ) : null}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-[12px] font-black text-[#38BDF8]">Bài {exerciseIndex + 1}</p>
-                        <h3 className="mt-1 break-words text-[18px] font-black leading-6 text-[#F8FAFC]">{exercise.catalogItem.name}</h3>
+                        <p className="text-[12px] font-black text-[#C8F31D]">Bài {exerciseIndex + 1}</p>
+                        <h3 className="mt-1 break-words text-[18px] font-black leading-6 text-[#F4F5F7]">{exercise.catalogItem.name}</h3>
                       </div>
-                      <span className="shrink-0 rounded-full bg-[#0EA5E9]/12 px-2.5 py-1 text-[12px] font-black text-[#7DD3FC]">
+                      <span className="shrink-0 rounded-full bg-[#C8F31D]/12 px-2.5 py-1 text-[12px] font-black text-[#C8F31D]">
                         #{exerciseIndex + 1}
                       </span>
                     </div>
-                    <p className="mt-2 text-[14px] font-semibold leading-6 text-[#CBD5E1]">{getExerciseSummary(exercise)}</p>
-                    <p className="mt-1 text-[13px] font-bold leading-5 text-[#94A3B8]">{formatSet(exercise.sets[0])}</p>
+                    <p className="mt-2 text-[14px] font-semibold leading-6 text-[#B6BBC4]">{getExerciseSummary(exercise)}</p>
+                    <p className="mt-1 text-[13px] font-bold leading-5 text-[#8B919B]">{formatSet(exercise.sets[0])}</p>
                   </div>
                 </div>
 
@@ -241,7 +241,7 @@ export function TemplateDayCard({
                     <input type="hidden" name="templateExerciseId" value={exercise.id} />
                     <input type="hidden" name="direction" value="up" />
                     <PendingButton
-                      className="min-h-[44px] w-full rounded-[13px] border border-[#334155] bg-[#111827] px-2 text-[13px] font-black text-[#E2E8F0]"
+                      className="min-h-[44px] w-full rounded-[13px] border border-[#2A2F36] bg-[#14161A] px-2 text-[13px] font-black text-[#B6BBC4]"
                       pendingLabel="Đang lên..."
                     >
                       Lên
@@ -251,7 +251,7 @@ export function TemplateDayCard({
                     <input type="hidden" name="templateExerciseId" value={exercise.id} />
                     <input type="hidden" name="direction" value="down" />
                     <PendingButton
-                      className="min-h-[44px] w-full rounded-[13px] border border-[#334155] bg-[#111827] px-2 text-[13px] font-black text-[#E2E8F0]"
+                      className="min-h-[44px] w-full rounded-[13px] border border-[#2A2F36] bg-[#14161A] px-2 text-[13px] font-black text-[#B6BBC4]"
                       pendingLabel="Đang xuống..."
                     >
                       Xuống
@@ -264,7 +264,7 @@ export function TemplateDayCard({
                       setEditingExerciseId(null);
                       setIsAddingExercises(false);
                     }}
-                    className="min-h-[44px] w-full min-w-0 rounded-[13px] border border-[#0EA5E9]/40 bg-[#0C2537] px-2 text-[13px] font-black text-[#7DD3FC]"
+                    className="min-h-[44px] w-full min-w-0 rounded-[13px] border border-[#C8F31D]/40 bg-[#0C2537] px-2 text-[13px] font-black text-[#C8F31D]"
                   >
                     Thay thế
                   </button>
@@ -274,7 +274,7 @@ export function TemplateDayCard({
                       setEditingExerciseId(isEditingSets ? null : exercise.id);
                       setReplacingExerciseId(null);
                     }}
-                    className="min-h-[44px] w-full min-w-0 rounded-[13px] border border-[#334155] bg-[#111827] px-2 text-[13px] font-black text-[#E2E8F0]"
+                    className="min-h-[44px] w-full min-w-0 rounded-[13px] border border-[#2A2F36] bg-[#14161A] px-2 text-[13px] font-black text-[#B6BBC4]"
                   >
                     Sửa set
                   </button>
@@ -307,13 +307,13 @@ export function TemplateDayCard({
                 ) : null}
 
                 {isEditingSets ? (
-                  <div className="mt-4 space-y-3 rounded-[16px] border border-[#243041] bg-[#111827] p-3">
+                  <div className="mt-4 space-y-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
                     <div className="flex items-center justify-between gap-3">
-                      <h4 className="text-[15px] font-black text-[#F8FAFC]">Sửa set</h4>
+                      <h4 className="text-[15px] font-black text-[#F4F5F7]">Sửa set</h4>
                       <form action={addSetAction}>
                         <input type="hidden" name="templateExerciseId" value={exercise.id} />
                         <PendingButton
-                          className="min-h-[40px] rounded-[13px] border border-[#0EA5E9]/40 bg-[#0C2537] px-3 text-[12px] font-black text-[#7DD3FC]"
+                          className="min-h-[40px] rounded-[13px] border border-[#C8F31D]/40 bg-[#0C2537] px-3 text-[12px] font-black text-[#C8F31D]"
                           pendingLabel="Đang thêm..."
                         >
                           + Thêm set
@@ -322,27 +322,27 @@ export function TemplateDayCard({
                     </div>
 
                     {exercise.sets.map((set) => (
-                      <div key={set.id} className="space-y-3 rounded-[15px] border border-[#334155] bg-[#0F172A] p-3">
-                        <p className="text-[13px] font-black text-[#CBD5E1]">Set {set.setIndex + 1}</p>
+                      <div key={set.id} className="space-y-3 rounded-[15px] border border-[#2A2F36] bg-[#0A0B0D] p-3">
+                        <p className="text-[13px] font-black text-[#B6BBC4]">Set {set.setIndex + 1}</p>
                         <form action={updateSetAction} className="space-y-3">
                           <input type="hidden" name="templateExerciseId" value={exercise.id} />
                           <input type="hidden" name="templateSetId" value={set.id} />
                           <input type="hidden" name="setIndex" value={set.setIndex} />
                           <div className="grid grid-cols-2 gap-2">
                             <label className="space-y-1">
-                              <span className="text-[12px] font-bold text-[#94A3B8]">Mức nặng (%)</span>
-                              <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="70" inputMode="numeric" className="border-[#314155] bg-[#111C2E]" />
+                              <span className="text-[12px] font-bold text-[#8B919B]">Mức nặng (%)</span>
+                              <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="70" inputMode="numeric" className="border-[#2A2F36] bg-[#14161A]" />
                             </label>
                             <label className="space-y-1">
-                              <span className="text-[12px] font-bold text-[#94A3B8]">Số reps</span>
-                              <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="10" inputMode="numeric" className="border-[#314155] bg-[#111C2E]" />
+                              <span className="text-[12px] font-bold text-[#8B919B]">Số reps</span>
+                              <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="10" inputMode="numeric" className="border-[#2A2F36] bg-[#14161A]" />
                             </label>
                           </div>
                           <label className="space-y-1">
-                            <span className="text-[12px] font-bold text-[#94A3B8]">Tạ mục tiêu (kg)</span>
-                            <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="40" inputMode="decimal" className="border-[#314155] bg-[#111C2E]" />
+                            <span className="text-[12px] font-bold text-[#8B919B]">Tạ mục tiêu (kg)</span>
+                            <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="40" inputMode="decimal" className="border-[#2A2F36] bg-[#14161A]" />
                           </label>
-                          <AppButton className="w-full bg-[#0EA5E9] text-[#082F49] hover:bg-[#38BDF8]" pendingLabel="Đang lưu...">
+                          <AppButton className="w-full bg-[#C8F31D] text-[#14161A] hover:bg-[#C8F31D]" pendingLabel="Đang lưu...">
                             Lưu set
                           </AppButton>
                         </form>

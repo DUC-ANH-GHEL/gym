@@ -30,7 +30,7 @@ function SubmitSetButton({ restLocked, setNumber, saving }: { restLocked: boolea
     <button
       type="submit"
       disabled={disabled}
-      className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-30 min-h-[56px] w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 rounded-[16px] bg-[#C8F31D] px-4 py-2.5 text-[18px] font-black text-[#0A0B0D] shadow-none transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#2A2F36] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
+      className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-30 min-h-[56px] w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 rounded-[16px] bg-[#C8F31D] px-4 py-2.5 text-[18px] font-black text-[#0A0B0D] shadow-none transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#2A2F36] disabled:text-[#B6BBC4] disabled:shadow-none disabled:active:scale-100"
       aria-live="polite"
     >
       {label}
@@ -114,7 +114,7 @@ export function TodaySetControls({
             <button
               type="button"
               disabled={restLocked}
-              className="h-9 rounded-[12px] bg-[#1B1E23] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
+              className="h-9 rounded-[12px] bg-[#1B1E23] text-[22px] font-bold text-[#F4F5F7] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
               onClick={() =>
                 setWeightKg((value) => {
                   const nextValue = clampWorkoutWeightKg(value - 2.5);
@@ -126,7 +126,7 @@ export function TodaySetControls({
             >
               -
             </button>
-            <label className="flex min-w-0 items-center justify-center rounded-[12px] bg-[#14161A] px-1 py-1.5 text-center text-[16px] font-black text-[#F9FAFB]">
+            <label className="flex min-w-0 items-center justify-center rounded-[12px] bg-[#14161A] px-1 py-1.5 text-center text-[16px] font-black text-[#F4F5F7]">
               <input
                 type="number"
                 min={0}
@@ -147,7 +147,7 @@ export function TodaySetControls({
                   setWeightText(nextText);
                   setWeightKg(nextWeight);
                 }}
-                className="w-[72px] bg-transparent text-center text-[26px] font-black text-[#F9FAFB] outline-none disabled:opacity-70"
+                className="w-[72px] bg-transparent text-center text-[26px] font-black text-[#F4F5F7] outline-none disabled:opacity-70"
                 aria-label={TEXT.weightInput}
               />
               <span className="shrink-0">kg</span>
@@ -155,7 +155,7 @@ export function TodaySetControls({
             <button
               type="button"
               disabled={restLocked}
-              className="h-9 rounded-[12px] bg-[#1B1E23] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
+              className="h-9 rounded-[12px] bg-[#1B1E23] text-[22px] font-bold text-[#F4F5F7] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
               onClick={() =>
                 setWeightKg((value) => {
                   const nextValue = clampWorkoutWeightKg(value + 2.5);
@@ -172,7 +172,7 @@ export function TodaySetControls({
 
         <div className="rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] p-1.5">
           <p className="px-1 text-[12px] font-bold text-[#8B919B]">{TEXT.reps}</p>
-          <div className="mt-1 flex h-9 items-center justify-center rounded-[12px] bg-[#14161A] px-2 text-center text-[16px] font-black text-[#F9FAFB]">
+          <div className="mt-1 flex h-9 items-center justify-center rounded-[12px] bg-[#14161A] px-2 text-center text-[16px] font-black text-[#F4F5F7]">
             <span className="min-w-0 whitespace-nowrap">
               {reps || 0} {TEXT.repUnit}
             </span>

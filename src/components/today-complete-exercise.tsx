@@ -114,10 +114,10 @@ export function TodayCompleteExercise({
             <input type="hidden" name="exerciseLogId" value={exerciseLogId} />
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 id={titleId} className="text-[20px] font-black text-[#F9FAFB]">
+                <h2 id={titleId} className="text-[20px] font-black text-[#F4F5F7]">
                   {TEXT.title}
                 </h2>
-                <p className="mt-1 text-[14px] font-semibold leading-5 text-[#CBD5E1]">{TEXT.description}</p>
+                <p className="mt-1 text-[14px] font-semibold leading-5 text-[#B6BBC4]">{TEXT.description}</p>
               </div>
             </div>
 
@@ -135,11 +135,11 @@ export function TodayCompleteExercise({
                       return nextValue;
                     })
                   }
-                  className="h-12 rounded-[14px] bg-[#1B1E23] text-[28px] font-bold text-[#F9FAFB] disabled:opacity-55"
+                  className="h-12 rounded-[14px] bg-[#1B1E23] text-[28px] font-bold text-[#F4F5F7] disabled:opacity-55"
                 >
                   -
                 </button>
-                <label className="flex h-12 min-w-0 items-center justify-center rounded-[14px] bg-[#0A0B0D] px-2 text-[20px] font-black text-[#F9FAFB]">
+                <label className="flex h-12 min-w-0 items-center justify-center rounded-[14px] bg-[#0A0B0D] px-2 text-[20px] font-black text-[#F4F5F7]">
                   <input
                     type="number"
                     min={0}
@@ -176,7 +176,7 @@ export function TodayCompleteExercise({
                       return nextValue;
                     })
                   }
-                  className="h-12 rounded-[14px] bg-[#1B1E23] text-[28px] font-bold text-[#F9FAFB] disabled:opacity-55"
+                  className="h-12 rounded-[14px] bg-[#1B1E23] text-[28px] font-bold text-[#F4F5F7] disabled:opacity-55"
                 >
                   +
                 </button>
@@ -188,7 +188,7 @@ export function TodayCompleteExercise({
                 type="button"
                 disabled={isSaving}
                 onClick={close}
-                className="min-h-[50px] rounded-[14px] border border-[#2A2F36] bg-[#14161A] px-3 text-[15px] font-black text-[#F9FAFB] disabled:opacity-55"
+                className="min-h-[50px] rounded-[14px] border border-[#2A2F36] bg-[#14161A] px-3 text-[15px] font-black text-[#F4F5F7] disabled:opacity-55"
               >
                 {TEXT.cancel}
               </button>

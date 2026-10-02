@@ -47,7 +47,7 @@ export function ExerciseMediaPreview({
     <>
       <button
         type="button"
-        className={`${buttonClassName} overflow-hidden p-0 text-left outline-none ring-offset-2 ring-offset-[#0B0F14] transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#38BDF8]`}
+        className={`${buttonClassName} overflow-hidden p-0 text-left outline-none ring-offset-2 ring-offset-[#0A0B0D] transition active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#C8F31D]`}
         aria-label={`${TEXT.viewImagePrefix} ${alt}`}
         onClick={() => setIsOpen(true)}
       >
@@ -72,16 +72,16 @@ export function ExerciseMediaPreview({
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="w-full max-w-[760px] overflow-hidden rounded-[18px] border border-[#374151] bg-[#0B0F14] shadow-2xl"
+            className="w-full max-w-[760px] overflow-hidden rounded-[18px] border border-[#2A2F36] bg-[#0A0B0D] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex min-w-0 items-center gap-3 border-b border-[#263241] px-3 py-3">
-              <h2 id={titleId} className="min-w-0 flex-1 break-words text-[17px] font-bold leading-5 text-[#F9FAFB]">
+            <div className="flex min-w-0 items-center gap-3 border-b border-[#1F2329] px-3 py-3">
+              <h2 id={titleId} className="min-w-0 flex-1 break-words text-[17px] font-bold leading-5 text-[#F4F5F7]">
                 {alt}
               </h2>
               <button
                 type="button"
-                className="flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-[#374151] bg-[#111827] px-3 text-[15px] font-bold text-[#F9FAFB]"
+                className="flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-[#2A2F36] bg-[#14161A] px-3 text-[15px] font-bold text-[#F4F5F7]"
                 onClick={() => setIsOpen(false)}
               >
                 {TEXT.close}

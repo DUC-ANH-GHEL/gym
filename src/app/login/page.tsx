@@ -43,9 +43,9 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
               {TEXT.submit}
             </AppButton>
           </form>
-          <p className="mt-4 text-[13px] text-[#9CA3AF]">
+          <p className="mt-4 text-[13px] text-[#8B919B]">
             {TEXT.noAccount}{" "}
-            <Link href="/register" className="text-[#38BDF8]">
+            <Link href="/register" className="text-[#C8F31D]">
               {TEXT.register}
             </Link>
           </p>

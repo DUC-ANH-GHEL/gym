@@ -62,14 +62,14 @@ export function TodayExerciseGuideSheet({
             <div className="flex items-start justify-between gap-3 border-b border-[#1F2329] px-4 py-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[12px] font-black text-[#C8F31D]">{TEXT.eyebrow}</p>
-                <h2 id={titleId} className="break-words text-[21px] font-black leading-6 text-[#F9FAFB]">
+                <h2 id={titleId} className="break-words text-[21px] font-black leading-6 text-[#F4F5F7]">
                   {exerciseName}
                 </h2>
-                <p className="mt-1 text-[13px] font-semibold text-[#D1D5DB]">{muscleGroup || TEXT.noMuscleGroup}</p>
+                <p className="mt-1 text-[13px] font-semibold text-[#B6BBC4]">{muscleGroup || TEXT.noMuscleGroup}</p>
               </div>
               <button
                 type="button"
-                className="min-h-[42px] shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[14px] font-black text-[#F9FAFB]"
+                className="min-h-[42px] shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[14px] font-black text-[#F4F5F7]"
                 onClick={() => setOpen(false)}
               >
                 {TEXT.close}
@@ -78,10 +78,10 @@ export function TodayExerciseGuideSheet({
 
             <div className="min-h-0 overflow-y-auto px-3 py-3">
               <section className="rounded-[18px] border border-[#1F2329] bg-[#14161A] p-3">
-                <h3 className="text-[16px] font-black text-[#F9FAFB]">{TEXT.stepsTitle}</h3>
+                <h3 className="text-[16px] font-black text-[#F4F5F7]">{TEXT.stepsTitle}</h3>
                 <ol className="mt-3 space-y-2">
                   {guideItems.map((item, index) => (
-                    <li key={`${item}-${index}`} className="grid grid-cols-[32px_minmax(0,1fr)] gap-3 rounded-[14px] bg-[#0B1220] p-3">
+                    <li key={`${item}-${index}`} className="grid grid-cols-[32px_minmax(0,1fr)] gap-3 rounded-[14px] bg-[#0A0B0D] p-3">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C8F31D] text-[14px] font-black text-[#0A0B0D]">
                         {index + 1}
                       </span>
