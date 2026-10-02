@@ -49,6 +49,9 @@ export async function scheduleWorkoutRestReminder({ reminderId, dueAt }: { remin
   if (!response.ok) {
     throw new Error(`QStash reminder publish failed: ${response.status}`);
   }
+
+  const result = (await response.json().catch(() => null)) as { messageId?: unknown } | null;
+  return { messageId: typeof result?.messageId === "string" ? result.messageId : null };
 }
 
 export async function verifyQstashRequest({ body, request }: { body: string; request: Request }) {

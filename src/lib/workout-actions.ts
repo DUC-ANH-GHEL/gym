@@ -11,6 +11,23 @@ import { scheduleWorkoutRestReminder } from "@/lib/workout-qstash";
 import { getNextExerciseAfterSetSave, getNextSetToFill } from "@/lib/workout-today-flow";
 import { clampWorkoutWeightKg } from "@/lib/workout-set-entry";
 
+// lastError doubles as a diagnostic trail: "qstash_scheduled:<id>" means QStash accepted the
+// message, so a reminder that stays unsent after that failed at delivery, not at scheduling.
+async function scheduleAndRecordReminder(reminderId: string, dueAt: Date) {
+  let note: string;
+  try {
+    const { messageId } = await scheduleWorkoutRestReminder({ reminderId, dueAt });
+    note = `qstash_scheduled:${messageId ?? "unknown"}`;
+  } catch (error) {
+    console.error("[workout-reminder] schedule failed", reminderId, error);
+    note = error instanceof Error ? error.message.slice(0, 500) : "qstash_schedule_failed";
+  }
+
+  await prisma.workoutRestReminder
+    .update({ where: { id: reminderId }, data: { lastError: note } })
+    .catch((error) => console.error("[workout-reminder] could not record schedule result", reminderId, error));
+}
+
 export type WorkoutNavigationResult = { nextUrl: string };
 
 async function getRestRedirectUrl(userId: string): Promise<string | null> {
@@ -224,16 +241,7 @@ async function saveWorkoutSet(formData: FormData): Promise<WorkoutNavigationResu
   const params = new URLSearchParams();
 
   if (reminder && restPlan && dueAt) {
-    after(async () => {
-      try {
-        await scheduleWorkoutRestReminder({ reminderId: reminder.id, dueAt });
-      } catch (error) {
-        await prisma.workoutRestReminder.update({
-          where: { id: reminder.id },
-          data: { lastError: error instanceof Error ? error.message.slice(0, 500) : "qstash_schedule_failed" },
-        });
-      }
-    });
+    after(() => scheduleAndRecordReminder(reminder.id, dueAt));
 
     params.set("rest", String(restPlan.seconds));
     params.set("restKind", restPlan.kind);
@@ -358,16 +366,7 @@ async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavig
       startNextExercise,
       updateWorkoutCompletion,
     ]);
-    after(async () => {
-      try {
-        await scheduleWorkoutRestReminder({ reminderId: reminder.id, dueAt });
-      } catch (error) {
-        await prisma.workoutRestReminder.update({
-          where: { id: reminder.id },
-          data: { lastError: error instanceof Error ? error.message.slice(0, 500) : "qstash_schedule_failed" },
-        });
-      }
-    });
+    after(() => scheduleAndRecordReminder(reminder.id, dueAt));
 
     const params = new URLSearchParams({
       rest: String(restPlan.seconds),
