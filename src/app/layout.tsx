@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { GlobalLoadingFeedback } from "@/components/global-loading-feedback";
 import "./globals.css";
 
@@ -42,7 +42,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html lang="vi">
       <body>
         <div className="min-h-screen bg-[#0B0F14]">
-          <GlobalLoadingFeedback />
+          <Suspense fallback={null}>
+            <GlobalLoadingFeedback />
+          </Suspense>
           {children}
         </div>
       </body>

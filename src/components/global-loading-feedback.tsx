@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const TEXT = {
@@ -24,9 +24,12 @@ function shouldIgnoreAnchor(anchor: HTMLAnchorElement) {
 
 export function GlobalLoadingFeedback() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // Query-only navigations (/today -> /today?exercise=...) must also end the loading state.
+  const locationKey = `${pathname}?${searchParams.toString()}`;
   const [loadingPath, setLoadingPath] = useState<string | null>(null);
   const timeoutRef = useRef<number | null>(null);
-  const loading = loadingPath === pathname;
+  const loading = loadingPath === locationKey;
 
   const clearLoading = useCallback(() => {
     if (timeoutRef.current) {
@@ -40,19 +43,19 @@ export function GlobalLoadingFeedback() {
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
     }
-    setLoadingPath(pathname);
+    setLoadingPath(locationKey);
     timeoutRef.current = window.setTimeout(() => {
       timeoutRef.current = null;
       setLoadingPath(null);
     }, durationMs);
-  }, [pathname]);
+  }, [locationKey]);
 
   useEffect(() => {
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-  }, [pathname]);
+  }, [locationKey]);
 
   useEffect(() => {
     function handleSubmit(event: SubmitEvent) {
@@ -110,18 +113,20 @@ export function GlobalLoadingFeedback() {
     };
   }, [clearLoading, startLoading]);
 
+  // Non-blocking and delayed: quick actions never flash it, slow ones show a small hint
+  // without covering the screen or swallowing taps.
   return (
     <div
       aria-atomic="true"
       aria-busy={loading}
       aria-live="polite"
-      className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#0B0F14]/78 px-6 backdrop-blur-sm transition duration-150 ${
-        loading ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+      className={`pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+8px)] z-[100] -translate-x-1/2 transition-opacity duration-150 ${
+        loading ? "opacity-100 delay-[400ms]" : "opacity-0"
       }`}
     >
-      <div className="flex min-h-[120px] w-full max-w-[280px] flex-col items-center justify-center rounded-[18px] border border-[#263241] bg-[#111827] px-5 py-5 text-center shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
-        <span className="h-10 w-10 animate-spin rounded-full border-4 border-[#334155] border-t-[#38BDF8]" aria-hidden="true" />
-        <p className="mt-3 text-[17px] font-black text-[#F9FAFB]">{TEXT.loading}</p>
+      <div className="flex items-center gap-2 rounded-full border border-[#263241] bg-[#111827]/95 px-3 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#334155] border-t-[#38BDF8]" aria-hidden="true" />
+        <p className="text-[13px] font-black text-[#F9FAFB]">{TEXT.loading}</p>
       </div>
     </div>
   );
