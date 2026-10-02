@@ -92,7 +92,7 @@ export function TodayCompleteExercise({
         type="button"
         disabled={restLocked}
         onClick={() => setOpen(true)}
-        className="min-h-[50px] w-full rounded-[14px] border border-[#38BDF8]/50 bg-[#082F49] px-4 py-2 text-[16px] font-black text-[#7DD3FC] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
+        className="min-h-[46px] w-full rounded-[14px] border border-[#1F2329] bg-[#14161A] px-4 py-2 text-[15px] font-bold text-[#B6BBC4] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
       >
         {TEXT.open}
       </button>
@@ -109,7 +109,7 @@ export function TodayCompleteExercise({
             noValidate
             onSubmit={handleSubmit}
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[480px] rounded-[24px] border border-[#263241] bg-[#0B0F14] p-4 shadow-2xl"
+            className="w-full max-w-[480px] rounded-[24px] border border-[#1F2329] bg-[#0A0B0D] p-4 shadow-2xl"
           >
             <input type="hidden" name="exerciseLogId" value={exerciseLogId} />
             <div className="flex items-start justify-between gap-3">
@@ -121,8 +121,8 @@ export function TodayCompleteExercise({
               </div>
             </div>
 
-            <div className="mt-4 rounded-[16px] border border-[#263241] bg-[#111827] p-2">
-              <p className="px-1 text-[13px] font-bold text-[#9CA3AF]">{TEXT.weight}</p>
+            <div className="mt-4 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-2">
+              <p className="px-1 text-[13px] font-bold text-[#8B919B]">{TEXT.weight}</p>
               <div className="mt-1 grid grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-2">
                 <button
                   type="button"
@@ -135,11 +135,11 @@ export function TodayCompleteExercise({
                       return nextValue;
                     })
                   }
-                  className="h-12 rounded-[14px] bg-[#1F2937] text-[28px] font-bold text-[#F9FAFB] disabled:opacity-55"
+                  className="h-12 rounded-[14px] bg-[#1B1E23] text-[28px] font-bold text-[#F9FAFB] disabled:opacity-55"
                 >
                   -
                 </button>
-                <label className="flex h-12 min-w-0 items-center justify-center rounded-[14px] bg-[#0B0F14] px-2 text-[20px] font-black text-[#F9FAFB]">
+                <label className="flex h-12 min-w-0 items-center justify-center rounded-[14px] bg-[#0A0B0D] px-2 text-[20px] font-black text-[#F9FAFB]">
                   <input
                     type="number"
                     min={0}
@@ -176,7 +176,7 @@ export function TodayCompleteExercise({
                       return nextValue;
                     })
                   }
-                  className="h-12 rounded-[14px] bg-[#1F2937] text-[28px] font-bold text-[#F9FAFB] disabled:opacity-55"
+                  className="h-12 rounded-[14px] bg-[#1B1E23] text-[28px] font-bold text-[#F9FAFB] disabled:opacity-55"
                 >
                   +
                 </button>
@@ -188,14 +188,14 @@ export function TodayCompleteExercise({
                 type="button"
                 disabled={isSaving}
                 onClick={close}
-                className="min-h-[50px] rounded-[14px] border border-[#374151] bg-[#111827] px-3 text-[15px] font-black text-[#F9FAFB] disabled:opacity-55"
+                className="min-h-[50px] rounded-[14px] border border-[#2A2F36] bg-[#14161A] px-3 text-[15px] font-black text-[#F9FAFB] disabled:opacity-55"
               >
                 {TEXT.cancel}
               </button>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="min-h-[50px] rounded-[14px] bg-[#22C55E] px-3 text-[15px] font-black text-white disabled:opacity-55"
+                className="min-h-[50px] rounded-[14px] bg-[#C8F31D] px-3 text-[15px] font-black text-[#0A0B0D] disabled:opacity-55"
               >
                 {isSaving ? TEXT.saving : TEXT.confirm}
               </button>

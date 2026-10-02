@@ -38,7 +38,7 @@ export function TodayExerciseGuideSheet({
         data-testid="today-exercise-guide-button"
         className={
           triggerClassName ??
-          "inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full border border-[#22C55E]/45 bg-[#12301F] px-4 text-[14px] font-black text-[#86EFAC] active:scale-[0.98]"
+          "inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full border border-[#C8F31D]/45 bg-[#1B2208] px-4 text-[14px] font-black text-[#C8F31D] active:scale-[0.98]"
         }
         aria-label={TEXT.openLabel}
         onClick={() => setOpen(true)}
@@ -56,12 +56,12 @@ export function TodayExerciseGuideSheet({
           onClick={() => setOpen(false)}
         >
           <div
-            className="flex max-h-[78dvh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-[24px] border border-[#263241] bg-[#0B0F14] shadow-2xl"
+            className="flex max-h-[78dvh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-[24px] border border-[#1F2329] bg-[#0A0B0D] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 border-b border-[#263241] px-4 py-3">
+            <div className="flex items-start justify-between gap-3 border-b border-[#1F2329] px-4 py-3">
               <div className="min-w-0 flex-1">
-                <p className="text-[12px] font-black text-[#86EFAC]">{TEXT.eyebrow}</p>
+                <p className="text-[12px] font-black text-[#C8F31D]">{TEXT.eyebrow}</p>
                 <h2 id={titleId} className="break-words text-[21px] font-black leading-6 text-[#F9FAFB]">
                   {exerciseName}
                 </h2>
@@ -69,7 +69,7 @@ export function TodayExerciseGuideSheet({
               </div>
               <button
                 type="button"
-                className="min-h-[42px] shrink-0 rounded-full border border-[#374151] bg-[#111827] px-4 text-[14px] font-black text-[#F9FAFB]"
+                className="min-h-[42px] shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[14px] font-black text-[#F9FAFB]"
                 onClick={() => setOpen(false)}
               >
                 {TEXT.close}
@@ -77,12 +77,12 @@ export function TodayExerciseGuideSheet({
             </div>
 
             <div className="min-h-0 overflow-y-auto px-3 py-3">
-              <section className="rounded-[18px] border border-[#263241] bg-[#111827] p-3">
+              <section className="rounded-[18px] border border-[#1F2329] bg-[#14161A] p-3">
                 <h3 className="text-[16px] font-black text-[#F9FAFB]">{TEXT.stepsTitle}</h3>
                 <ol className="mt-3 space-y-2">
                   {guideItems.map((item, index) => (
                     <li key={`${item}-${index}`} className="grid grid-cols-[32px_minmax(0,1fr)] gap-3 rounded-[14px] bg-[#0B1220] p-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#22C55E] text-[14px] font-black text-white">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C8F31D] text-[14px] font-black text-[#0A0B0D]">
                         {index + 1}
                       </span>
                       <p className="break-words text-[15px] font-semibold leading-6 text-[#E5E7EB]">{item}</p>

@@ -21,9 +21,9 @@ export function RestCountdownPill({ dueAtMs }: { dueAtMs: number }) {
   }, [dueAtMs]);
 
   return (
-    <div className="shrink-0 rounded-[16px] border border-[#263241] bg-[#0B0F14] px-3 py-2 text-center">
+    <div className="shrink-0 rounded-[16px] border border-[#1F2329] bg-[#0A0B0D] px-3 py-2 text-center">
       <p className="text-[24px] font-black leading-none tabular-nums text-[#F9FAFB]">{countdown.label}</p>
-      <p className="mt-1 text-[11px] font-bold text-[#9CA3AF]">{TEXT.left}</p>
+      <p className="mt-1 text-[11px] font-bold text-[#8B919B]">{TEXT.left}</p>
     </div>
   );
 }

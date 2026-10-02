@@ -75,12 +75,12 @@ export function TodayExerciseReviewSheet({
           onClick={() => setOpen(false)}
         >
           <div
-            className="flex max-h-[78dvh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-[24px] border border-[#263241] bg-[#0B0F14] shadow-2xl"
+            className="flex max-h-[78dvh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-[24px] border border-[#1F2329] bg-[#0A0B0D] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between gap-3 border-b border-[#263241] px-4 py-3">
+            <div className="flex items-center justify-between gap-3 border-b border-[#1F2329] px-4 py-3">
               <div className="min-w-0 flex-1">
-                <p className="text-[12px] font-black text-[#86EFAC]">{TEXT.reviewTitle}</p>
+                <p className="text-[12px] font-black text-[#C8F31D]">{TEXT.reviewTitle}</p>
                 <h2 id={titleId} className="break-words text-[20px] font-black leading-6 text-[#F9FAFB]">
                   {exercise.name}
                 </h2>
@@ -88,7 +88,7 @@ export function TodayExerciseReviewSheet({
               </div>
               <button
                 type="button"
-                className="min-h-[42px] shrink-0 rounded-full border border-[#374151] bg-[#111827] px-4 text-[14px] font-black text-[#F9FAFB]"
+                className="min-h-[42px] shrink-0 rounded-full border border-[#2A2F36] bg-[#14161A] px-4 text-[14px] font-black text-[#F9FAFB]"
                 onClick={() => setOpen(false)}
               >
                 {TEXT.close}
@@ -96,23 +96,23 @@ export function TodayExerciseReviewSheet({
             </div>
 
             <div className="min-h-0 overflow-y-auto px-3 py-3">
-              <div className="overflow-hidden rounded-[16px] border border-[#263241] bg-black">
+              <div className="overflow-hidden rounded-[16px] border border-[#1F2329] bg-black">
                 <ExerciseMediaPreview
                   media={media}
                   alt={exercise.name}
                   width={720}
                   height={420}
                   imageClassName="h-[190px] w-full object-cover"
-                  placeholderClassName="flex h-[190px] w-full items-center justify-center bg-[#111827] text-[14px] font-bold text-[#9CA3AF]"
+                  placeholderClassName="flex h-[190px] w-full items-center justify-center bg-[#14161A] text-[14px] font-bold text-[#8B919B]"
                   placeholderLabel={TEXT.noMedia}
                   buttonClassName="block h-[190px] w-full"
                   sizes="(max-width: 480px) 100vw, 480px"
                 />
               </div>
 
-              <div className="mt-3 rounded-[16px] border border-[#263241] bg-[#111827] p-3">
+              <div className="mt-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-[13px] font-bold text-[#9CA3AF]">{TEXT.completed}</p>
+                  <p className="text-[13px] font-bold text-[#8B919B]">{TEXT.completed}</p>
                   <p className="text-[22px] font-black leading-none text-[#F9FAFB]">
                     {exercise.completedSets}/{exercise.setCount} set
                   </p>
@@ -125,13 +125,13 @@ export function TodayExerciseReviewSheet({
                   const reps = setLog.actualReps ?? setLog.targetReps;
 
                   return (
-                    <div key={setLog.id} className="rounded-[16px] border border-[#263241] bg-[#111827] p-3">
+                    <div key={setLog.id} className="rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-[16px] font-black text-[#F9FAFB]">
                             {TEXT.set} {setLog.setNumber}
                           </p>
-                          <p className="text-[12px] font-bold text-[#9CA3AF]">
+                          <p className="text-[12px] font-bold text-[#8B919B]">
                             {setLog.isCompleted ? TEXT.completed : TEXT.incomplete}
                           </p>
                         </div>
@@ -142,7 +142,7 @@ export function TodayExerciseReviewSheet({
                           </p>
                         </div>
                       </div>
-                      {setLog.note ? <p className="mt-2 rounded-[12px] bg-[#0B0F14] px-3 py-2 text-[13px] font-semibold text-[#D1D5DB]">{TEXT.note}: {setLog.note}</p> : null}
+                      {setLog.note ? <p className="mt-2 rounded-[12px] bg-[#0A0B0D] px-3 py-2 text-[13px] font-semibold text-[#D1D5DB]">{TEXT.note}: {setLog.note}</p> : null}
                     </div>
                   );
                 })}

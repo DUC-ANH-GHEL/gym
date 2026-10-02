@@ -87,14 +87,14 @@ type RestLock = NonNullable<Awaited<ReturnType<typeof getTodayPageData>>["restLo
 
 function getExerciseStatus(row: ExerciseRow) {
   if (row.isCompleted) {
-    return { label: TEXT.done, className: "border-[#22C55E]/40 bg-[#12301f] text-[#86EFAC]", cta: TEXT.view };
+    return { label: TEXT.done, className: "border-[#2A2F36] bg-[#14161A] text-[#8B919B]", cta: TEXT.view };
   }
 
   if (row.isStarted) {
-    return { label: TEXT.active, className: "border-[#38BDF8]/40 bg-[#082f49] text-[#7DD3FC]", cta: TEXT.continue };
+    return { label: TEXT.active, className: "border-[#C8F31D]/50 bg-[#1B2208] text-[#C8F31D]", cta: TEXT.continue };
   }
 
-  return { label: TEXT.notStarted, className: "border-[#4B5563] bg-[#1F2937] text-[#D1D5DB]", cta: TEXT.start };
+  return { label: TEXT.notStarted, className: "border-[#2A2F36] bg-[#1B1E23] text-[#B6BBC4]", cta: TEXT.start };
 }
 
 function ExerciseMediaFrame({
@@ -116,7 +116,7 @@ function ExerciseMediaFrame({
         width={720}
         height={420}
         imageClassName="h-full w-full object-cover"
-        placeholderClassName="flex h-full w-full items-center justify-center rounded-[16px] bg-[#0B0F14] text-[15px] font-bold text-[#9CA3AF]"
+        placeholderClassName="flex h-full w-full items-center justify-center rounded-[16px] bg-[#0A0B0D] text-[15px] font-bold text-[#8B919B]"
         placeholderLabel={TEXT.noImage}
         buttonClassName="block h-full w-full rounded-[16px] bg-black"
         sizes="(max-width: 480px) 100vw, 480px"
@@ -132,7 +132,7 @@ function ExerciseMediaFrame({
       width={180}
       height={180}
       imageClassName="h-[92px] w-[92px] rounded-[16px] object-cover"
-      placeholderClassName="flex h-[92px] w-[92px] shrink-0 items-center justify-center rounded-[16px] bg-[#1F2937] text-[12px] font-bold text-[#9CA3AF]"
+      placeholderClassName="flex h-[92px] w-[92px] shrink-0 items-center justify-center rounded-[16px] bg-[#1B1E23] text-[12px] font-bold text-[#8B919B]"
       placeholderLabel={TEXT.image}
       buttonClassName="shrink-0 rounded-[16px]"
       sizes="92px"
@@ -145,10 +145,10 @@ function StartExerciseButton({ restLock, row, wide = false }: { restLock: RestLo
   const status = getExerciseStatus(row);
   const className = `inline-flex min-h-[48px] items-center justify-center rounded-[14px] px-4 py-2 text-[15px] font-black transition active:scale-[0.98] ${
     row.isCompleted
-      ? "border border-[#374151] bg-[#111827] text-[#F9FAFB]"
+      ? "border border-[#2A2F36] bg-[#14161A] text-[#F4F5F7]"
       : row.isStarted
-        ? "bg-[#38BDF8] text-[#0B0F14]"
-        : "bg-[#22C55E] text-white"
+        ? "bg-[#C8F31D] text-[#0A0B0D]"
+        : "border border-[#2A2F36] bg-[#1B1E23] text-[#F4F5F7]"
   } ${wide ? "w-full" : "w-[82px] shrink-0"}`;
 
   return (
@@ -166,6 +166,19 @@ function StartExerciseButton({ restLock, row, wide = false }: { restLock: RestLo
   );
 }
 
+function SegmentedProgress({ completed, total }: { completed: number; total: number }) {
+  const segments = Math.min(total, 40);
+  const filled = total > 0 ? Math.round((completed / total) * segments) : 0;
+
+  return (
+    <div className="flex gap-[3px]" aria-hidden="true">
+      {Array.from({ length: segments }, (_, index) => (
+        <span key={index} className={`h-[5px] flex-1 rounded-full ${index < filled ? "bg-[#C8F31D]" : "bg-[#23262B]"}`} />
+      ))}
+    </div>
+  );
+}
+
 function ProgressCard({
   completedSets,
   restLock,
@@ -180,10 +193,10 @@ function ProgressCard({
   const percent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
   return (
-    <AppCard className="rounded-[16px] border-[#263241] bg-[#111827] p-2">
+    <AppCard className="rounded-[16px] border-[#1F2329] bg-[#14161A] p-2">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-black text-[#86EFAC]">{restLock ? TEXT.resting : TEXT.today}</p>
+          <p className="text-[11px] font-black text-[#C8F31D]">{restLock ? TEXT.resting : TEXT.today}</p>
           <p className="text-[23px] font-black leading-none text-[#F9FAFB]">
             {completedSets}/{totalSets} set
           </p>
@@ -194,19 +207,24 @@ function ProgressCard({
           <form action={finishWorkoutAction} className="shrink-0">
             <input type="hidden" name="workoutLogId" value={todayLogId} />
             <PendingButton
-              className="min-h-[50px] rounded-[16px] bg-[#22C55E] px-5 py-2 text-[15px] font-black text-white active:scale-[0.98]"
+              className="min-h-[50px] rounded-[16px] bg-[#C8F31D] px-5 py-2 text-[15px] font-black text-[#0A0B0D] active:scale-[0.98]"
               pendingLabel={TEXT.finishing}
             >
               {TEXT.finish}
             </PendingButton>
           </form>
         ) : (
-          <div className="shrink-0 rounded-[14px] border border-[#263241] bg-[#0B0F14] px-3 py-1.5 text-right">
-            <p className="text-[20px] font-black leading-none text-[#38BDF8]">{percent}%</p>
-            <p className="text-[11px] font-bold text-[#9CA3AF]">{TEXT.progress}</p>
+          <div className="shrink-0 rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] px-3 py-1.5 text-right">
+            <p className="text-[20px] font-black leading-none text-[#C8F31D]">{percent}%</p>
+            <p className="text-[11px] font-bold text-[#8B919B]">{TEXT.progress}</p>
           </div>
         )}
       </div>
+      {totalSets > 0 ? (
+        <div className="mt-2">
+          <SegmentedProgress completed={completedSets} total={totalSets} />
+        </div>
+      ) : null}
     </AppCard>
   );
 }
@@ -235,19 +253,19 @@ function CurrentExerciseCard({
   const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
   const lastHint = selectedSet?.lastHint;
   const guideButtonClassName =
-    "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#22C55E]/45 bg-[#12301F] px-2 text-center text-[13px] font-black leading-tight text-[#86EFAC] active:scale-[0.98]";
+    "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#C8F31D]/45 bg-[#1B2208] px-2 text-center text-[13px] font-black leading-tight text-[#C8F31D] active:scale-[0.98]";
   const pickerButtonClassName =
-    "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#38BDF8]/45 bg-[#082f49] px-2 text-center text-[13px] font-black leading-tight text-[#7DD3FC] active:scale-[0.98]";
+    "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#C8F31D]/45 bg-[#14161A] px-2 text-center text-[13px] font-black leading-tight text-[#C8F31D] active:scale-[0.98]";
   const setProgressSummary = (
     <div className="grid grid-cols-[minmax(0,1.08fr)_minmax(0,1.08fr)_minmax(0,0.92fr)_minmax(0,0.92fr)] gap-1.5">
-      <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#263241] bg-[#0B0F14] px-2 py-1.5">
-        <p className="break-words text-[10px] font-bold leading-[1.05] text-[#9CA3AF]">{TEXT.completedSets}</p>
+      <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#1F2329] bg-[#0A0B0D] px-2 py-1.5">
+        <p className="break-words text-[10px] font-bold leading-[1.05] text-[#8B919B]">{TEXT.completedSets}</p>
         <p className="mt-0.5 whitespace-nowrap text-[15px] font-black leading-none text-[#F9FAFB]">
           {row.completedSets}/{row.setCount} set
         </p>
       </div>
-      <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#263241] bg-[#0B0F14] px-2 py-1.5">
-        <p className="break-words text-[10px] font-bold leading-[1.05] text-[#9CA3AF]">{TEXT.preparing}</p>
+      <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#1F2329] bg-[#0A0B0D] px-2 py-1.5">
+        <p className="break-words text-[10px] font-bold leading-[1.05] text-[#8B919B]">{TEXT.preparing}</p>
         <p className="mt-0.5 whitespace-nowrap text-[15px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
       </div>
       <TodayExerciseGuideSheet
@@ -266,9 +284,9 @@ function CurrentExerciseCard({
   );
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#263241] bg-[#111827] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#1F2329] bg-[#14161A] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
       <div className="shrink-0 p-1.5 pb-0">
-        <div className="h-[clamp(150px,24svh,190px)] overflow-hidden rounded-[15px] border border-[#263241] bg-black [@media(min-height:760px)]:h-[clamp(190px,29svh,250px)] [@media(min-height:860px)]:h-[clamp(230px,32svh,310px)]">
+        <div className="h-[clamp(150px,24svh,190px)] overflow-hidden rounded-[15px] border border-[#1F2329] bg-black [@media(min-height:760px)]:h-[clamp(190px,29svh,250px)] [@media(min-height:860px)]:h-[clamp(230px,32svh,310px)]">
           <ExerciseMediaFrame exercise={row} alt={row.name} variant="hero" />
         </div>
       </div>
@@ -276,12 +294,12 @@ function CurrentExerciseCard({
       <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto overscroll-contain px-3 pb-2 pt-1.5">
         <div className="flex min-w-0 items-start gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-black leading-4 text-[#86EFAC]">
+            <p className="text-[12px] font-black leading-4 text-[#C8F31D]">
               {row.isCompleted ? TEXT.completedExercise : row.isStarted ? TEXT.active : TEXT.nextExercise}
             </p>
             <h2 className="break-words text-[20px] font-black leading-[1.02] text-[#F9FAFB]">{row.name}</h2>
             <p className="break-words text-[13px] font-semibold leading-4 text-[#D1D5DB]">{row.muscleGroup || TEXT.noMuscleGroup}</p>
-            {lastHint ? <p className="mt-0.5 break-words text-[12px] font-black leading-4 text-[#86EFAC]">{lastHint}</p> : null}
+            {lastHint ? <p className="mt-0.5 break-words text-[12px] font-black leading-4 text-[#C8F31D]">{lastHint}</p> : null}
           </div>
         </div>
 
@@ -315,7 +333,7 @@ function CurrentExerciseCard({
                   key={`${reviewExercise.id}-${reviewDefaultOpen ? "open" : "closed"}`}
                   defaultOpen={reviewDefaultOpen}
                   exercise={reviewExercise}
-                  triggerClassName="flex min-h-[50px] w-full items-center justify-center rounded-[16px] border border-[#374151] bg-[#0B0F14] px-4 py-2.5 text-[17px] font-black text-[#F9FAFB]"
+                  triggerClassName="flex min-h-[50px] w-full items-center justify-center rounded-[16px] border border-[#2A2F36] bg-[#0A0B0D] px-4 py-2.5 text-[17px] font-black text-[#F9FAFB]"
                   triggerLabel={TEXT.reviewExercise}
                 />
               ) : (
@@ -580,16 +598,16 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
       <div className="shrink-0 space-y-1.5">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-black leading-4 text-[#86EFAC]">
+            <p className="text-[12px] font-black leading-4 text-[#C8F31D]">
               {TEXT.hello}, {displayName}
             </p>
             <h1 className="break-words text-[16px] font-black leading-[1.08] text-[#F9FAFB]">{pageTitle}</h1>
           </div>
-          <div className="shrink-0 rounded-[13px] border border-[#263241] bg-[#111827] px-3 py-1 text-right">
+          <div className="shrink-0 rounded-[13px] border border-[#1F2329] bg-[#14161A] px-3 py-1 text-right">
             <p className="text-[17px] font-black leading-none text-[#F9FAFB]">
               {completedSets}/{totalSets}
             </p>
-            <p className="mt-0.5 text-[10px] font-bold text-[#9CA3AF]">set</p>
+            <p className="mt-0.5 text-[10px] font-bold text-[#8B919B]">set</p>
           </div>
         </div>
 

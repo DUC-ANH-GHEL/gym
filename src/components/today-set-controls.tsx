@@ -30,7 +30,7 @@ function SubmitSetButton({ restLocked, setNumber, saving }: { restLocked: boolea
     <button
       type="submit"
       disabled={disabled}
-      className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-30 min-h-[52px] w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 rounded-[16px] bg-[#22C55E] px-4 py-2.5 text-[18px] font-black text-white shadow-[0_14px_28px_rgba(34,197,94,0.22)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#334155] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
+      className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-1/2 z-30 min-h-[56px] w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 rounded-[16px] bg-[#C8F31D] px-4 py-2.5 text-[18px] font-black text-[#0A0B0D] shadow-none transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#2A2F36] disabled:text-[#CBD5E1] disabled:shadow-none disabled:active:scale-100"
       aria-live="polite"
     >
       {label}
@@ -108,13 +108,13 @@ export function TodaySetControls({
       <input type="hidden" name="actualReps" value={formatWorkoutWeightKg(reps)} />
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-[14px] border border-[#263241] bg-[#0B0F14] p-1.5">
-          <p className="px-1 text-[12px] font-bold text-[#9CA3AF]">{TEXT.weight}</p>
+        <div className="rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] p-1.5">
+          <p className="px-1 text-[12px] font-bold text-[#8B919B]">{TEXT.weight}</p>
           <div className="mt-1 grid grid-cols-[30px_minmax(0,1fr)_30px] items-center gap-1">
             <button
               type="button"
               disabled={restLocked}
-              className="h-9 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
+              className="h-9 rounded-[12px] bg-[#1B1E23] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
               onClick={() =>
                 setWeightKg((value) => {
                   const nextValue = clampWorkoutWeightKg(value - 2.5);
@@ -126,7 +126,7 @@ export function TodaySetControls({
             >
               -
             </button>
-            <label className="flex min-w-0 items-center justify-center rounded-[12px] bg-[#111827] px-1 py-1.5 text-center text-[16px] font-black text-[#F9FAFB]">
+            <label className="flex min-w-0 items-center justify-center rounded-[12px] bg-[#14161A] px-1 py-1.5 text-center text-[16px] font-black text-[#F9FAFB]">
               <input
                 type="number"
                 min={0}
@@ -147,7 +147,7 @@ export function TodaySetControls({
                   setWeightText(nextText);
                   setWeightKg(nextWeight);
                 }}
-                className="w-[56px] bg-transparent text-center text-[16px] font-black text-[#F9FAFB] outline-none disabled:opacity-70"
+                className="w-[72px] bg-transparent text-center text-[26px] font-black text-[#F9FAFB] outline-none disabled:opacity-70"
                 aria-label={TEXT.weightInput}
               />
               <span className="shrink-0">kg</span>
@@ -155,7 +155,7 @@ export function TodaySetControls({
             <button
               type="button"
               disabled={restLocked}
-              className="h-9 rounded-[12px] bg-[#1F2937] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
+              className="h-9 rounded-[12px] bg-[#1B1E23] text-[22px] font-bold text-[#F9FAFB] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
               onClick={() =>
                 setWeightKg((value) => {
                   const nextValue = clampWorkoutWeightKg(value + 2.5);
@@ -170,9 +170,9 @@ export function TodaySetControls({
           </div>
         </div>
 
-        <div className="rounded-[14px] border border-[#263241] bg-[#0B0F14] p-1.5">
-          <p className="px-1 text-[12px] font-bold text-[#9CA3AF]">{TEXT.reps}</p>
-          <div className="mt-1 flex h-9 items-center justify-center rounded-[12px] bg-[#111827] px-2 text-center text-[16px] font-black text-[#F9FAFB]">
+        <div className="rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] p-1.5">
+          <p className="px-1 text-[12px] font-bold text-[#8B919B]">{TEXT.reps}</p>
+          <div className="mt-1 flex h-9 items-center justify-center rounded-[12px] bg-[#14161A] px-2 text-center text-[16px] font-black text-[#F9FAFB]">
             <span className="min-w-0 whitespace-nowrap">
               {reps || 0} {TEXT.repUnit}
             </span>

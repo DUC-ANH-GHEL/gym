@@ -124,8 +124,8 @@ export function GlobalLoadingFeedback() {
         loading ? "opacity-100 delay-[400ms]" : "opacity-0"
       }`}
     >
-      <div className="flex items-center gap-2 rounded-full border border-[#263241] bg-[#111827]/95 px-3 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#334155] border-t-[#38BDF8]" aria-hidden="true" />
+      <div className="flex items-center gap-2 rounded-full border border-[#1F2329] bg-[#14161A]/95 px-3 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#2A2F36] border-t-[#C8F31D]" aria-hidden="true" />
         <p className="text-[13px] font-black text-[#F9FAFB]">{TEXT.loading}</p>
       </div>
     </div>

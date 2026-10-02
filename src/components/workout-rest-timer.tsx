@@ -142,17 +142,17 @@ export function WorkoutRestTimer({
   return (
     <>
       {permission !== "granted" || message ? (
-      <section className="rounded-[18px] border border-[#263241] bg-[#111827] p-3">
+      <section className="rounded-[18px] border border-[#1F2329] bg-[#14161A] p-3">
         {permission !== "granted" ? (
         <div>
           <button
             type="button"
             onClick={enableReminder}
-            className="min-h-[44px] w-full rounded-[14px] bg-[#38BDF8] px-4 py-2 text-[15px] font-bold text-[#0B0F14]"
+            className="min-h-[44px] w-full rounded-[14px] bg-[#C8F31D] px-4 py-2 text-[15px] font-bold text-[#0A0B0D]"
           >
             {TEXT.enable}
           </button>
-          <p className="mt-2 text-[13px] leading-5 text-[#9CA3AF]">{TEXT.help}</p>
+          <p className="mt-2 text-[13px] leading-5 text-[#8B919B]">{TEXT.help}</p>
         </div>
         ) : null}
 
