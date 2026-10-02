@@ -146,7 +146,7 @@ function StartExerciseButton({ restLock, row, wide = false }: { restLock: RestLo
   const className = `inline-flex min-h-[48px] items-center justify-center rounded-[14px] px-4 py-2 text-[15px] font-black transition active:scale-[0.98] ${
     row.isCompleted
       ? "border border-[#2A2F36] bg-[#14161A] text-[#F4F5F7]"
-      : row.isStarted
+      : row.isStarted || wide
         ? "bg-[#C8F31D] text-[#0A0B0D]"
         : "border border-[#2A2F36] bg-[#1B1E23] text-[#F4F5F7]"
   } ${wide ? "w-full" : "w-[82px] shrink-0"}`;
@@ -179,7 +179,7 @@ function SegmentedProgress({ completed, total }: { completed: number; total: num
   );
 }
 
-function ProgressCard({
+function ProgressStrip({
   completedSets,
   restLock,
   totalSets,
@@ -190,42 +190,28 @@ function ProgressCard({
   totalSets: number;
   todayLogId: string | null;
 }) {
-  const percent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+  const allDone = Boolean(todayLogId) && totalSets > 0 && completedSets === totalSets;
 
   return (
-    <AppCard className="rounded-[16px] border-[#1F2329] bg-[#14161A] p-2">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-black text-[#C8F31D]">{restLock ? TEXT.resting : TEXT.today}</p>
-          <p className="text-[23px] font-black leading-none text-[#F9FAFB]">
-            {completedSets}/{totalSets} set
-          </p>
-        </div>
-        {restLock ? (
+    <div className="space-y-2">
+      {totalSets > 0 ? <SegmentedProgress completed={completedSets} total={totalSets} /> : null}
+      {restLock ? (
+        <div className="flex items-center justify-between rounded-[14px] border border-[#1F2329] bg-[#14161A] px-3 py-2">
+          <p className="text-[13px] font-black text-[#C8F31D]">{TEXT.resting}</p>
           <RestCountdownPill dueAtMs={restLock.dueAtMs} />
-        ) : todayLogId && totalSets > 0 && completedSets === totalSets ? (
-          <form action={finishWorkoutAction} className="shrink-0">
-            <input type="hidden" name="workoutLogId" value={todayLogId} />
-            <PendingButton
-              className="min-h-[50px] rounded-[16px] bg-[#C8F31D] px-5 py-2 text-[15px] font-black text-[#0A0B0D] active:scale-[0.98]"
-              pendingLabel={TEXT.finishing}
-            >
-              {TEXT.finish}
-            </PendingButton>
-          </form>
-        ) : (
-          <div className="shrink-0 rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] px-3 py-1.5 text-right">
-            <p className="text-[20px] font-black leading-none text-[#C8F31D]">{percent}%</p>
-            <p className="text-[11px] font-bold text-[#8B919B]">{TEXT.progress}</p>
-          </div>
-        )}
-      </div>
-      {totalSets > 0 ? (
-        <div className="mt-2">
-          <SegmentedProgress completed={completedSets} total={totalSets} />
         </div>
+      ) : allDone ? (
+        <form action={finishWorkoutAction}>
+          <input type="hidden" name="workoutLogId" value={todayLogId ?? ""} />
+          <PendingButton
+            className="min-h-[50px] w-full rounded-[16px] bg-[#C8F31D] px-5 py-2 text-[16px] font-black text-[#0A0B0D] active:scale-[0.98]"
+            pendingLabel={TEXT.finishing}
+          >
+            {TEXT.finish}
+          </PendingButton>
+        </form>
       ) : null}
-    </AppCard>
+    </div>
   );
 }
 
@@ -252,39 +238,50 @@ function CurrentExerciseCard({
     selectedSet && exercise ? getSetDisplayNumber(exercise.setLogs, selectedSet) : Math.min(row.completedSets + 1, row.setCount || 1);
   const canSubmitSet = Boolean(exercise?.startedAt && selectedSet && !row.isCompleted);
   const lastHint = selectedSet?.lastHint;
-  const guideButtonClassName =
-    "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#C8F31D]/45 bg-[#1B2208] px-2 text-center text-[13px] font-black leading-tight text-[#C8F31D] active:scale-[0.98]";
-  const pickerButtonClassName =
-    "inline-flex min-h-[50px] w-full min-w-0 items-center justify-center rounded-[13px] border border-[#C8F31D]/45 bg-[#14161A] px-2 text-center text-[13px] font-black leading-tight text-[#C8F31D] active:scale-[0.98]";
+  const smallButtonClassName =
+    "inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-full border border-[#2A2F36] bg-[#14161A] px-3 text-[12px] font-bold leading-tight text-[#B6BBC4] active:scale-[0.98]";
+  const visibleSets = Math.min(row.setCount, 8);
   const setProgressSummary = (
-    <div className="grid grid-cols-[minmax(0,1.08fr)_minmax(0,1.08fr)_minmax(0,0.92fr)_minmax(0,0.92fr)] gap-1.5">
-      <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#1F2329] bg-[#0A0B0D] px-2 py-1.5">
-        <p className="break-words text-[10px] font-bold leading-[1.05] text-[#8B919B]">{TEXT.completedSets}</p>
-        <p className="mt-0.5 whitespace-nowrap text-[15px] font-black leading-none text-[#F9FAFB]">
-          {row.completedSets}/{row.setCount} set
-        </p>
+    <div className="flex items-center gap-1.5">
+      <span className="mr-0.5 text-[12px] font-bold text-[#8B919B]">Set</span>
+      {Array.from({ length: visibleSets }, (_, index) => {
+        const done = index < row.completedSets;
+        const current = !row.isCompleted && index === row.completedSets;
+
+        return (
+          <span
+            key={index}
+            className={`flex h-7 min-w-[28px] items-center justify-center rounded-full border px-2 text-[12px] font-black ${
+              done
+                ? "border-[#C8F31D] bg-[#C8F31D] text-[#0A0B0D]"
+                : current
+                  ? "border-[#C8F31D] text-[#C8F31D]"
+                  : "border-[#2A2F36] text-[#8B919B]"
+            }`}
+          >
+            {index + 1}
+          </span>
+        );
+      })}
+      <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        <TodayExerciseGuideSheet
+          exerciseName={row.name}
+          muscleGroup={row.muscleGroup}
+          note={row.note}
+          triggerClassName={smallButtonClassName}
+        />
+        <TodayExercisePicker
+          action={startTodayWorkoutExerciseAction}
+          restDueAtMs={restLock?.dueAtMs ?? null}
+          rows={rows}
+          triggerClassName={smallButtonClassName}
+        />
       </div>
-      <div className="min-h-[50px] min-w-0 rounded-[13px] border border-[#1F2329] bg-[#0A0B0D] px-2 py-1.5">
-        <p className="break-words text-[10px] font-bold leading-[1.05] text-[#8B919B]">{TEXT.preparing}</p>
-        <p className="mt-0.5 whitespace-nowrap text-[15px] font-black leading-none text-[#F9FAFB]">Set {setNumber}</p>
-      </div>
-      <TodayExerciseGuideSheet
-        exerciseName={row.name}
-        muscleGroup={row.muscleGroup}
-        note={row.note}
-        triggerClassName={guideButtonClassName}
-      />
-      <TodayExercisePicker
-        action={startTodayWorkoutExerciseAction}
-        restDueAtMs={restLock?.dueAtMs ?? null}
-        rows={rows}
-        triggerClassName={pickerButtonClassName}
-      />
     </div>
   );
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#1F2329] bg-[#14161A] shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#1F2329] bg-[#14161A] ">
       <div className="shrink-0 p-1.5 pb-0">
         <div className="h-[clamp(150px,24svh,190px)] overflow-hidden rounded-[15px] border border-[#1F2329] bg-black [@media(min-height:760px)]:h-[clamp(190px,29svh,250px)] [@media(min-height:860px)]:h-[clamp(230px,32svh,310px)]">
           <ExerciseMediaFrame exercise={row} alt={row.name} variant="hero" />
@@ -595,23 +592,22 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
 
   return (
     <AppShell todayFit>
-      <div className="shrink-0 space-y-1.5">
-        <div className="flex min-w-0 items-start justify-between gap-3">
+      <div className="shrink-0 space-y-2">
+        <div className="flex min-w-0 items-end justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-black leading-4 text-[#C8F31D]">
-              {TEXT.hello}, {displayName}
-            </p>
-            <h1 className="break-words text-[16px] font-black leading-[1.08] text-[#F9FAFB]">{pageTitle}</h1>
+            <p className="truncate text-[12px] font-semibold leading-4 text-[#8B919B]">{pageTitle}</p>
+            <h1 className="text-[22px] font-black leading-[1.1] text-[#F4F5F7]">{TEXT.today}</h1>
           </div>
-          <div className="shrink-0 rounded-[13px] border border-[#1F2329] bg-[#14161A] px-3 py-1 text-right">
-            <p className="text-[17px] font-black leading-none text-[#F9FAFB]">
-              {completedSets}/{totalSets}
+          <div className="shrink-0 text-right">
+            <p className="text-[24px] font-black leading-none tabular-nums text-[#F4F5F7]">
+              {completedSets}
+              <span className="text-[14px] font-bold text-[#8B919B]">/{totalSets}</span>
             </p>
-            <p className="mt-0.5 text-[10px] font-bold text-[#8B919B]">set</p>
+            <p className="mt-0.5 text-[11px] font-bold text-[#8B919B]">set</p>
           </div>
         </div>
 
-        <ProgressCard completedSets={completedSets} restLock={restLock} totalSets={totalSets} todayLogId={todayLogId} />
+        <ProgressStrip completedSets={completedSets} restLock={restLock} totalSets={totalSets} todayLogId={todayLogId} />
       </div>
 
       {!workoutDay ? (
