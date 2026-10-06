@@ -680,7 +680,9 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
               title={activeRow.isCompleted ? TEXT.completedExercise : activeRow.name}
               totalSeconds={restLock.restSeconds}
             />
-          ) : activeRow ? (
+          ) : null}
+
+          {activeRow ? (
             <CurrentExerciseCard
               row={activeRow}
               exercise={activeExerciseWithHistory}
