@@ -243,14 +243,9 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                         {entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"} · nghỉ 120 giây
                       </span>
                     </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1.5">
-                      <span className="rounded-full border border-[#C8F31D]/20 bg-[#C8F31D]/12 px-2.5 py-1.5 text-[12px] font-black text-[#D1FAE5]">
-                        {getSetLabel(entry.sets)}
-                      </span>
-                      <Link href={`#bai-${entry.id}`} className="text-[12px] font-black text-[#C8F31D]">
-                        Sửa set/reps
-                      </Link>
-                    </div>
+                    <span className="shrink-0 rounded-full border border-[#C8F31D]/20 bg-[#C8F31D]/12 px-2.5 py-1.5 text-[12px] font-black text-[#D1FAE5]">
+                      {getSetLabel(entry.sets)}
+                    </span>
                   </div>
                 ))}
                 {selectedDay.exercises.length > 5 ? (
@@ -353,13 +348,13 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
             </form>
 
             {selectedDay.exercises.length > 0 ? (
-              <details open className="rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-3">
+              <details className="rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-3">
                 <summary className="cursor-pointer list-none text-[14px] font-black text-[#DBEAFE] [&::-webkit-details-marker]:hidden">
-                  Sửa set / reps từng bài
+                  Chỉnh bài đã có
                 </summary>
                 <div className="mt-3 space-y-3">
                   {selectedDay.exercises.map((entry, exerciseIndex) => (
-                    <div key={entry.id} id={`bai-${entry.id}`} className="scroll-mt-8 space-y-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
+                    <div key={entry.id} className="space-y-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-[14px] font-black text-[#F4F5F7]">
