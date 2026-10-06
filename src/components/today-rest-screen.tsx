@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { getRestCountdownParts } from "@/lib/workout-rest";
 
 const TEXT = {
@@ -42,6 +42,18 @@ export function TodayRestScreen({
     const interval = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(interval);
   }, []);
+
+  const autoAdvancedForRef = useRef<number | null>(null);
+
+  // Rest is over: move on automatically instead of waiting for a tap.
+  useEffect(() => {
+    if (!finished || autoAdvancedForRef.current === dueAtMs) {
+      return;
+    }
+    autoAdvancedForRef.current = dueAtMs;
+    skip();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished, dueAtMs]);
 
   function skip() {
     const formData = new FormData();
