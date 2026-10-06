@@ -50,6 +50,8 @@ export const exerciseCatalogItemSchema = z.object({
   imageUrl: z.string().trim().max(2048).optional().or(z.literal("")),
   animationUrl: z.string().trim().max(2048).optional().or(z.literal("")),
   defaultWeightKg: optionalNumberField(z.number().positive().max(1000)),
+  defaultSets: optionalNumberField(z.number().int().min(1).max(10)),
+  defaultReps: optionalNumberField(z.number().int().min(1).max(100)),
   note: z.string().trim().max(500).optional().or(z.literal("")),
   sortOrder: optionalNumberField(z.number().int().min(0).max(100000)),
   isActive: z.coerce.boolean().optional(),

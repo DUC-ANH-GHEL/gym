@@ -31,6 +31,8 @@ model ExerciseCatalogItem {
   imageUrl        String?
   animationUrl    String?
   defaultWeightKg Float?
+  defaultSets     Int?
+  defaultReps     Int?
   note            String?
   sortOrder       Int        @default(0)
   isActive        Boolean    @default(true)

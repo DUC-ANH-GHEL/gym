@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
-import { buildDefaultPlanSets, parsePlanSetOptions } from "@/lib/workout";
+import { buildDefaultPlanSets, parsePlanSetOptions, withCatalogDefaults } from "@/lib/workout";
 import { syncUsersAppliedToWorkoutTemplate } from "@/lib/workout-template-sync";
 import { buildMovedOrderIndexUpdates, getNextOrderIndex } from "@/lib/template-ordering";
 import { workoutDaySchema, workoutSetSchema, workoutTemplateSchema } from "@/lib/validators";
@@ -210,7 +210,7 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
           catalogItemId: catalogItem.id,
           orderIndex: nextOrderIndex + index,
           sets: {
-            create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null, planSetOptions),
+            create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null, withCatalogDefaults(planSetOptions, catalogItem)),
           },
         },
       });
@@ -306,7 +306,7 @@ export async function replaceWorkoutTemplateExerciseAction(formData: FormData): 
     }),
     prisma.exerciseCatalogItem.findFirst({
       where: { id: catalogItemId, isActive: true },
-      select: { id: true, defaultWeightKg: true },
+      select: { id: true, defaultWeightKg: true, defaultSets: true, defaultReps: true },
     }),
   ]);
 
@@ -343,7 +343,7 @@ export async function replaceWorkoutTemplateExerciseAction(formData: FormData): 
         catalogItemId: catalogItem.id,
         note: null,
         sets: {
-          create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
+          create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null, withCatalogDefaults({}, catalogItem)),
         },
       },
     });

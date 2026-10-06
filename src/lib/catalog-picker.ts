@@ -5,6 +5,8 @@ export type CatalogPickerItem = {
   muscleGroup: string | null;
   note?: string | null;
   defaultWeightKg?: number | null;
+  defaultSets?: number | null;
+  defaultReps?: number | null;
   imageUrl?: string | null;
   animationUrl?: string | null;
 };

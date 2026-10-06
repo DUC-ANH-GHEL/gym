@@ -221,6 +221,10 @@ export default async function AdminExercisesPage({
             <AppInput name="defaultWeightKg" type="number" step="0.5" placeholder="Tạ gợi ý" inputMode="decimal" />
             <AppInput name="sortOrder" type="number" placeholder="Thứ tự" inputMode="numeric" />
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <AppInput name="defaultSets" type="number" min={1} max={10} placeholder="Số set mặc định" inputMode="numeric" />
+            <AppInput name="defaultReps" type="number" min={1} max={100} placeholder="Số reps mặc định" inputMode="numeric" />
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <ImageUpload name="imageUrl" kind="image" label="Upload ảnh" />
             <ImageUpload name="animationUrl" kind="animation" label="Upload GIF" />
@@ -289,6 +293,9 @@ export default async function AdminExercisesPage({
                     <div className="flex flex-wrap gap-2">
                       <StatusPill label={item.muscleGroup || "Chưa nhóm cơ"} className="bg-[#C8F31D]/12 text-[#C8F31D]" />
                       <StatusPill label={`${item.defaultWeightKg ?? 0} kg`} className="bg-[#1B1E23] text-[#B6BBC4]" />
+                      {item.defaultSets || item.defaultReps ? (
+                        <StatusPill label={`${item.defaultSets ?? 4} set × ${item.defaultReps ?? "?"} reps`} className="bg-[#1B1E23] text-[#B6BBC4]" />
+                      ) : null}
                       <StatusPill label={mediaStatus.label} className={`border ${statusClassName}`} />
                     </div>
 
@@ -316,6 +323,16 @@ export default async function AdminExercisesPage({
                         <div className="grid grid-cols-2 gap-2">
                           <AppInput name="defaultWeightKg" type="number" step="0.5" defaultValue={item.defaultWeightKg ?? ""} placeholder="Tạ" inputMode="decimal" className="text-[15px]" />
                           <AppInput name="sortOrder" type="number" defaultValue={item.sortOrder} placeholder="Thứ tự" inputMode="numeric" className="text-[15px]" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="space-y-1">
+                            <span className="text-[12px] font-bold text-[#8B919B]">Số set mặc định</span>
+                            <AppInput name="defaultSets" type="number" min={1} max={10} defaultValue={item.defaultSets ?? ""} placeholder="4" inputMode="numeric" className="text-[15px]" />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-[12px] font-bold text-[#8B919B]">Số reps mặc định</span>
+                            <AppInput name="defaultReps" type="number" min={1} max={100} defaultValue={item.defaultReps ?? ""} placeholder="10" inputMode="numeric" className="text-[15px]" />
+                          </label>
                         </div>
                         <AppTextarea name="note" rows={3} defaultValue={item.note || ""} placeholder="Ghi chú kỹ thuật" className="text-[15px]" />
                         <label className="flex min-h-[44px] items-center gap-3 rounded-[12px] bg-[#0A0B0D] px-3 text-[13px] font-bold text-[#F4F5F7]">

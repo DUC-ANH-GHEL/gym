@@ -62,7 +62,7 @@ export function CatalogPickerPanel({
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [setCount, setSetCount] = useState("4");
+  const [setCount, setSetCount] = useState("");
   const [targetReps, setTargetReps] = useState("");
 
   const muscleGroups = useMemo(() => buildCatalogPickerGroups(items), [items]);
@@ -159,7 +159,7 @@ export function CatalogPickerPanel({
                       inputMode="numeric"
                       value={setCount}
                       onChange={(event) => setSetCount(event.target.value)}
-                      placeholder="4"
+                      placeholder="Mặc định"
                       className="border-[#2A2F36] bg-[#14161A]"
                     />
                   </label>

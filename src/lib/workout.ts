@@ -21,6 +21,16 @@ export function parsePlanSetOptions(formData: FormData): PlanSetOptions {
   };
 }
 
+export function withCatalogDefaults(
+  options: PlanSetOptions,
+  catalogItem: { defaultSets?: number | null; defaultReps?: number | null },
+): PlanSetOptions {
+  return {
+    setCount: options.setCount ?? catalogItem.defaultSets ?? null,
+    targetReps: options.targetReps ?? catalogItem.defaultReps ?? null,
+  };
+}
+
 export function buildDefaultPlanSets(weight?: number | null, options: PlanSetOptions = {}) {
   const setCount = options.setCount ?? DEFAULT_SET_TEMPLATE.length;
 
