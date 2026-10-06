@@ -9,13 +9,31 @@ const DEFAULT_SET_TEMPLATE = [
   { intensityPercent: 90, targetReps: 8 },
 ] as const;
 
-export function buildDefaultPlanSets(weight?: number | null) {
-  return DEFAULT_SET_TEMPLATE.map((plan, index) => ({
-    setIndex: index,
-    intensityPercent: plan.intensityPercent,
-    targetReps: plan.targetReps,
-    targetWeightKg: weight ?? null,
-  }));
+export type PlanSetOptions = { setCount?: number | null; targetReps?: number | null };
+
+export function parsePlanSetOptions(formData: FormData): PlanSetOptions {
+  const setCount = Math.floor(Number(formData.get("setCount")));
+  const targetReps = Math.floor(Number(formData.get("targetReps")));
+
+  return {
+    setCount: Number.isFinite(setCount) && setCount >= 1 ? Math.min(setCount, 10) : null,
+    targetReps: Number.isFinite(targetReps) && targetReps >= 1 ? Math.min(targetReps, 100) : null,
+  };
+}
+
+export function buildDefaultPlanSets(weight?: number | null, options: PlanSetOptions = {}) {
+  const setCount = options.setCount ?? DEFAULT_SET_TEMPLATE.length;
+
+  return Array.from({ length: setCount }, (_, index) => {
+    const plan = DEFAULT_SET_TEMPLATE[Math.min(index, DEFAULT_SET_TEMPLATE.length - 1)];
+
+    return {
+      setIndex: index,
+      intensityPercent: plan.intensityPercent,
+      targetReps: options.targetReps ?? plan.targetReps,
+      targetWeightKg: weight ?? null,
+    };
+  });
 }
 
 type WorkoutDayForTodayLog = {

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
-import { buildDefaultPlanSets } from "@/lib/workout";
+import { buildDefaultPlanSets, parsePlanSetOptions } from "@/lib/workout";
 import { syncUsersAppliedToWorkoutTemplate } from "@/lib/workout-template-sync";
 import { buildMovedOrderIndexUpdates, getNextOrderIndex } from "@/lib/template-ordering";
 import { workoutDaySchema, workoutSetSchema, workoutTemplateSchema } from "@/lib/validators";
@@ -158,6 +158,7 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
   await requireAdminUser();
   const templateDayId = String(formData.get("templateDayId") || "");
   const catalogItemIds = getSelectedCatalogItemIds(formData);
+  const planSetOptions = parsePlanSetOptions(formData);
 
   if (catalogItemIds.length === 0) {
     return;
@@ -209,7 +210,7 @@ export async function addCatalogItemToTemplateDayAction(formData: FormData): Pro
           catalogItemId: catalogItem.id,
           orderIndex: nextOrderIndex + index,
           sets: {
-            create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
+            create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null, planSetOptions),
           },
         },
       });

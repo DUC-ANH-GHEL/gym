@@ -62,6 +62,8 @@ export function CatalogPickerPanel({
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [setCount, setSetCount] = useState("4");
+  const [targetReps, setTargetReps] = useState("");
 
   const muscleGroups = useMemo(() => buildCatalogPickerGroups(items), [items]);
   const filteredItems = useMemo(
@@ -145,6 +147,38 @@ export function CatalogPickerPanel({
                   </button>
                 ))}
               </div>
+              {selectionMode === "multiple" ? (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <label className="space-y-1">
+                    <span className="text-[12px] font-bold text-[#8B919B]">Số set</span>
+                    <AppInput
+                      name="setCount"
+                      type="number"
+                      min={1}
+                      max={10}
+                      inputMode="numeric"
+                      value={setCount}
+                      onChange={(event) => setSetCount(event.target.value)}
+                      placeholder="4"
+                      className="border-[#2A2F36] bg-[#14161A]"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-[12px] font-bold text-[#8B919B]">Số reps mỗi set</span>
+                    <AppInput
+                      name="targetReps"
+                      type="number"
+                      min={1}
+                      max={100}
+                      inputMode="numeric"
+                      value={targetReps}
+                      onChange={(event) => setTargetReps(event.target.value)}
+                      placeholder="Mặc định"
+                      className="border-[#2A2F36] bg-[#14161A]"
+                    />
+                  </label>
+                </div>
+              ) : null}
               <CatalogPickerSubmitButton label={buttonLabel} disabled={selectedCount === 0} pendingLabel={pendingLabel} className="mt-3 w-full text-[15px] font-black" />
             </>
           ) : (

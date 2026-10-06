@@ -68,8 +68,12 @@ function getMuscleSummary(
   return groups.slice(0, 3).join(", ");
 }
 
-function getSetLabel(count: number) {
-  return `${count || 0} hiệp`;
+function getSetLabel(sets: { targetReps: number | null }[]) {
+  const reps = sets.map((set) => set.targetReps).filter((value): value is number => value !== null);
+  const repsLabel =
+    reps.length === 0 ? "" : Math.min(...reps) === Math.max(...reps) ? ` × ${reps[0]} reps` : ` × ${Math.min(...reps)}-${Math.max(...reps)} reps`;
+
+  return `${sets.length} set${repsLabel}`;
 }
 
 export default async function SchedulePage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
@@ -239,9 +243,14 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                         {entry.catalogItem.muscleGroup || "Chưa có nhóm cơ"} · nghỉ 120 giây
                       </span>
                     </div>
-                    <span className="shrink-0 rounded-full border border-[#C8F31D]/20 bg-[#C8F31D]/12 px-2.5 py-1.5 text-[12px] font-black text-[#D1FAE5]">
-                      {getSetLabel(entry.sets.length)}
-                    </span>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <span className="rounded-full border border-[#C8F31D]/20 bg-[#C8F31D]/12 px-2.5 py-1.5 text-[12px] font-black text-[#D1FAE5]">
+                        {getSetLabel(entry.sets)}
+                      </span>
+                      <Link href={`#bai-${entry.id}`} className="text-[12px] font-black text-[#C8F31D]">
+                        Sửa set/reps
+                      </Link>
+                    </div>
                   </div>
                 ))}
                 {selectedDay.exercises.length > 5 ? (
@@ -313,7 +322,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
           <section id="chinh-buoi" className="scroll-mt-8 space-y-3 rounded-[22px] border border-[#1F2329] bg-[#14161A] p-4">
             <div>
               <h2 className="text-[18px] font-black text-[#F4F5F7]">Sửa buổi này</h2>
-              <p className="mt-1 text-[13px] leading-5 text-[#B6BBC4]">Đổi tên buổi, bật ngày nghỉ hoặc thêm bài mới.</p>
+              <p className="mt-1 text-[13px] leading-5 text-[#B6BBC4]">Đổi tên buổi, bật ngày nghỉ hoặc thêm bài mới (chọn được số set và reps).</p>
             </div>
 
             <form action={updateWorkoutDayAction} className="space-y-3 rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-3">
@@ -344,13 +353,13 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
             </form>
 
             {selectedDay.exercises.length > 0 ? (
-              <details className="rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-3">
+              <details open className="rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-3">
                 <summary className="cursor-pointer list-none text-[14px] font-black text-[#DBEAFE] [&::-webkit-details-marker]:hidden">
-                  Chỉnh bài đã có
+                  Sửa set / reps từng bài
                 </summary>
                 <div className="mt-3 space-y-3">
                   {selectedDay.exercises.map((entry, exerciseIndex) => (
-                    <div key={entry.id} className="space-y-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
+                    <div key={entry.id} id={`bai-${entry.id}`} className="scroll-mt-8 space-y-3 rounded-[16px] border border-[#1F2329] bg-[#14161A] p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-[14px] font-black text-[#F4F5F7]">
@@ -395,7 +404,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                       <div className="space-y-2">
                         {entry.sets.map((set) => (
                           <div key={set.id} className="space-y-2 rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] p-3">
-                            <p className="text-[13px] font-bold text-[#B6BBC4]">Hiệp {set.setIndex + 1}</p>
+                            <p className="text-[13px] font-bold text-[#B6BBC4]">Set {set.setIndex + 1}</p>
                             <form action={updateWorkoutSetPlanAction} className="space-y-3">
                               <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
                               <input type="hidden" name="planSetId" value={set.id} />
@@ -406,7 +415,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                                   <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="70" inputMode="numeric" className="border-[#2A2F36] bg-[#14161A]" />
                                 </label>
                                 <label className="space-y-1">
-                                  <span className="text-[12px] font-bold text-[#B6BBC4]">Số lần</span>
+                                  <span className="text-[12px] font-bold text-[#B6BBC4]">Số reps</span>
                                   <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="12" inputMode="numeric" className="border-[#2A2F36] bg-[#14161A]" />
                                 </label>
                               </div>
@@ -415,7 +424,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                                 <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="40" inputMode="decimal" className="border-[#2A2F36] bg-[#14161A]" />
                               </label>
                               <AppButton className="w-full" pendingLabel="Đang lưu...">
-                                Lưu hiệp
+                                Lưu set
                               </AppButton>
                             </form>
                             <form action={removeWorkoutSetPlanAction}>
@@ -424,7 +433,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                                 className="min-h-[40px] w-full rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 text-[13px] font-bold text-[#FCA5A5]"
                                 pendingLabel="Đang xóa..."
                               >
-                                Xóa hiệp
+                                Xóa set
                               </PendingButton>
                             </form>
                           </div>
@@ -435,7 +444,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                             className="min-h-[44px] w-full rounded-[14px] border border-[#C8F31D]/40 bg-[#0C2537] px-3 text-[13px] font-bold text-[#C8F31D]"
                             pendingLabel="Đang thêm..."
                           >
-                            Thêm hiệp mới
+                            Thêm set mới
                           </PendingButton>
                         </form>
                       </div>
