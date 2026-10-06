@@ -8,13 +8,10 @@ import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
 import { buildScheduleSummary, getFriendlyWorkoutTitle } from "@/lib/schedule-summary";
 import {
   addCatalogItemToDayAction,
-  addWorkoutSetPlanAction,
   applyWorkoutTemplateAction,
   moveWorkoutDayExerciseAction,
   removeExerciseFromDayAction,
-  removeWorkoutSetPlanAction,
   updateWorkoutDayAction,
-  updateWorkoutSetPlanAction,
 } from "@/lib/schedule-actions";
 
 type SearchParams = {
@@ -350,7 +347,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
             {selectedDay.exercises.length > 0 ? (
               <details className="rounded-[18px] border border-[#1F2329] bg-[#0A0B0D] p-3">
                 <summary className="cursor-pointer list-none text-[14px] font-black text-[#DBEAFE] [&::-webkit-details-marker]:hidden">
-                  Chỉnh bài đã có
+                  Xóa hoặc đổi thứ tự bài
                 </summary>
                 <div className="mt-3 space-y-3">
                   {selectedDay.exercises.map((entry, exerciseIndex) => (
@@ -392,54 +389,6 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                             pendingLabel="Đang đưa xuống..."
                           >
                             Đưa xuống
-                          </PendingButton>
-                        </form>
-                      </div>
-
-                      <div className="space-y-2">
-                        {entry.sets.map((set) => (
-                          <div key={set.id} className="space-y-2 rounded-[14px] border border-[#1F2329] bg-[#0A0B0D] p-3">
-                            <p className="text-[13px] font-bold text-[#B6BBC4]">Set {set.setIndex + 1}</p>
-                            <form action={updateWorkoutSetPlanAction} className="space-y-3">
-                              <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                              <input type="hidden" name="planSetId" value={set.id} />
-                              <input type="hidden" name="setIndex" value={set.setIndex} />
-                              <div className="grid grid-cols-2 gap-2">
-                                <label className="space-y-1">
-                                  <span className="text-[12px] font-bold text-[#B6BBC4]">Mức nặng (%)</span>
-                                  <AppInput name="intensityPercent" type="number" defaultValue={set.intensityPercent ?? ""} placeholder="70" inputMode="numeric" className="border-[#2A2F36] bg-[#14161A]" />
-                                </label>
-                                <label className="space-y-1">
-                                  <span className="text-[12px] font-bold text-[#B6BBC4]">Số reps</span>
-                                  <AppInput name="targetReps" type="number" defaultValue={set.targetReps ?? ""} placeholder="12" inputMode="numeric" className="border-[#2A2F36] bg-[#14161A]" />
-                                </label>
-                              </div>
-                              <label className="space-y-1">
-                                <span className="text-[12px] font-bold text-[#B6BBC4]">Tạ mục tiêu (kg)</span>
-                                <AppInput name="targetWeightKg" type="number" step="0.5" defaultValue={set.targetWeightKg ?? ""} placeholder="40" inputMode="decimal" className="border-[#2A2F36] bg-[#14161A]" />
-                              </label>
-                              <AppButton className="w-full" pendingLabel="Đang lưu...">
-                                Lưu set
-                              </AppButton>
-                            </form>
-                            <form action={removeWorkoutSetPlanAction}>
-                              <input type="hidden" name="planSetId" value={set.id} />
-                              <PendingButton
-                                className="min-h-[40px] w-full rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-3 text-[13px] font-bold text-[#FCA5A5]"
-                                pendingLabel="Đang xóa..."
-                              >
-                                Xóa set
-                              </PendingButton>
-                            </form>
-                          </div>
-                        ))}
-                        <form action={addWorkoutSetPlanAction}>
-                          <input type="hidden" name="workoutDayExerciseId" value={entry.id} />
-                          <PendingButton
-                            className="min-h-[44px] w-full rounded-[14px] border border-[#C8F31D]/40 bg-[#0C2537] px-3 text-[13px] font-bold text-[#C8F31D]"
-                            pendingLabel="Đang thêm..."
-                          >
-                            Thêm set mới
                           </PendingButton>
                         </form>
                       </div>
