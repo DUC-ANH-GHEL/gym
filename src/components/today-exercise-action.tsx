@@ -100,6 +100,7 @@ export function TodayExerciseAction({
         const formData = new FormData(event.currentTarget);
         startTransition(async () => {
           const result = await action(formData);
+          onBeforeNavigate?.();
           router.replace(result.nextUrl);
         });
       }}
