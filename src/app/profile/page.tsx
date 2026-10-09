@@ -3,7 +3,7 @@ import { AppButton, AppCard, AppInput, AppSelect, PageHeader, PendingButton } fr
 import { AppShell } from "@/components/app-shell";
 import { isAdminIdentifier } from "@/lib/admin-config";
 import { requireUser } from "@/lib/auth";
-import { logoutAction, saveProfileAction } from "@/lib/profile-actions";
+import { logoutAction, saveProfileAction, setRestTimerEnabledAction } from "@/lib/profile-actions";
 
 const timezones = ["Asia/Bangkok", "Asia/Ho_Chi_Minh", "Asia/Singapore", "UTC"];
 
@@ -46,6 +46,23 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
           </AppSelect>
           <AppButton className="w-full" pendingLabel="Đang lưu...">
             Lưu hồ sơ
+          </AppButton>
+        </form>
+
+        <form action={setRestTimerEnabledAction} className="mt-4 flex items-center justify-between gap-3 rounded-[14px] border border-[#2A2F36] px-3 py-3">
+          <label htmlFor="restTimerEnabled" className="min-w-0 flex-1">
+            <span className="block text-[15px] font-bold text-[#F4F5F7]">Bộ đếm giờ nghỉ</span>
+            <span className="block text-[13px] text-[#8B919B]">Tắt thì không hiện đồng hồ đếm và không gửi thông báo nhắc nghỉ.</span>
+          </label>
+          <input
+            id="restTimerEnabled"
+            name="enabled"
+            type="checkbox"
+            defaultChecked={user.restTimerEnabled}
+            className="h-6 w-6 accent-[#C8F31D]"
+          />
+          <AppButton className="min-h-[40px] px-3" pendingLabel="Đang lưu...">
+            Lưu
           </AppButton>
         </form>
 

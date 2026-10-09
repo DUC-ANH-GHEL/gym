@@ -568,7 +568,8 @@ async function getTodayPageData(params: SearchParams) {
           body: activeRestReminder.body,
         }
       : null;
-  const restLock = dbRestLock && (!urlRestLock || dbRestLock.dueAtMs >= urlRestLock.dueAtMs) ? dbRestLock : urlRestLock;
+  const activeRestLock = dbRestLock && (!urlRestLock || dbRestLock.dueAtMs >= urlRestLock.dueAtMs) ? dbRestLock : urlRestLock;
+  const restLock = user.restTimerEnabled ? activeRestLock : null;
   const selectedSet = activeExerciseWithHistory ? getSelectedSetToFill(activeExerciseWithHistory.setLogs, params.set) : null;
   const setDefaults = selectedSet ? getSetEntryDefaults(selectedSet, activeExerciseWithHistory?.setLogs ?? [], previousFinalSet) : { weightKg: null, reps: null };
   const reviewExercise: TodayExerciseReview | null = activeExerciseWithHistory

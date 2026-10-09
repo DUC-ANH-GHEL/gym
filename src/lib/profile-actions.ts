@@ -46,3 +46,21 @@ export async function logoutAction() {
   await logoutUser();
   redirect("/login");
 }
+
+export async function setRestTimerEnabledAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const enabled = formData.get("enabled") === "on";
+
+  await prisma.user.update({ where: { id: user.id }, data: { restTimerEnabled: enabled } });
+
+  if (!enabled) {
+    // Drop pending reminders so no countdown or push fires after the timer is turned off.
+    await prisma.workoutRestReminder.updateMany({
+      where: { userId: user.id, sentAt: null },
+      data: { sentAt: new Date(), lastError: "timer_disabled" },
+    });
+  }
+
+  revalidatePath("/profile");
+  revalidatePath("/today");
+}
