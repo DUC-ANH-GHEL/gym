@@ -47,9 +47,8 @@ export async function logoutAction() {
   redirect("/login");
 }
 
-export async function setRestTimerEnabledAction(formData: FormData): Promise<void> {
+export async function setRestTimerEnabledAction(enabled: boolean): Promise<void> {
   const user = await requireUser();
-  const enabled = formData.get("enabled") === "on";
 
   await prisma.user.update({ where: { id: user.id }, data: { restTimerEnabled: enabled } });
 
