@@ -32,6 +32,13 @@ export const profileSchema = z.object({
   heightCm: optionalNumberField(z.number().int().positive().max(300)),
   weightKg: optionalNumberField(z.number().positive().max(1000)),
   timezone: z.string().trim().min(1),
+  membershipStartDate: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)))
+    .optional()
+    .or(z.literal("")),
 });
 
 export const exerciseSchema = z.object({

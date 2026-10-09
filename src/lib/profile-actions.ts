@@ -14,11 +14,15 @@ export async function saveProfileAction(formData: FormData): Promise<void> {
     heightCm: formData.get("heightCm"),
     weightKg: formData.get("weightKg"),
     timezone: formData.get("timezone") || "Asia/Bangkok",
+    membershipStartDate: formData.get("membershipStartDate") || "",
   });
 
   if (!parsed.success) {
     redirect("/profile?error=invalid");
   }
+
+  const membershipStartDate = parsed.data.membershipStartDate ? new Date(`${parsed.data.membershipStartDate}T00:00:00Z`) : null;
+  const startDateChanged = membershipStartDate?.getTime() !== user.gymProfile?.membershipStartDate?.getTime();
 
   await prisma.gymProfile.upsert({
     where: { userId: user.id },
@@ -28,6 +32,8 @@ export async function saveProfileAction(formData: FormData): Promise<void> {
       heightCm: Number.isFinite(parsed.data.heightCm) ? Number(parsed.data.heightCm) : null,
       weightKg: Number.isFinite(parsed.data.weightKg) ? Number(parsed.data.weightKg) : null,
       timezone: parsed.data.timezone,
+      membershipStartDate,
+      ...(startDateChanged ? { feeReminderSentOn: null } : {}),
     },
     create: {
       userId: user.id,
@@ -36,6 +42,7 @@ export async function saveProfileAction(formData: FormData): Promise<void> {
       heightCm: Number.isFinite(parsed.data.heightCm) ? Number(parsed.data.heightCm) : null,
       weightKg: Number.isFinite(parsed.data.weightKg) ? Number(parsed.data.weightKg) : null,
       timezone: parsed.data.timezone,
+      membershipStartDate,
     },
   });
 

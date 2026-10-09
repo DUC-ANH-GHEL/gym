@@ -45,6 +45,16 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
               </option>
             ))}
           </AppSelect>
+          <label className="block">
+            <span className="mb-1 block text-[13px] font-semibold text-[#8B919B]">
+              Ngày đăng ký phòng gym (nhắc đóng tiền hằng tháng lúc 16:00)
+            </span>
+            <AppInput
+              name="membershipStartDate"
+              type="date"
+              defaultValue={profile?.membershipStartDate?.toISOString().slice(0, 10) ?? ""}
+            />
+          </label>
           <AppButton className="w-full" pendingLabel="Đang lưu...">
             Lưu hồ sơ
           </AppButton>

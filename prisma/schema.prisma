@@ -59,6 +59,8 @@ model GymProfile {
   heightCm    Int?
   weightKg    Float?
   timezone    String   @default("Asia/Bangkok")
+  membershipStartDate DateTime? @db.Date
+  feeReminderSentOn   String?
   appliedWorkoutTemplateId String?
   appliedWorkoutTemplate   WorkoutTemplate? @relation(fields: [appliedWorkoutTemplateId], references: [id], onDelete: SetNull)
   appliedWorkoutTemplateAt DateTime?
