@@ -22,6 +22,7 @@ import {
   startTodayWorkoutExerciseAction,
 } from "@/lib/workout-actions";
 import { buildLastSetHint, getRestLockFromSearchParams, isRestLocked } from "@/lib/workout-rest";
+import { GYM_FEE_BODY, GYM_FEE_TITLE, isGymFeeDueToday } from "@/lib/gym-fee";
 import { getExerciseMedia } from "@/lib/exercise-media";
 import { getCurrentExerciseRow, getSelectedSetToFill, getSetDisplayNumber, getSetEntryDefaults } from "@/lib/workout-today-flow";
 import { formatWorkoutWeightKg } from "@/lib/workout-set-entry";
@@ -568,7 +569,8 @@ async function getTodayPageData(params: SearchParams) {
           body: activeRestReminder.body,
         }
       : null;
-  const restLock = dbRestLock && (!urlRestLock || dbRestLock.dueAtMs >= urlRestLock.dueAtMs) ? dbRestLock : urlRestLock;
+  const activeRestLock = dbRestLock && (!urlRestLock || dbRestLock.dueAtMs >= urlRestLock.dueAtMs) ? dbRestLock : urlRestLock;
+  const restLock = user.restTimerEnabled ? activeRestLock : null;
   const selectedSet = activeExerciseWithHistory ? getSelectedSetToFill(activeExerciseWithHistory.setLogs, params.set) : null;
   const setDefaults = selectedSet ? getSetEntryDefaults(selectedSet, activeExerciseWithHistory?.setLogs ?? [], previousFinalSet) : { weightKg: null, reps: null };
   const reviewExercise: TodayExerciseReview | null = activeExerciseWithHistory
@@ -593,11 +595,16 @@ async function getTodayPageData(params: SearchParams) {
       }
     : null;
 
+  const gymFeeDue = Boolean(
+    profile?.membershipStartDate && isGymFeeDueToday(profile.membershipStartDate.toISOString().slice(0, 10), todayKey),
+  );
+
   return {
     activeExerciseWithHistory,
     activeRow,
     completedSets,
     displayName,
+    gymFeeDue,
     isRestDay,
     pageTitle,
     rows,
@@ -618,6 +625,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
     activeRow,
     completedSets,
     displayName,
+    gymFeeDue,
     isRestDay,
     pageTitle,
     rows,
@@ -649,6 +657,13 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
 
         <ProgressStrip completedSets={completedSets} restLock={activeRow ? null : restLock} totalSets={totalSets} todayLogId={todayLogId} />
       </div>
+
+      {gymFeeDue ? (
+        <div className="shrink-0 rounded-[14px] border border-[#C8F31D]/40 bg-[#C8F31D]/10 px-3 py-2">
+          <p className="text-[14px] font-black text-[#C8F31D]">{GYM_FEE_TITLE}</p>
+          <p className="text-[13px] text-[#D1D5DB]">{GYM_FEE_BODY}</p>
+        </div>
+      ) : null}
 
       {!workoutDay ? (
         <div className="min-h-0 flex-1 overflow-hidden">

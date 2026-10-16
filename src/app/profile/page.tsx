@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppButton, AppCard, AppInput, AppSelect, PageHeader, PendingButton } from "@/components/ui";
+import { RestTimerToggle } from "@/components/rest-timer-toggle";
 import { AppShell } from "@/components/app-shell";
 import { isAdminIdentifier } from "@/lib/admin-config";
 import { requireUser } from "@/lib/auth";
@@ -44,10 +45,22 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
               </option>
             ))}
           </AppSelect>
+          <label className="block">
+            <span className="mb-1 block text-[13px] font-semibold text-[#8B919B]">
+              Ngày đăng ký phòng gym (nhắc đóng tiền hằng tháng lúc 16:00)
+            </span>
+            <AppInput
+              name="membershipStartDate"
+              type="date"
+              defaultValue={profile?.membershipStartDate?.toISOString().slice(0, 10) ?? ""}
+            />
+          </label>
           <AppButton className="w-full" pendingLabel="Đang lưu...">
             Lưu hồ sơ
           </AppButton>
         </form>
+
+        <RestTimerToggle defaultEnabled={user.restTimerEnabled} />
 
         <form action={logoutAction} className="mt-4">
           <PendingButton

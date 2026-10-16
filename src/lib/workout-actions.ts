@@ -30,6 +30,11 @@ async function scheduleAndRecordReminder(reminderId: string, dueAt: Date) {
 
 export type WorkoutNavigationResult = { nextUrl: string };
 
+async function isRestTimerEnabled(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { restTimerEnabled: true } });
+  return user?.restTimerEnabled ?? true;
+}
+
 async function getRestRedirectUrl(userId: string): Promise<string | null> {
   const reminder = await prisma.workoutRestReminder.findFirst({
     where: {
@@ -202,11 +207,13 @@ async function saveWorkoutSet(formData: FormData): Promise<WorkoutNavigationResu
     : null;
   const nextSet = updatedExercise ? getNextSetToFill(updatedExercise.setLogs) : null;
 
-  const restPlan = getRestReminderPlan({
-    setWasCompleted: isCompleted,
-    exerciseIsCompleted,
-    nextExerciseName: exerciseIsCompleted ? nextExercise?.exerciseName ?? null : null,
-  });
+  const restPlan = (await isRestTimerEnabled(userId))
+    ? getRestReminderPlan({
+        setWasCompleted: isCompleted,
+        exerciseIsCompleted,
+        nextExerciseName: exerciseIsCompleted ? nextExercise?.exerciseName ?? null : null,
+      })
+    : null;
   const targetExerciseId = exerciseIsCompleted ? nextExercise?.id : setLog.workoutExerciseLogId;
   const dueAt = restPlan ? new Date(Date.now() + restPlan.seconds * 1000) : null;
 
@@ -341,11 +348,13 @@ async function completeWorkoutExercise(formData: FormData): Promise<WorkoutNavig
       ? prisma.workoutExerciseLog.update({ where: { id: nextExercise.id }, data: { startedAt: completedAt } })
       : null;
 
-  const restPlan = getRestReminderPlan({
-    setWasCompleted: true,
-    exerciseIsCompleted: true,
-    nextExerciseName: nextExercise?.exerciseName ?? null,
-  });
+  const restPlan = (await isRestTimerEnabled(userId))
+    ? getRestReminderPlan({
+        setWasCompleted: true,
+        exerciseIsCompleted: true,
+        nextExerciseName: nextExercise?.exerciseName ?? null,
+      })
+    : null;
 
   if (restPlan && lastSetLogId) {
     const dueAt = new Date(Date.now() + restPlan.seconds * 1000);
