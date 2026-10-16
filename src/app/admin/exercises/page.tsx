@@ -24,7 +24,27 @@ type SearchParams = {
   status?: string;
 };
 
-const muscleGroups = ["Ngực", "Lưng", "Vai", "Tay trước", "Tay sau", "Chân", "Mông", "Bắp chân", "Bụng", "Cẳng tay", "Cardio", "Full body"];
+const muscleGroups = [
+  "Ngực", 
+  "Lưng", 
+  "Xô", 
+  "Lưng dưới", 
+  "Vai", 
+  "Cầu vai", 
+  "Tay trước", 
+  "Tay sau", 
+  "Cẳng tay", 
+  "Đùi trước", 
+  "Đùi sau", 
+  "Đùi trong", 
+  "Mông", 
+  "Bắp chân", 
+  "Bụng", 
+  "Cơ liên sườn", 
+  "Cardio", 
+  "Full body", 
+  "Stretching"
+];
 
 function getFilterLabel(status: string | undefined) {
   switch (status) {
