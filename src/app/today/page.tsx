@@ -81,6 +81,7 @@ type ExerciseRow = {
   note: string | null;
   currentWeightKg: number | null;
   setCount: number;
+  targetReps: (number | null)[];
   completedSets: number;
   isStarted: boolean;
   isCompleted: boolean;
@@ -451,7 +452,7 @@ async function getTodayPageData(params: SearchParams) {
                 defaultWeightKg: true,
               },
             },
-            _count: { select: { sets: true } },
+            sets: { orderBy: { setIndex: "asc" }, select: { targetReps: true } },
           },
         },
       },
@@ -516,7 +517,8 @@ async function getTodayPageData(params: SearchParams) {
       const exerciseLog =
         todayLog?.exerciseLogs.find((log) => log.catalogItemId === entry.catalogItemId && log.orderIndex === index) ?? null;
       const completedSets = exerciseLog?.setLogs.filter((setLog) => setLog.isCompleted).length ?? 0;
-      const setCount = exerciseLog?.setLogs.length ?? entry._count.sets;
+      const setCount = exerciseLog?.setLogs.length ?? entry.sets.length;
+      const targetReps = (exerciseLog?.setLogs ?? entry.sets).map((setItem) => setItem.targetReps);
       const isStarted = Boolean(exerciseLog?.startedAt || completedSets > 0);
       const isCompleted = setCount > 0 && completedSets === setCount;
 
@@ -530,6 +532,7 @@ async function getTodayPageData(params: SearchParams) {
         note: entry.catalogItem.note,
         currentWeightKg: entry.catalogItem.defaultWeightKg,
         setCount,
+        targetReps,
         completedSets,
         isStarted,
         isCompleted,

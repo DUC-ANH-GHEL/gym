@@ -28,10 +28,24 @@ export type TodayExercisePickerRow = {
   imageUrl: string | null;
   animationUrl: string | null;
   setCount: number;
+  targetReps?: (number | null)[];
   completedSets: number;
   isStarted: boolean;
   isCompleted: boolean;
 };
+
+function getRepsLabel(targetReps: (number | null)[] | undefined) {
+  const reps = (targetReps ?? []).filter((value): value is number => typeof value === "number" && value > 0);
+
+  if (reps.length === 0) {
+    return null;
+  }
+
+  const min = Math.min(...reps);
+  const max = Math.max(...reps);
+
+  return min === max ? `${min} reps` : `${min}-${max} reps`;
+}
 
 function getStatus(row: TodayExercisePickerRow) {
   if (row.isCompleted) {
@@ -129,7 +143,7 @@ export function TodayExercisePicker({
                         {row.muscleGroup || TEXT.noMuscleGroup}
                       </p>
                       <p className="mt-0.5 text-[12px] font-bold text-[#B6BBC4]">
-                        {row.completedSets}/{row.setCount} set
+                        {row.completedSets}/{row.setCount} set{getRepsLabel(row.targetReps) ? ` · ${getRepsLabel(row.targetReps)}` : ""}
                       </p>
                     </div>
                     <TodayExerciseAction
