@@ -10,7 +10,7 @@ import { TodayExerciseGuideSheet } from "@/components/today-exercise-guide-sheet
 import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodayExerciseReviewSheet, type TodayExerciseReview } from "@/components/today-exercise-review-sheet";
 import { LiveSegmentedProgress, LiveSetCount } from "@/components/today-live-progress";
-import { TodayLiveExercise } from "@/components/today-live-exercise";
+import { TodayLiveExercise, type LiveExercise, type LiveSetLog } from "@/components/today-live-exercise";
 import { TodayRestScreen } from "@/components/today-rest-screen";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import {
@@ -208,9 +208,22 @@ function ProgressStrip({
   );
 }
 
+function toLiveSetLog(setLog: LiveSetLog): LiveSetLog {
+  return {
+    id: setLog.id,
+    setIndex: setLog.setIndex,
+    targetReps: setLog.targetReps,
+    targetWeightKg: setLog.targetWeightKg,
+    actualReps: setLog.actualReps,
+    actualWeightKg: setLog.actualWeightKg,
+    isCompleted: setLog.isCompleted,
+  };
+}
+
 function CurrentExerciseCard({
   row,
   exercise,
+  nextExercise,
   restEnabled,
   restLock,
   reviewDefaultOpen,
@@ -220,6 +233,7 @@ function CurrentExerciseCard({
   setDefaults,
 }: {
   row: ExerciseRow;
+  nextExercise: LiveExercise | null;
   restEnabled: boolean;
   exercise: ActiveExercise | null;
   restLock: RestLock | null;
@@ -278,6 +292,37 @@ function CurrentExerciseCard({
     </div>
   );
 
+  if (canSubmitSet && selectedSet && exercise) {
+    return (
+      <TodayLiveExercise
+        key={`${exercise.id}-${selectedSet.id}-${row.completedSets}`}
+        completeAction={completeTodayWorkoutExerciseAction}
+        exercises={[
+          {
+            id: exercise.id,
+            name: row.name,
+            muscleGroup: row.muscleGroup,
+            imageUrl: row.imageUrl,
+            animationUrl: row.animationUrl,
+            note: row.note,
+            setLogs: exercise.setLogs.map(toLiveSetLog),
+            previousFinalSet:
+              typeof selectedSet.lastActualReps === "number" || typeof selectedSet.lastActualWeightKg === "number"
+                ? { actualWeightKg: selectedSet.lastActualWeightKg ?? null, actualReps: selectedSet.lastActualReps ?? null }
+                : null,
+          },
+          ...(nextExercise ? [nextExercise] : []),
+        ]}
+        initialSelectedSetId={selectedSet.id}
+        pickerRows={rows}
+        restEnabled={restEnabled}
+        saveAction={saveTodayWorkoutSetAction}
+        serverRestDueAtMs={restLock?.dueAtMs ?? null}
+        startAction={startTodayWorkoutExerciseAction}
+      />
+    );
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#1F2329] bg-[#14161A] ">
       <div className="shrink-0 p-1.5 pb-0">
@@ -298,32 +343,6 @@ function CurrentExerciseCard({
           </div>
         </div>
 
-        {canSubmitSet && selectedSet && exercise ? (
-          <TodayLiveExercise
-            key={`${exercise.id}-${selectedSet.id}-${row.completedSets}`}
-            completeAction={completeTodayWorkoutExerciseAction}
-            exerciseLogId={exercise.id}
-            initialSelectedSetId={selectedSet.id}
-            previousFinalSet={
-              typeof selectedSet.lastActualReps === "number" || typeof selectedSet.lastActualWeightKg === "number"
-                ? { actualWeightKg: selectedSet.lastActualWeightKg ?? null, actualReps: selectedSet.lastActualReps ?? null }
-                : null
-            }
-            restEnabled={restEnabled}
-            saveAction={saveTodayWorkoutSetAction}
-            serverRestDueAtMs={restLock?.dueAtMs ?? null}
-            setLogs={exercise.setLogs.map((setLog) => ({
-              id: setLog.id,
-              setIndex: setLog.setIndex,
-              targetReps: setLog.targetReps,
-              targetWeightKg: setLog.targetWeightKg,
-              actualReps: setLog.actualReps,
-              actualWeightKg: setLog.actualWeightKg,
-              isCompleted: setLog.isCompleted,
-            }))}
-            trailing={<div className="ml-auto flex shrink-0 items-center gap-1.5">{setProgressTrailing}</div>}
-          />
-        ) : (
           <>
             {setProgressSummary}
             <div className="pb-[92px]">
@@ -340,7 +359,6 @@ function CurrentExerciseCard({
               )}
             </div>
           </>
-        )}
       </div>
     </section>
   );
@@ -540,11 +558,31 @@ async function getTodayPageData(params: SearchParams) {
   const activeRow = getCurrentExerciseRow(rows, params.exercise);
   const activeExerciseId = params.exercise ?? activeRow?.exerciseLogId ?? null;
   const activeExercise = activeExerciseId ? todayLog?.exerciseLogs.find((exercise) => exercise.id === activeExerciseId) ?? null : null;
+  // The exercise that follows the active one, loaded up front so finishing the current one can show it at once.
+  const nextExerciseLog = activeExercise
+    ? (todayLog?.exerciseLogs
+        .filter((log) => log.orderIndex > activeExercise.orderIndex && !log.isCompleted)
+        .sort((a, b) => a.orderIndex - b.orderIndex)[0] ?? null)
+    : null;
+  const nextPreviousFinalSetPromise = nextExerciseLog ? findPreviousFinalSet(user.id, nextExerciseLog) : null;
   const previousFinalSet = earlyPreviousFinalSet
     ? await earlyPreviousFinalSet
     : activeExercise
       ? await findPreviousFinalSet(user.id, activeExercise)
       : null;
+  const nextPreviousFinalSet = nextPreviousFinalSetPromise ? await nextPreviousFinalSetPromise : null;
+  const nextLiveExercise: LiveExercise | null = nextExerciseLog
+    ? {
+        id: nextExerciseLog.id,
+        name: nextExerciseLog.exerciseName,
+        muscleGroup: nextExerciseLog.muscleGroup,
+        imageUrl: nextExerciseLog.imageUrl,
+        animationUrl: nextExerciseLog.animationUrl,
+        note: rows.find((item) => item.exerciseLogId === nextExerciseLog.id)?.note ?? null,
+        setLogs: nextExerciseLog.setLogs.map(toLiveSetLog),
+        previousFinalSet: nextPreviousFinalSet,
+      }
+    : null;
 
   const activeExerciseWithHistory = activeExercise
     ? {
@@ -607,6 +645,7 @@ async function getTodayPageData(params: SearchParams) {
     isRestDay,
     pageTitle,
     rows,
+    nextLiveExercise,
     restEnabled: user.restTimerEnabled,
     restLock,
     reviewExercise,
@@ -629,6 +668,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
     isRestDay,
     pageTitle,
     rows,
+    nextLiveExercise,
     restEnabled,
     restLock,
     reviewExercise,
@@ -701,6 +741,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
             <CurrentExerciseCard
               row={activeRow}
               exercise={activeExerciseWithHistory}
+              nextExercise={nextLiveExercise}
               restEnabled={restEnabled}
               restLock={restLock}
               reviewDefaultOpen={params.review === "1"}

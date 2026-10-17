@@ -29,11 +29,15 @@ export function TodayCompleteExercise({
   defaultWeightKg,
   exerciseLogId,
   restDueAtMs,
+  onOptimisticSubmit,
+  onFailed,
 }: {
   action: (formData: FormData) => Promise<void>;
   defaultWeightKg: number | null;
   exerciseLogId: string;
   restDueAtMs: number | null;
+  onOptimisticSubmit?: (values: { weightKg: number }) => void;
+  onFailed?: () => void;
 }) {
   const titleId = useId();
   const [open, setOpen] = useState(false);
@@ -76,12 +80,17 @@ export function TodayCompleteExercise({
     const startedAt = Date.now();
     setNow(startedAt);
     setOptimisticDueAtMs(startedAt + EXERCISE_REST_SECONDS * 1000);
+    onOptimisticSubmit?.({ weightKg: clampWorkoutWeightKg(Number(nextText)) });
     setOpen(false);
     startTransition(async () => {
       try {
         await action(formData);
       } catch (error) {
         setOptimisticDueAtMs(null);
+        if (onFailed) {
+          onFailed();
+          return;
+        }
         throw error;
       }
     });
@@ -99,7 +108,7 @@ export function TodayCompleteExercise({
         {TEXT.open}
       </button>
 
-      {optimisticDueAtMs ? <InstantRestBar dueAtMs={optimisticDueAtMs} totalSeconds={EXERCISE_REST_SECONDS} /> : null}
+      {optimisticDueAtMs && !onOptimisticSubmit ? <InstantRestBar dueAtMs={optimisticDueAtMs} totalSeconds={EXERCISE_REST_SECONDS} /> : null}
 
       {open ? (
         <div
