@@ -92,8 +92,9 @@ export function TodayCompleteExercise({
         type="button"
         disabled={restLocked}
         onClick={() => setOpen(true)}
-        className="min-h-[46px] w-full rounded-[14px] border border-[#1F2329] bg-[#14161A] px-4 py-2 text-[15px] font-bold text-[#B6BBC4] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100"
+        className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-[14px] border-2 border-[#C8F31D] bg-[#C8F31D]/10 px-4 py-2 text-[16px] font-black text-[#C8F31D] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:border-[#2A2F36] disabled:bg-[#14161A] disabled:text-[#8B919B] disabled:active:scale-100"
       >
+        <span aria-hidden="true">✓</span>
         {TEXT.open}
       </button>
 
