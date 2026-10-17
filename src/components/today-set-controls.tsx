@@ -47,6 +47,8 @@ export function TodaySetControls({
   restDueAtMs,
   isLastSet,
   action,
+  onOptimisticSubmit,
+  onFailed,
 }: {
   setLogId: string;
   setNumber: number;
@@ -55,6 +57,8 @@ export function TodaySetControls({
   restDueAtMs: number | null;
   isLastSet: boolean;
   action: (formData: FormData) => Promise<void>;
+  onOptimisticSubmit?: (values: { weightKg: number; reps: number }) => void;
+  onFailed?: () => void;
 }) {
   const [isSaving, startTransition] = useTransition();
   const [weightKg, setWeightKg] = useState(() => clampWorkoutWeightKg(defaultWeightKg ?? 0));
@@ -80,6 +84,7 @@ export function TodaySetControls({
     setWeightKg(nextWeight);
 
     const formData = new FormData(event.currentTarget);
+    onOptimisticSubmit?.({ weightKg: nextWeight, reps });
     const startedAt = Date.now();
     setNow(startedAt);
     setOptimisticDueAtMs(startedAt + (isLastSet ? EXERCISE_REST_SECONDS : SET_REST_SECONDS) * 1000);
@@ -88,6 +93,10 @@ export function TodaySetControls({
         await action(formData);
       } catch (error) {
         setOptimisticDueAtMs(null);
+        if (onFailed) {
+          onFailed();
+          return;
+        }
         throw error;
       }
     });
@@ -182,7 +191,7 @@ export function TodaySetControls({
       </div>
 
       <SubmitSetButton restLocked={restLocked} setNumber={setNumber} saving={isSaving} />
-      {optimisticDueAtMs ? (
+      {optimisticDueAtMs && !onOptimisticSubmit ? (
         <InstantRestBar dueAtMs={optimisticDueAtMs} totalSeconds={isLastSet ? EXERCISE_REST_SECONDS : SET_REST_SECONDS} />
       ) : null}
     </form>

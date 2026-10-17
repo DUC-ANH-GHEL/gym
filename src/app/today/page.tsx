@@ -9,8 +9,8 @@ import { TodayExercisePicker } from "@/components/today-exercise-picker";
 import { TodayExerciseGuideSheet } from "@/components/today-exercise-guide-sheet";
 import { TodayExerciseAction } from "@/components/today-exercise-action";
 import { TodayExerciseReviewSheet, type TodayExerciseReview } from "@/components/today-exercise-review-sheet";
-import { TodaySetControls } from "@/components/today-set-controls";
-import { TodayCompleteExercise } from "@/components/today-complete-exercise";
+import { LiveSegmentedProgress, LiveSetCount } from "@/components/today-live-progress";
+import { TodayLiveExercise } from "@/components/today-live-exercise";
 import { TodayRestScreen } from "@/components/today-rest-screen";
 import { WorkoutRestTimer } from "@/components/workout-rest-timer";
 import {
@@ -172,19 +172,6 @@ function StartExerciseButton({ restLock, row, wide = false }: { restLock: RestLo
   );
 }
 
-function SegmentedProgress({ completed, total }: { completed: number; total: number }) {
-  const segments = Math.min(total, 40);
-  const filled = total > 0 ? Math.round((completed / total) * segments) : 0;
-
-  return (
-    <div className="flex gap-[3px]" aria-hidden="true">
-      {Array.from({ length: segments }, (_, index) => (
-        <span key={index} className={`h-[5px] flex-1 rounded-full ${index < filled ? "bg-[#C8F31D]" : "bg-[#23262B]"}`} />
-      ))}
-    </div>
-  );
-}
-
 function ProgressStrip({
   completedSets,
   restLock,
@@ -200,7 +187,7 @@ function ProgressStrip({
 
   return (
     <div className="space-y-2">
-      {totalSets > 0 ? <SegmentedProgress completed={completedSets} total={totalSets} /> : null}
+      {totalSets > 0 ? <LiveSegmentedProgress completed={completedSets} total={totalSets} /> : null}
       {restLock ? (
         <div className="flex items-center justify-between rounded-[14px] border border-[#1F2329] bg-[#14161A] px-3 py-2">
           <p className="text-[13px] font-black text-[#C8F31D]">{TEXT.resting}</p>
@@ -224,6 +211,7 @@ function ProgressStrip({
 function CurrentExerciseCard({
   row,
   exercise,
+  restEnabled,
   restLock,
   reviewDefaultOpen,
   reviewExercise,
@@ -232,6 +220,7 @@ function CurrentExerciseCard({
   setDefaults,
 }: {
   row: ExerciseRow;
+  restEnabled: boolean;
   exercise: ActiveExercise | null;
   restLock: RestLock | null;
   reviewDefaultOpen: boolean;
@@ -247,6 +236,22 @@ function CurrentExerciseCard({
   const smallButtonClassName =
     "inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-full border border-[#2A2F36] bg-[#14161A] px-3 text-[12px] font-bold leading-tight text-[#B6BBC4] active:scale-[0.98]";
   const visibleSets = Math.min(row.setCount, 8);
+  const setProgressTrailing = (
+    <>
+        <TodayExerciseGuideSheet
+          exerciseName={row.name}
+          muscleGroup={row.muscleGroup}
+          note={row.note}
+          triggerClassName={smallButtonClassName}
+        />
+        <TodayExercisePicker
+          action={startTodayWorkoutExerciseAction}
+          restDueAtMs={restLock?.dueAtMs ?? null}
+          rows={rows}
+          triggerClassName={smallButtonClassName}
+        />
+    </>
+  );
   const setProgressSummary = (
     <div className="flex items-center gap-1.5">
       <span className="mr-0.5 text-[12px] font-bold text-[#8B919B]">Set</span>
@@ -269,20 +274,7 @@ function CurrentExerciseCard({
           </span>
         );
       })}
-      <div className="ml-auto flex shrink-0 items-center gap-1.5">
-        <TodayExerciseGuideSheet
-          exerciseName={row.name}
-          muscleGroup={row.muscleGroup}
-          note={row.note}
-          triggerClassName={smallButtonClassName}
-        />
-        <TodayExercisePicker
-          action={startTodayWorkoutExerciseAction}
-          restDueAtMs={restLock?.dueAtMs ?? null}
-          rows={rows}
-          triggerClassName={smallButtonClassName}
-        />
-      </div>
+      <div className="ml-auto flex shrink-0 items-center gap-1.5">{setProgressTrailing}</div>
     </div>
   );
 
@@ -306,27 +298,31 @@ function CurrentExerciseCard({
           </div>
         </div>
 
-        {canSubmitSet && selectedSet ? (
-          <>
-            <TodaySetControls
-              key={selectedSet.id}
-              setLogId={selectedSet.id}
-              setNumber={setNumber}
-              defaultWeightKg={setDefaults.weightKg}
-              defaultReps={setDefaults.reps}
-              restDueAtMs={restLock?.dueAtMs ?? null}
-              isLastSet={row.completedSets + 1 >= row.setCount}
-              action={saveTodayWorkoutSetAction}
-            />
-            <TodayCompleteExercise
-              key={`${exercise?.id ?? "exercise"}-${selectedSet.id}`}
-              action={completeTodayWorkoutExerciseAction}
-              defaultWeightKg={setDefaults.weightKg}
-              exerciseLogId={exercise?.id ?? ""}
-              restDueAtMs={restLock?.dueAtMs ?? null}
-            />
-            <div className="pb-[92px]">{setProgressSummary}</div>
-          </>
+        {canSubmitSet && selectedSet && exercise ? (
+          <TodayLiveExercise
+            key={`${exercise.id}-${selectedSet.id}-${row.completedSets}`}
+            completeAction={completeTodayWorkoutExerciseAction}
+            exerciseLogId={exercise.id}
+            initialSelectedSetId={selectedSet.id}
+            previousFinalSet={
+              typeof selectedSet.lastActualReps === "number" || typeof selectedSet.lastActualWeightKg === "number"
+                ? { actualWeightKg: selectedSet.lastActualWeightKg ?? null, actualReps: selectedSet.lastActualReps ?? null }
+                : null
+            }
+            restEnabled={restEnabled}
+            saveAction={saveTodayWorkoutSetAction}
+            serverRestDueAtMs={restLock?.dueAtMs ?? null}
+            setLogs={exercise.setLogs.map((setLog) => ({
+              id: setLog.id,
+              setIndex: setLog.setIndex,
+              targetReps: setLog.targetReps,
+              targetWeightKg: setLog.targetWeightKg,
+              actualReps: setLog.actualReps,
+              actualWeightKg: setLog.actualWeightKg,
+              isCompleted: setLog.isCompleted,
+            }))}
+            trailing={<div className="ml-auto flex shrink-0 items-center gap-1.5">{setProgressTrailing}</div>}
+          />
         ) : (
           <>
             {setProgressSummary}
@@ -611,6 +607,7 @@ async function getTodayPageData(params: SearchParams) {
     isRestDay,
     pageTitle,
     rows,
+    restEnabled: user.restTimerEnabled,
     restLock,
     reviewExercise,
     selectedSet,
@@ -632,6 +629,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
     isRestDay,
     pageTitle,
     rows,
+    restEnabled,
     restLock,
     reviewExercise,
     selectedSet,
@@ -651,8 +649,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
           </div>
           <div className="shrink-0 text-right">
             <p className="text-[24px] font-black leading-none tabular-nums text-[#F4F5F7]">
-              {completedSets}
-              <span className="text-[14px] font-bold text-[#8B919B]">/{totalSets}</span>
+              <LiveSetCount completed={completedSets} total={totalSets} />
             </p>
             <p className="mt-0.5 text-[11px] font-bold text-[#8B919B]">set</p>
           </div>
@@ -704,6 +701,7 @@ export default async function TodayPage({ searchParams }: { searchParams?: Promi
             <CurrentExerciseCard
               row={activeRow}
               exercise={activeExerciseWithHistory}
+              restEnabled={restEnabled}
               restLock={restLock}
               reviewDefaultOpen={params.review === "1"}
               reviewExercise={reviewExercise}
