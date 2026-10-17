@@ -10,6 +10,7 @@ import {
   updateWorkoutWeightInput,
 } from "@/lib/workout-set-entry";
 import { EXERCISE_REST_SECONDS, SET_REST_SECONDS } from "@/lib/workout-rest";
+import { InstantRestBar } from "@/components/instant-rest-bar";
 
 const TEXT = {
   weight: "T\u1ea1",
@@ -181,6 +182,9 @@ export function TodaySetControls({
       </div>
 
       <SubmitSetButton restLocked={restLocked} setNumber={setNumber} saving={isSaving} />
+      {optimisticDueAtMs ? (
+        <InstantRestBar dueAtMs={optimisticDueAtMs} totalSeconds={isLastSet ? EXERCISE_REST_SECONDS : SET_REST_SECONDS} />
+      ) : null}
     </form>
   );
 }

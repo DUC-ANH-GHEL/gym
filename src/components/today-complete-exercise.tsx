@@ -10,6 +10,7 @@ import {
   updateWorkoutWeightInput,
 } from "@/lib/workout-set-entry";
 import { EXERCISE_REST_SECONDS } from "@/lib/workout-rest";
+import { InstantRestBar } from "@/components/instant-rest-bar";
 
 const TEXT = {
   open: "Xong cả bài",
@@ -97,6 +98,8 @@ export function TodayCompleteExercise({
         <span aria-hidden="true">✓</span>
         {TEXT.open}
       </button>
+
+      {optimisticDueAtMs ? <InstantRestBar dueAtMs={optimisticDueAtMs} totalSeconds={EXERCISE_REST_SECONDS} /> : null}
 
       {open ? (
         <div
