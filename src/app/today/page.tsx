@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { dayLabel, getDateKeyInTimeZone, getDayOfWeekInTimeZone, getWorkoutLogLookupWindow, todayLabel } from "@/lib/date";
+import { dayLabel, getDateKeyInTimeZone, getWorkoutLogLookupWindow, todayLabel } from "@/lib/date";
+import { getEffectiveTrainingDay } from "@/lib/day-override";
 import { AppCard, EmptyState, PendingButton } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { ExerciseMediaPreview } from "@/components/exercise-media-preview";
@@ -430,7 +431,7 @@ async function getTodayPageData(params: SearchParams) {
   const timezone = profile?.timezone || "Asia/Bangkok";
   const today = new Date();
   const nowMs = today.getTime();
-  const todayDayOfWeek = getDayOfWeekInTimeZone(today, timezone);
+  const { actualDayOfWeek, dayOfWeek: todayDayOfWeek, isOverride } = await getEffectiveTrainingDay(user.id, today, timezone);
   const todayKey = getDateKeyInTimeZone(today, timezone);
 
   // When the URL names the exercise, look up its history alongside the main queries
@@ -523,7 +524,9 @@ async function getTodayPageData(params: SearchParams) {
 
   const todayLog = workoutLogs.find((log) => getDateKeyInTimeZone(log.workoutDate, timezone) === todayKey) ?? null;
   const displayName = profile?.displayName || user.name || TEXT.fallbackName;
-  const pageTitle = todayLabel(todayDayOfWeek, workoutDay?.title || dayLabel(todayDayOfWeek));
+  const pageTitle = isOverride
+    ? `${dayLabel(actualDayOfWeek)} - Tập theo lịch ${dayLabel(todayDayOfWeek)}: ${workoutDay?.title || dayLabel(todayDayOfWeek)}`
+    : todayLabel(todayDayOfWeek, workoutDay?.title || dayLabel(todayDayOfWeek));
   const isRestDay = Boolean(workoutDay?.isRestDay);
 
   const rows: ExerciseRow[] =

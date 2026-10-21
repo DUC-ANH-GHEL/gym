@@ -56,17 +56,18 @@ type WorkoutDayForTodayLog = {
 type EnsureTodayWorkoutLogOptions = {
   now?: Date;
   workoutDay?: WorkoutDayForTodayLog | null;
+  dayOfWeek?: number;
 };
 
 export async function ensureTodayWorkoutLog(
   prisma: PrismaClient,
   userId: string,
   timeZone: string,
-  { now = new Date(), workoutDay: suppliedWorkoutDay }: EnsureTodayWorkoutLogOptions = {},
+  { now = new Date(), workoutDay: suppliedWorkoutDay, dayOfWeek }: EnsureTodayWorkoutLogOptions = {},
 ) {
   const actualTimeZone = timeZone;
   const todayKey = getDateKeyInTimeZone(now, actualTimeZone);
-  const todayDayOfWeek = getDayOfWeekInTimeZone(now, actualTimeZone);
+  const todayDayOfWeek = dayOfWeek ?? getDayOfWeekInTimeZone(now, actualTimeZone);
   const workoutDay =
     suppliedWorkoutDay ??
     (await prisma.workoutDay.findUnique({

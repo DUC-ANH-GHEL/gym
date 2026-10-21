@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { getDayOfWeekInTimeZone } from "@/lib/date";
+import { getEffectiveTrainingDay } from "@/lib/day-override";
+import { resetTodayScheduleAction, trainScheduleDayTodayAction } from "@/lib/day-override-actions";
 import { AppButton, AppInput, PendingButton } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
 import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
@@ -16,6 +17,7 @@ import {
 
 type SearchParams = {
   day?: string | string[];
+  error?: string | string[];
 };
 
 const DAY_LABELS: Record<number, string> = {
@@ -112,8 +114,9 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
   ]);
 
   const timezone = profile?.timezone || "Asia/Bangkok";
-  const todayDayOfWeek = getDayOfWeekInTimeZone(new Date(), timezone);
+  const { actualDayOfWeek, dayOfWeek: todayDayOfWeek, isOverride } = await getEffectiveTrainingDay(user.id, new Date(), timezone);
   const selectedDayOfWeek = getSelectedDayOfWeek(params, todayDayOfWeek);
+  const errorParam = getFirstParam(params.error);
   const summary = buildScheduleSummary({ selectedDayOfWeek, workoutDays });
   const selectedDay = summary.selectedDay;
   const todayDay = workoutDays.find((day) => day.dayOfWeek === todayDayOfWeek) ?? selectedDay;
@@ -169,6 +172,19 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
               <span className="mt-1 block text-[11px] leading-tight text-[#A7B3C2]">ngày nghỉ</span>
             </div>
           </div>
+
+          {isOverride ? (
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-[14px] border border-white/5 bg-[#080D12]/40 px-3 py-2">
+              <p className="min-w-0 text-[13px] leading-5 text-[#B6BBC4]">
+                Hôm nay ({DAY_LABELS[actualDayOfWeek]}) đang tập theo lịch <b className="text-[#F4F5F7]">{DAY_LABELS[todayDayOfWeek]}</b>. Lịch tuần không đổi.
+              </p>
+              <form action={resetTodayScheduleAction}>
+                <PendingButton className="shrink-0 rounded-[12px] border border-[#2A2F36] bg-[#14161A] px-3 py-2 text-[12px] font-black text-[#B6BBC4]" pendingLabel="Đang đổi...">
+                  Bỏ
+                </PendingButton>
+              </form>
+            </div>
+          ) : null}
 
           <Link
             href="/today"
@@ -226,6 +242,25 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                 Thêm
               </Link>
             </div>
+
+            {errorParam === "started" ? (
+              <p className="border-b border-white/5 px-4 py-3 text-[13px] font-bold leading-5 text-[#FCA5A5]">
+                Hôm nay bạn đã tập xong ít nhất một set nên không đổi sang lịch khác được.
+              </p>
+            ) : null}
+
+            {!selectedDay.isRestDay && selectedDay.exercises.length > 0 && selectedDay.dayOfWeek !== todayDayOfWeek ? (
+              <form action={trainScheduleDayTodayAction} className="border-b border-white/5 p-3">
+                <input type="hidden" name="dayOfWeek" value={selectedDay.dayOfWeek} />
+                <PendingButton
+                  className="min-h-[48px] w-full rounded-[16px] bg-[#C8F31D] px-4 text-[15px] font-black text-[#0A0B0D] active:scale-[0.99]"
+                  pendingLabel="Đang chuyển..."
+                >
+                  Tập lịch {DAY_LABELS[selectedDay.dayOfWeek]} hôm nay
+                </PendingButton>
+                <p className="mt-1.5 text-center text-[12px] leading-4 text-[#8B919B]">Chỉ áp dụng hôm nay, lịch tuần không bị đổi.</p>
+              </form>
+            ) : null}
 
             {selectedDay.exercises.length > 0 ? (
               <div>

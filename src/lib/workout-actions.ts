@@ -5,7 +5,7 @@ import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureTodayWorkoutLog, parseNullableNumber } from "@/lib/workout";
 import { getSessionUserId, requireUser } from "@/lib/auth";
-import { getDayOfWeekInTimeZone } from "@/lib/date";
+import { getEffectiveTrainingDay } from "@/lib/day-override";
 import { getRestReminderPlan } from "@/lib/workout-rest";
 import { scheduleWorkoutRestReminder } from "@/lib/workout-qstash";
 import { getNextExerciseAfterSetSave, getNextSetToFill } from "@/lib/workout-today-flow";
@@ -74,7 +74,7 @@ async function startWorkoutExercise(formData: FormData): Promise<WorkoutNavigati
   const timezone = user.gymProfile?.timezone || "Asia/Bangkok";
   const workoutDayExerciseId = String(formData.get("workoutDayExerciseId") || "");
   const now = new Date();
-  const todayDayOfWeek = getDayOfWeekInTimeZone(now, timezone);
+  const { dayOfWeek: todayDayOfWeek } = await getEffectiveTrainingDay(user.id, now, timezone);
 
   const [restRedirectUrl, workoutDay] = await Promise.all([
     getRestRedirectUrl(user.id),
@@ -107,7 +107,7 @@ async function startWorkoutExercise(formData: FormData): Promise<WorkoutNavigati
     return { nextUrl: "/today" };
   }
 
-  const { log } = await ensureTodayWorkoutLog(prisma, user.id, timezone, { now, workoutDay });
+  const { log } = await ensureTodayWorkoutLog(prisma, user.id, timezone, { now, workoutDay, dayOfWeek: todayDayOfWeek });
   const exerciseLog = log.exerciseLogs.find(
     (exercise) => exercise.catalogItemId === selectedExercise.catalogItemId && exercise.orderIndex === selectedIndex,
   );

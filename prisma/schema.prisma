@@ -20,6 +20,7 @@ model User {
   exercises    Exercise[]
   workoutDays  WorkoutDay[]
   workoutLogs  WorkoutLog[]
+  workoutDayOverrides WorkoutDayOverride[]
   pushSubscriptions PushSubscription[]
   workoutRestReminders WorkoutRestReminder[]
 }
@@ -332,4 +333,16 @@ model WorkoutTemplateSet {
   updatedAt               DateTime @updatedAt
 
   @@index([workoutTemplateExerciseId, setIndex])
+}
+
+// "Tập lịch của thứ khác hôm nay": for one calendar day, train another weekday's schedule without editing any schedule.
+model WorkoutDayOverride {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateKey         String
+  sourceDayOfWeek Int
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, dateKey])
 }
