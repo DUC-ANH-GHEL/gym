@@ -13,3 +13,20 @@ export async function getEffectiveTrainingDay(userId: string, now: Date, timeZon
 
   return { dateKey, actualDayOfWeek, dayOfWeek, isOverride: dayOfWeek !== actualDayOfWeek };
 }
+
+// Yesterday's override, if any, so the schedule can say "yesterday you already trained another weekday's plan".
+export async function getYesterdayOverride(userId: string, now: Date, timeZone: string) {
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const override = await prisma.workoutDayOverride.findUnique({
+    where: { userId_dateKey: { userId, dateKey: getDateKeyInTimeZone(yesterday, timeZone) } },
+    select: { sourceDayOfWeek: true },
+  });
+
+  if (!override) {
+    return null;
+  }
+
+  const actualDayOfWeek = getDayOfWeekInTimeZone(yesterday, timeZone);
+
+  return override.sourceDayOfWeek === actualDayOfWeek ? null : { actualDayOfWeek, sourceDayOfWeek: override.sourceDayOfWeek };
+}

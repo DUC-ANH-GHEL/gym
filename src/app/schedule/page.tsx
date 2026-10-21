@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { getEffectiveTrainingDay } from "@/lib/day-override";
+import { getEffectiveTrainingDay, getYesterdayOverride } from "@/lib/day-override";
 import { resetTodayScheduleAction, trainScheduleDayTodayAction } from "@/lib/day-override-actions";
 import { AppButton, AppInput, PendingButton } from "@/components/ui";
 import { AppShell } from "@/components/app-shell";
@@ -117,6 +117,10 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
   const { actualDayOfWeek, dayOfWeek: todayDayOfWeek, isOverride } = await getEffectiveTrainingDay(user.id, new Date(), timezone);
   const selectedDayOfWeek = getSelectedDayOfWeek(params, todayDayOfWeek);
   const errorParam = getFirstParam(params.error);
+  const yesterdayOverride = await getYesterdayOverride(user.id, new Date(), timezone);
+  const yesterdayNote = yesterdayOverride
+    ? `Hôm qua (${DAY_LABELS[yesterdayOverride.actualDayOfWeek]}) bạn đã tập lịch của ${DAY_LABELS[yesterdayOverride.sourceDayOfWeek]}.`
+    : null;
   const summary = buildScheduleSummary({ selectedDayOfWeek, workoutDays });
   const selectedDay = summary.selectedDay;
   const todayDay = workoutDays.find((day) => day.dayOfWeek === todayDayOfWeek) ?? selectedDay;
@@ -172,6 +176,8 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
               <span className="mt-1 block text-[11px] leading-tight text-[#A7B3C2]">ngày nghỉ</span>
             </div>
           </div>
+
+          {yesterdayNote ? <p className="mt-3 text-[12px] leading-4 text-[#8B919B]">{yesterdayNote}</p> : null}
 
           {isOverride ? (
             <div className="mt-3 flex items-center justify-between gap-3 rounded-[14px] border border-white/5 bg-[#080D12]/40 px-3 py-2">
@@ -242,6 +248,10 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
                 Thêm
               </Link>
             </div>
+
+            {yesterdayOverride && selectedDay.dayOfWeek === yesterdayOverride.sourceDayOfWeek ? (
+              <p className="border-b border-white/5 px-4 py-2 text-[12px] leading-4 text-[#8B919B]">{yesterdayNote}</p>
+            ) : null}
 
             {errorParam === "started" ? (
               <p className="border-b border-white/5 px-4 py-3 text-[13px] font-bold leading-5 text-[#FCA5A5]">
