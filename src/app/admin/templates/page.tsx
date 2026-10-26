@@ -155,6 +155,25 @@ export default async function AdminTemplatesPage({
         </p>
       ) : null}
 
+      <div className="grid grid-cols-2 gap-2">
+        <a
+          href="/api/admin/templates/export"
+          download
+          className="flex min-h-[44px] items-center justify-center rounded-[14px] border border-[#2A2F36] bg-[#14161A] px-3 text-[13px] font-black text-[#F4F5F7]"
+        >
+          Xuất JSON tất cả mẫu
+        </a>
+        {selectedTemplate ? (
+          <a
+            href={`/api/admin/templates/export?template=${encodeURIComponent(selectedTemplate.id)}`}
+            download
+            className="flex min-h-[44px] items-center justify-center rounded-[14px] border border-[#2A2F36] bg-[#14161A] px-3 text-[13px] font-black text-[#F4F5F7]"
+          >
+            Xuất mẫu đang chọn
+          </a>
+        ) : null}
+      </div>
+
       <details data-qa="template-create" className="group rounded-[20px] border border-[#1F2329] bg-[#14161A] p-4">
         <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-center rounded-[15px] bg-[#C8F31D] px-4 text-center text-[15px] font-black text-[#14161A] transition hover:bg-[#C8F31D]">
           + Tạo mẫu mới
