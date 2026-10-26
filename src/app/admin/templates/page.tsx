@@ -13,6 +13,7 @@ import {
   updateWorkoutTemplateDayAction,
   updateWorkoutTemplateSetAction,
 } from "@/lib/admin-template-actions";
+import { importWorkoutTemplatesAction } from "@/lib/admin-template-import";
 import { AdminRouteLinks } from "@/components/admin-route-links";
 import { AppShell } from "@/components/app-shell";
 import { AppButton, AppCard, AppInput, AppTextarea, PageHeader, PendingButton } from "@/components/ui";
@@ -22,6 +23,9 @@ type SearchParams = {
   added?: string;
   day?: string;
   error?: string;
+  imported?: string;
+  importError?: string;
+  skipped?: string;
   replaced?: string;
   template?: string;
 };
@@ -143,6 +147,23 @@ export default async function AdminTemplatesPage({
         </p>
       ) : null}
 
+      {params?.importError ? (
+        <p className="rounded-[14px] border border-[#7F1D1D] bg-[#3B0C0C] px-4 py-3 text-[14px] font-semibold leading-6 text-[#FCA5A5]">
+          {params.importError === "file"
+            ? "Chưa chọn file hoặc file quá lớn (tối đa 2MB)."
+            : params.importError === "json"
+              ? "File không phải JSON hợp lệ."
+              : "File JSON sai định dạng. Hãy dùng file xuất từ nút Xuất JSON."}
+        </p>
+      ) : null}
+
+      {params?.imported ? (
+        <p className="rounded-[14px] border border-[#C8F31D]/35 bg-[#123522] px-4 py-3 text-[14px] font-black leading-6 text-[#C8F31D]">
+          Đã nhập {params.imported} mẫu mới
+          {Number(params.skipped) > 0 ? `, bỏ qua ${params.skipped} bài không tìm thấy trong kho bài tập` : ""}.
+        </p>
+      ) : null}
+
       {addedCount > 0 && selectedDay ? (
         <p className="rounded-[14px] border border-[#C8F31D]/35 bg-[#123522] px-4 py-3 text-[14px] font-black leading-6 text-[#C8F31D]">
           Đã thêm {addedCount} bài vào {DAY_FULL_LABELS[selectedDay.dayOfWeek]}.
@@ -173,6 +194,25 @@ export default async function AdminTemplatesPage({
           </a>
         ) : null}
       </div>
+
+      <details className="rounded-[20px] border border-[#1F2329] bg-[#14161A] p-4">
+        <summary className="cursor-pointer list-none text-center text-[14px] font-black text-[#F4F5F7]">Nhập mẫu từ file JSON</summary>
+        <form action={importWorkoutTemplatesAction} className="mt-3 space-y-3">
+          <p className="text-[13px] leading-5 text-[#B6BBC4]">
+            Mẫu nhập vào luôn được thêm mới (trùng tên thì tự thêm số), không ghi đè mẫu đang có. Bài tập được nối theo slug hoặc tên trong kho.
+          </p>
+          <input
+            type="file"
+            name="file"
+            accept="application/json,.json"
+            required
+            className="block w-full text-[13px] text-[#B6BBC4] file:mr-3 file:rounded-[12px] file:border-0 file:bg-[#1B1E23] file:px-3 file:py-2 file:text-[13px] file:font-black file:text-[#F4F5F7]"
+          />
+          <AppButton className="w-full bg-[#C8F31D] text-[#14161A] hover:bg-[#C8F31D]" pendingLabel="Đang nhập...">
+            Nhập JSON
+          </AppButton>
+        </form>
+      </details>
 
       <details data-qa="template-create" className="group rounded-[20px] border border-[#1F2329] bg-[#14161A] p-4">
         <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-center rounded-[15px] bg-[#C8F31D] px-4 text-center text-[15px] font-black text-[#14161A] transition hover:bg-[#C8F31D]">
