@@ -140,6 +140,14 @@ export default async function AdminExercisesPage({
       <PageHeader title="Admin bài tập" description="Quản lý metadata dùng cho lịch và template." />
       <AdminRouteLinks current="exercises" />
 
+      <a
+        href="/api/admin/exercises/export"
+        download
+        className="flex min-h-[44px] items-center justify-center rounded-[14px] border border-[#2A2F36] bg-[#14161A] px-3 text-[13px] font-black text-[#F4F5F7]"
+      >
+        Xuất JSON toàn bộ metadata bài tập
+      </a>
+
       {params?.error ? (
         <p className="rounded-[14px] border border-[#EF4444]/50 bg-[#EF4444]/10 px-3 py-2 text-[13px] font-semibold text-[#FCA5A5]">
           {params.error === "animation"

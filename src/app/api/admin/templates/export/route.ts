@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAdminIdentifier } from "@/lib/admin-config";
-import { getSessionUserId } from "@/lib/auth";
+import { jsonDownload, rejectNonAdmin } from "@/lib/admin-api";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -8,16 +7,10 @@ export const dynamic = "force-dynamic";
 // GET /api/admin/templates/export            -> every template
 // GET /api/admin/templates/export?template=ID -> one template
 export async function GET(request: Request) {
-  const userId = await getSessionUserId();
+  const rejection = await rejectNonAdmin();
 
-  if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
-
-  if (!user || !isAdminIdentifier(user.email)) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (rejection) {
+    return rejection;
   }
 
   const templateId = new URL(request.url).searchParams.get("template");
@@ -73,13 +66,5 @@ export async function GET(request: Request) {
     })),
   };
 
-  const fileName = `gym-templates-${new Date().toISOString().slice(0, 10)}.json`;
-
-  return new NextResponse(JSON.stringify(payload, null, 2), {
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
-      "Cache-Control": "no-store",
-    },
-  });
+  return jsonDownload(payload, "gym-templates");
 }
