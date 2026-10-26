@@ -105,11 +105,17 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
     redirect("/admin/templates?importError=file");
   }
 
+  const text = await file.text();
   let json: unknown;
   try {
-    json = JSON.parse(await file.text());
+    json = JSON.parse(text);
   } catch {
-    redirect("/admin/templates?importError=json");
+    // JSON copied out of a chat or Markdown often has escaped brackets (\[ \] \_). Retry once with them undone.
+    try {
+      json = JSON.parse(text.replace(/\\([\[\]_*#])/g, "$1"));
+    } catch {
+      redirect("/admin/templates?importError=json");
+    }
   }
 
   const parsed = importSchema.safeParse(json);
