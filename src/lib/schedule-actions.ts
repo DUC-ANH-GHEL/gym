@@ -38,6 +38,7 @@ export async function applyWorkoutTemplateAction(formData: FormData): Promise<vo
 
   revalidatePath("/schedule");
   revalidatePath("/today");
+  redirect("/schedule?applied=1");
 }
 
 export async function updateWorkoutDayAction(formData: FormData): Promise<void> {

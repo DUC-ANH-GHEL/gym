@@ -9,7 +9,6 @@ import { CatalogPickerPanel } from "@/components/catalog-picker-panel";
 import { buildScheduleSummary, getFriendlyWorkoutTitle } from "@/lib/schedule-summary";
 import {
   addCatalogItemToDayAction,
-  applyWorkoutTemplateAction,
   moveWorkoutDayExerciseAction,
   removeExerciseFromDayAction,
   updateWorkoutDayAction,
@@ -18,6 +17,7 @@ import {
 type SearchParams = {
   day?: string | string[];
   error?: string | string[];
+  applied?: string | string[];
 };
 
 const DAY_LABELS: Record<number, string> = {
@@ -37,21 +37,6 @@ function getFirstParam(value: string | string[] | undefined) {
 function getSelectedDayOfWeek(params: SearchParams, fallbackDayOfWeek: number) {
   const parsed = Number(getFirstParam(params.day));
   return Number.isInteger(parsed) && parsed >= 0 && parsed <= 6 ? parsed : fallbackDayOfWeek;
-}
-
-function getTemplateStats(
-  template: {
-    sessionsPerWeek: number;
-    days: { isRestDay: boolean; exercises: unknown[] }[];
-  },
-) {
-  const activeDays = template.days.filter((day) => !day.isRestDay).length;
-  const exerciseCount = template.days.reduce((sum, day) => sum + day.exercises.length, 0);
-
-  return {
-    sessionsPerWeek: template.sessionsPerWeek || activeDays,
-    exerciseCount,
-  };
 }
 
 function getMuscleSummary(
@@ -78,7 +63,7 @@ function getSetLabel(sets: { targetReps: number | null }[]) {
 export default async function SchedulePage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
   const params = (await searchParams) ?? {};
   const user = await requireUser();
-  const [workoutDays, catalogItems, templates, profile] = await Promise.all([
+  const [workoutDays, catalogItems, profile] = await Promise.all([
     prisma.workoutDay.findMany({
       where: { userId: user.id },
       orderBy: { dayOfWeek: "asc" },
@@ -95,17 +80,6 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
     prisma.exerciseCatalogItem.findMany({
       where: { isActive: true },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    }),
-    prisma.workoutTemplate.findMany({
-      where: { isActive: true },
-      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      include: {
-        days: {
-          include: {
-            exercises: true,
-          },
-        },
-      },
     }),
     prisma.gymProfile.findUnique({
       where: { userId: user.id },
@@ -126,8 +100,6 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
   const todayDay = workoutDays.find((day) => day.dayOfWeek === todayDayOfWeek) ?? selectedDay;
   const todayTitle = todayDay ? getFriendlyWorkoutTitle(todayDay.title) : "Chưa có lịch";
   const selectedDayTitle = selectedDay ? getFriendlyWorkoutTitle(selectedDay.title) : "";
-  const featuredTemplate = templates.find((template) => template.id === profile?.appliedWorkoutTemplateId) ?? templates[0] ?? null;
-  const featuredTemplateStats = featuredTemplate ? getTemplateStats(featuredTemplate) : null;
 
   return (
     <AppShell>
@@ -136,18 +108,24 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
           <div className="min-w-0">
             <h1 className="text-[28px] font-black leading-none tracking-[-0.04em] text-[#F4F5F7]">Lịch tập</h1>
             <p className="mt-2 max-w-[250px] text-[14px] leading-5 text-[#B6BBC4]">
-              Xem tuần này trước, chỉnh từng buổi sau. Mẫu có sẵn nằm gọn bên dưới.
+              Xem cả tuần, chạm một ngày để xem hoặc chỉnh buổi đó.
             </p>
           </div>
           <Link
-            href="#chinh-buoi"
-            className="shrink-0 rounded-[16px] border border-[#2B3A4B] bg-[#111B26] px-4 py-3 text-center text-[13px] font-black leading-tight text-[#DBEAFE]"
+            href="/schedule/templates"
+            className="shrink-0 rounded-[16px] bg-[#C8F31D] px-4 py-3 text-center text-[13px] font-black leading-tight text-[#0A0B0D] active:scale-[0.98]"
           >
-            Sửa
+            Đổi
             <br />
-            lịch
+            mẫu
           </Link>
         </header>
+
+        {getFirstParam(params.applied) === "1" ? (
+          <p className="rounded-[16px] border border-[#C8F31D]/40 bg-[#183421] px-4 py-3 text-[14px] font-bold leading-5 text-[#D1FAE5]">
+            Đã đổi mẫu{profile?.appliedWorkoutTemplate ? `: ${profile.appliedWorkoutTemplate.name}` : ""}. Lịch tuần đã được cập nhật.
+          </p>
+        ) : null}
 
         <section className="rounded-[24px] border border-[#C8F31D]/35 bg-[linear-gradient(145deg,rgba(34,197,94,0.18),rgba(14,165,233,0.10)_42%,#14161A_74%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <div className="flex items-start justify-between gap-3">
@@ -200,13 +178,21 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
           </Link>
         </section>
 
+        <Link
+          href="/schedule/templates"
+          className="flex items-center justify-between gap-3 rounded-[18px] border border-[#1F2329] bg-[#14161A] px-4 py-3 active:scale-[0.99]"
+        >
+          <span className="min-w-0">
+            <span className="block text-[12px] font-bold text-[#8B919B]">Mẫu đang dùng</span>
+            <span className="block truncate text-[15px] font-black text-[#F4F5F7]">
+              {profile?.appliedWorkoutTemplate?.name ?? "Lịch tự tạo"}
+            </span>
+          </span>
+          <span className="shrink-0 text-[13px] font-black text-[#C8F31D]">Đổi mẫu →</span>
+        </Link>
+
         <section className="space-y-3">
-          <div className="flex items-end justify-between gap-3">
-            <h2 className="text-[18px] font-black tracking-[-0.02em] text-[#F4F5F7]">Tuần của tôi</h2>
-            <Link href="#mau-goi-y" className="text-[13px] font-black text-[#C8F31D]">
-              Đổi mẫu
-            </Link>
-          </div>
+          <h2 className="text-[18px] font-black tracking-[-0.02em] text-[#F4F5F7]">Tuần của tôi</h2>
 
           <div className="grid grid-cols-7 gap-1.5">
             {summary.weekDays.map((day) => (
@@ -305,56 +291,6 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
           </section>
         ) : null}
 
-        <section id="mau-goi-y" className="scroll-mt-8 space-y-3">
-          <div className="flex items-end justify-between gap-3">
-            <h2 className="text-[18px] font-black tracking-[-0.02em] text-[#F4F5F7]">Mẫu gợi ý</h2>
-            {templates.length > 1 ? (
-              <Link href="#tat-ca-mau" className="text-[13px] font-black text-[#C8F31D]">
-                Xem tất cả
-              </Link>
-            ) : null}
-          </div>
-
-          {featuredTemplate && featuredTemplateStats ? (
-            <article className="rounded-[22px] border border-[#C8F31D]/20 bg-[#0E1722] p-4">
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-[16px] font-black leading-snug text-[#F4F5F7]">{featuredTemplate.name}</h3>
-                {profile?.appliedWorkoutTemplateId === featuredTemplate.id ? (
-                  <span className="shrink-0 rounded-full border border-[#C8F31D]/25 bg-[#080D12]/50 px-3 py-1.5 text-[12px] font-black text-[#C8F31D]">
-                    Đang dùng
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-2 text-[13px] leading-5 text-[#B6BBC4]">
-                {featuredTemplate.description ||
-                  `Có ${featuredTemplateStats.sessionsPerWeek} buổi mỗi tuần, gồm ${featuredTemplateStats.exerciseCount} bài tập.`}
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <Link
-                  href="#tat-ca-mau"
-                  className="flex min-h-[44px] items-center justify-center rounded-[15px] border border-[#2A3A4D] bg-[#152232] px-3 text-center text-[13px] font-black text-[#B6BBC4]"
-                >
-                  Xem chi tiết
-                </Link>
-                <form action={applyWorkoutTemplateAction}>
-                  <input type="hidden" name="templateId" value={featuredTemplate.id} />
-                  <PendingButton
-                    className="min-h-[44px] w-full rounded-[15px] bg-[#C8F31D] px-3 text-[13px] font-black text-[#0A0B0D] active:scale-[0.99]"
-                    pendingLabel="Đang áp..."
-                  >
-                    Áp lại mẫu
-                  </PendingButton>
-                </form>
-              </div>
-            </article>
-          ) : (
-            <div className="rounded-[22px] border border-[#1F2329] bg-[#14161A] p-4">
-              <p className="text-[14px] font-bold text-[#B6BBC4]">Chưa có mẫu gợi ý.</p>
-              <p className="mt-1 text-[13px] leading-5 text-[#B6BBC4]">Bạn vẫn có thể tự thêm bài vào từng buổi bên dưới.</p>
-            </div>
-          )}
-        </section>
-
         {selectedDay ? (
           <section id="chinh-buoi" className="scroll-mt-8 space-y-3 rounded-[22px] border border-[#1F2329] bg-[#14161A] p-4">
             <div>
@@ -445,39 +381,6 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
           </section>
         ) : null}
 
-        {templates.length > 1 ? (
-          <section id="tat-ca-mau" className="scroll-mt-8 space-y-3">
-            <h2 className="text-[18px] font-black text-[#F4F5F7]">Tất cả mẫu</h2>
-            {templates.map((template) => {
-              const stats = getTemplateStats(template);
-
-              return (
-                <article key={template.id} className="rounded-[18px] border border-[#1F2329] bg-[#14161A] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="text-[15px] font-black text-[#F4F5F7]">{template.name}</h3>
-                      <p className="mt-1 text-[12px] text-[#B6BBC4]">
-                        {stats.sessionsPerWeek} buổi mỗi tuần · {stats.exerciseCount} bài
-                      </p>
-                    </div>
-                    {profile?.appliedWorkoutTemplateId === template.id ? (
-                      <span className="shrink-0 rounded-full bg-[#C8F31D]/12 px-3 py-1 text-[12px] font-black text-[#C8F31D]">Đang dùng</span>
-                    ) : null}
-                  </div>
-                  <form action={applyWorkoutTemplateAction} className="mt-3">
-                    <input type="hidden" name="templateId" value={template.id} />
-                    <PendingButton
-                      className="min-h-[44px] w-full rounded-[15px] bg-[#C8F31D] px-3 text-[13px] font-black text-[#0A0B0D] active:scale-[0.99]"
-                      pendingLabel="Đang áp..."
-                    >
-                      Áp mẫu này
-                    </PendingButton>
-                  </form>
-                </article>
-              );
-            })}
-          </section>
-        ) : null}
       </div>
     </AppShell>
   );
