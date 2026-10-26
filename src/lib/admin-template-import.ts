@@ -5,11 +5,46 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
+import { isAllowedExerciseAnimationUrl } from "@/lib/exercise-media";
 import { buildDefaultPlanSets } from "@/lib/workout";
 
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
 
 const nullableInt = z.number().int().nullable().optional();
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function safeImageUrl(value: string | null | undefined) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return "/exercise-placeholder.png";
+  }
+
+  if (trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "https:" && parsed.hostname === "res.cloudinary.com" ? parsed.toString() : "/exercise-placeholder.png";
+  } catch {
+    return "/exercise-placeholder.png";
+  }
+}
+
+function safeAnimationUrl(value: string | null | undefined) {
+  const trimmed = value?.trim();
+  return trimmed && isAllowedExerciseAnimationUrl(trimmed) ? trimmed : null;
+}
 
 const importSchema = z.object({
   templates: z
@@ -31,6 +66,12 @@ const importSchema = z.object({
                   z.object({
                     slug: z.string().trim().optional(),
                     name: z.string().trim().optional(),
+                    muscleGroup: z.string().trim().max(80).nullable().optional(),
+                    imageUrl: z.string().max(2048).nullable().optional(),
+                    animationUrl: z.string().max(2048).nullable().optional(),
+                    defaultWeightKg: z.number().min(0).max(1000).nullable().optional(),
+                    defaultSets: nullableInt,
+                    defaultReps: nullableInt,
                     note: z.string().max(500).nullable().optional(),
                     sets: z
                       .array(
@@ -57,6 +98,7 @@ const importSchema = z.object({
 });
 
 // Imported templates are always added as new ones (never overwriting), so nobody's applied schedule changes.
+// Exercises that are not in the catalog yet are created from the file.
 export async function importWorkoutTemplatesAction(formData: FormData): Promise<void> {
   await requireAdminUser();
   const file = formData.get("file");
@@ -79,13 +121,43 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
   }
 
   const [catalogItems, existingTemplates] = await Promise.all([
-    prisma.exerciseCatalogItem.findMany({ select: { id: true, slug: true, name: true, defaultWeightKg: true } }),
+    prisma.exerciseCatalogItem.findMany({ select: { id: true, slug: true, name: true, defaultWeightKg: true, sortOrder: true } }),
     prisma.workoutTemplate.findMany({ select: { name: true } }),
   ]);
   const bySlug = new Map(catalogItems.map((item) => [item.slug, item]));
   const byName = new Map(catalogItems.map((item) => [item.name.trim().toLowerCase(), item]));
   const usedNames = new Set(existingTemplates.map((template) => template.name.trim().toLowerCase()));
+  const usedSlugs = new Set(catalogItems.map((item) => item.slug));
+  let nextSortOrder = catalogItems.reduce((max, item) => Math.max(max, item.sortOrder), 0) + 1;
   let skippedExercises = 0;
+
+  type NewCatalogItem = {
+    slug: string;
+    name: string;
+    muscleGroup: string | null;
+    imageUrl: string;
+    animationUrl: string | null;
+    defaultWeightKg: number | null;
+    defaultSets: number | null;
+    defaultReps: number | null;
+    note: string | null;
+    sortOrder: number;
+  };
+  const newItems = new Map<string, NewCatalogItem>();
+
+  function uniqueSlug(base: string) {
+    const root = base || `exercise-${usedSlugs.size + 1}`;
+    let slug = root;
+    let suffix = 2;
+
+    while (usedSlugs.has(slug)) {
+      slug = `${root}-${suffix}`;
+      suffix += 1;
+    }
+
+    usedSlugs.add(slug);
+    return slug;
+  }
 
   function uniqueName(name: string) {
     let candidate = name;
@@ -105,17 +177,39 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
     const days = Array.from({ length: 7 }, (_, dayOfWeek) => {
       const day = daysByWeekday.get(dayOfWeek);
       const exercises: {
-        catalogItemId: string;
+        catalogItemId?: string;
+        newItemKey?: string;
         note: string | null;
         sets: { setIndex: number; intensityPercent: number | null; targetReps: number | null; targetWeightKg: number | null }[];
       }[] = [];
 
       for (const exercise of day?.exercises ?? []) {
         const item = (exercise.slug ? bySlug.get(exercise.slug) : undefined) ?? (exercise.name ? byName.get(exercise.name.trim().toLowerCase()) : undefined);
+        const newItemKey = (exercise.slug || exercise.name || "").trim().toLowerCase();
+        let createdItem = newItemKey ? newItems.get(newItemKey) : undefined;
 
-        if (!item) {
-          skippedExercises += 1;
-          continue;
+        if (!item && !createdItem) {
+          const name = exercise.name || exercise.slug?.replace(/-/g, " ") || "";
+
+          if (!name) {
+            skippedExercises += 1;
+            continue;
+          }
+
+          createdItem = {
+            slug: uniqueSlug(slugify(exercise.slug || name)),
+            name,
+            muscleGroup: exercise.muscleGroup || null,
+            imageUrl: safeImageUrl(exercise.imageUrl),
+            animationUrl: safeAnimationUrl(exercise.animationUrl),
+            defaultWeightKg: exercise.defaultWeightKg ?? null,
+            defaultSets: exercise.defaultSets ?? null,
+            defaultReps: exercise.defaultReps ?? null,
+            note: exercise.note || null,
+            sortOrder: nextSortOrder,
+          };
+          nextSortOrder += 1;
+          newItems.set(newItemKey, createdItem);
         }
 
         const sets =
@@ -126,9 +220,9 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
                 targetReps: set.targetReps ?? null,
                 targetWeightKg: set.targetWeightKg ?? null,
               }))
-            : buildDefaultPlanSets(item.defaultWeightKg ?? null);
+            : buildDefaultPlanSets(item?.defaultWeightKg ?? createdItem?.defaultWeightKg ?? null);
 
-        exercises.push({ catalogItemId: item.id, note: exercise.note ?? null, sets });
+        exercises.push({ catalogItemId: item?.id, newItemKey: item ? undefined : newItemKey, note: exercise.note ?? null, sets });
       }
 
       const isRestDay = day ? Boolean(day.isRestDay) || exercises.length === 0 : true;
@@ -148,6 +242,13 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
 
   await prisma.$transaction(
     async (tx) => {
+      const createdIds = new Map<string, string>();
+
+      for (const [key, item] of newItems) {
+        const created = await tx.exerciseCatalogItem.create({ data: item, select: { id: true } });
+        createdIds.set(key, created.id);
+      }
+
       for (const template of prepared) {
         await tx.workoutTemplate.create({
           data: {
@@ -163,7 +264,7 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
                 isRestDay: day.isRestDay,
                 exercises: {
                   create: day.exercises.map((exercise, orderIndex) => ({
-                    catalogItemId: exercise.catalogItemId,
+                    catalogItemId: exercise.catalogItemId ?? createdIds.get(exercise.newItemKey ?? "") ?? "",
                     orderIndex,
                     note: exercise.note,
                     sets: { create: exercise.sets },
@@ -179,6 +280,7 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
   );
 
   revalidatePath("/admin/templates");
+  revalidatePath("/admin/exercises");
   revalidatePath("/schedule/templates");
-  redirect(`/admin/templates?imported=${prepared.length}&skipped=${skippedExercises}`);
+  redirect(`/admin/templates?imported=${prepared.length}&created=${newItems.size}&skipped=${skippedExercises}`);
 }

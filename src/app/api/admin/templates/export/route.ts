@@ -24,7 +24,18 @@ export async function GET(request: Request) {
           exercises: {
             orderBy: { orderIndex: "asc" },
             include: {
-              catalogItem: { select: { slug: true, name: true, muscleGroup: true } },
+              catalogItem: {
+                select: {
+                  slug: true,
+                  name: true,
+                  muscleGroup: true,
+                  imageUrl: true,
+                  animationUrl: true,
+                  defaultWeightKg: true,
+                  defaultSets: true,
+                  defaultReps: true,
+                },
+              },
               sets: { orderBy: { setIndex: "asc" } },
             },
           },
@@ -54,6 +65,11 @@ export async function GET(request: Request) {
           slug: exercise.catalogItem.slug,
           name: exercise.catalogItem.name,
           muscleGroup: exercise.catalogItem.muscleGroup,
+          imageUrl: exercise.catalogItem.imageUrl,
+          animationUrl: exercise.catalogItem.animationUrl,
+          defaultWeightKg: exercise.catalogItem.defaultWeightKg,
+          defaultSets: exercise.catalogItem.defaultSets,
+          defaultReps: exercise.catalogItem.defaultReps,
           note: exercise.note,
           sets: exercise.sets.map((set) => ({
             setIndex: set.setIndex,

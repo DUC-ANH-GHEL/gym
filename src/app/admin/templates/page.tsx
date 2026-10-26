@@ -25,6 +25,7 @@ type SearchParams = {
   error?: string;
   imported?: string;
   importError?: string;
+  created?: string;
   skipped?: string;
   replaced?: string;
   template?: string;
@@ -160,7 +161,8 @@ export default async function AdminTemplatesPage({
       {params?.imported ? (
         <p className="rounded-[14px] border border-[#C8F31D]/35 bg-[#123522] px-4 py-3 text-[14px] font-black leading-6 text-[#C8F31D]">
           Đã nhập {params.imported} mẫu mới
-          {Number(params.skipped) > 0 ? `, bỏ qua ${params.skipped} bài không tìm thấy trong kho bài tập` : ""}.
+          {Number(params.created) > 0 ? `, tự tạo ${params.created} bài mới trong kho bài tập` : ""}
+          {Number(params.skipped) > 0 ? `, bỏ qua ${params.skipped} bài thiếu tên` : ""}.
         </p>
       ) : null}
 
@@ -199,7 +201,7 @@ export default async function AdminTemplatesPage({
         <summary className="cursor-pointer list-none text-center text-[14px] font-black text-[#F4F5F7]">Nhập mẫu từ file JSON</summary>
         <form action={importWorkoutTemplatesAction} className="mt-3 space-y-3">
           <p className="text-[13px] leading-5 text-[#B6BBC4]">
-            Mẫu nhập vào luôn được thêm mới (trùng tên thì tự thêm số), không ghi đè mẫu đang có. Bài tập được nối theo slug hoặc tên trong kho.
+            Mẫu nhập vào luôn được thêm mới (trùng tên thì tự thêm số), không ghi đè mẫu đang có. Bài tập được nối theo slug hoặc tên trong kho; bài chưa có sẽ tự được tạo.
           </p>
           <input
             type="file"
