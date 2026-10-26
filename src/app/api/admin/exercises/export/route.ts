@@ -27,8 +27,6 @@ export async function GET() {
         imageUrl: item.imageUrl,
         animationUrl: item.animationUrl,
         defaultWeightKg: item.defaultWeightKg,
-        defaultSets: item.defaultSets,
-        defaultReps: item.defaultReps,
         note: item.note,
         sortOrder: item.sortOrder,
         isActive: item.isActive,

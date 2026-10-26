@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { buildDefaultPlanSets, parsePlanSetOptions, withCatalogDefaults } from "@/lib/workout";
+import { buildDefaultPlanSets } from "@/lib/workout";
 import { getWorkoutTemplateForScheduleSync, syncWorkoutTemplateToUserSchedule } from "@/lib/workout-template-sync";
 import { workoutDaySchema, workoutSetSchema } from "@/lib/validators";
 
@@ -69,7 +69,6 @@ export async function addCatalogItemToDayAction(formData: FormData): Promise<voi
   const user = await requireUser();
   const dayOfWeek = Number(formData.get("dayOfWeek"));
   const catalogItemIds = getSelectedCatalogItemIds(formData);
-  const planSetOptions = parsePlanSetOptions(formData);
 
   if (catalogItemIds.length === 0) {
     return;
@@ -120,7 +119,7 @@ export async function addCatalogItemToDayAction(formData: FormData): Promise<voi
           catalogItemId: catalogItem.id,
           orderIndex: workoutDay.exercises.length + index,
           sets: {
-            create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null, withCatalogDefaults(planSetOptions, catalogItem)),
+            create: buildDefaultPlanSets(catalogItem.defaultWeightKg ?? null),
           },
         },
       });

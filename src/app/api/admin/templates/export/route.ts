@@ -32,8 +32,6 @@ export async function GET(request: Request) {
                   imageUrl: true,
                   animationUrl: true,
                   defaultWeightKg: true,
-                  defaultSets: true,
-                  defaultReps: true,
                 },
               },
               sets: { orderBy: { setIndex: "asc" } },
@@ -68,8 +66,6 @@ export async function GET(request: Request) {
           imageUrl: exercise.catalogItem.imageUrl,
           animationUrl: exercise.catalogItem.animationUrl,
           defaultWeightKg: exercise.catalogItem.defaultWeightKg,
-          defaultSets: exercise.catalogItem.defaultSets,
-          defaultReps: exercise.catalogItem.defaultReps,
           note: exercise.note,
           sets: exercise.sets.map((set) => ({
             setIndex: set.setIndex,

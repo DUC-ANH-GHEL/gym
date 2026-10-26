@@ -6,7 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/admin";
 import { exerciseCatalogItemSchema } from "@/lib/validators";
 import { isAllowedExerciseAnimationUrl } from "@/lib/exercise-media";
-import { applyCatalogDefaultsToExisting } from "@/lib/catalog-defaults-sync";
 
 function slugify(value: string) {
   return value
@@ -70,8 +69,6 @@ export async function saveCatalogItemAction(formData: FormData): Promise<void> {
     imageUrl: formData.get("imageUrl"),
     animationUrl: formData.get("animationUrl"),
     defaultWeightKg: formData.get("defaultWeightKg"),
-    defaultSets: formData.get("defaultSets"),
-    defaultReps: formData.get("defaultReps"),
     note: formData.get("note"),
     sortOrder: formData.get("sortOrder"),
     isActive: formData.get("isActive") === "on",
@@ -99,8 +96,6 @@ export async function saveCatalogItemAction(formData: FormData): Promise<void> {
       imageUrl,
       animationUrl,
       defaultWeightKg: parsed.data.defaultWeightKg ?? null,
-      defaultSets: parsed.data.defaultSets ?? null,
-      defaultReps: parsed.data.defaultReps ?? null,
       note: parsed.data.note || null,
       sortOrder: parsed.data.sortOrder ?? 999,
       isActive: parsed.data.isActive ?? true,
@@ -129,8 +124,6 @@ export async function updateCatalogItemAction(formData: FormData): Promise<void>
     imageUrl: formData.get("imageUrl"),
     animationUrl: formData.get("animationUrl"),
     defaultWeightKg: formData.get("defaultWeightKg"),
-    defaultSets: formData.get("defaultSets"),
-    defaultReps: formData.get("defaultReps"),
     note: formData.get("note"),
     sortOrder: formData.get("sortOrder"),
     isActive: formData.get("isActive") === "on",
@@ -150,31 +143,18 @@ export async function updateCatalogItemAction(formData: FormData): Promise<void>
     redirect("/admin/exercises?error=animation");
   }
 
-  const updated = await prisma.$transaction(async (tx) => {
-    const result = await tx.exerciseCatalogItem.updateMany({
-      where: { id },
-      data: {
-        name: parsed.data.name,
-        muscleGroup: parsed.data.muscleGroup || null,
-        imageUrl,
-        animationUrl,
-        defaultWeightKg: parsed.data.defaultWeightKg ?? null,
-        defaultSets: parsed.data.defaultSets ?? null,
-        defaultReps: parsed.data.defaultReps ?? null,
-        note: parsed.data.note || null,
-        sortOrder: parsed.data.sortOrder ?? 999,
-        isActive: parsed.data.isActive ?? true,
-      },
-    });
-
-    if (result.count === 1) {
-      await applyCatalogDefaultsToExisting(tx, id, {
-        defaultSets: parsed.data.defaultSets ?? null,
-        defaultReps: parsed.data.defaultReps ?? null,
-      });
-    }
-
-    return result;
+  const updated = await prisma.exerciseCatalogItem.updateMany({
+    where: { id },
+    data: {
+      name: parsed.data.name,
+      muscleGroup: parsed.data.muscleGroup || null,
+      imageUrl,
+      animationUrl,
+      defaultWeightKg: parsed.data.defaultWeightKg ?? null,
+      note: parsed.data.note || null,
+      sortOrder: parsed.data.sortOrder ?? 999,
+      isActive: parsed.data.isActive ?? true,
+    },
   });
 
   if (updated.count !== 1) {

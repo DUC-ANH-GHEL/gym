@@ -26,6 +26,7 @@ type CatalogPickerPanelProps = {
   selectionMode?: CatalogPickerSelectionMode;
   pendingLabel?: string;
   actionSummary?: string;
+  showSetInputs?: boolean;
 };
 
 function CatalogPickerSubmitButton({
@@ -58,6 +59,7 @@ export function CatalogPickerPanel({
   selectionMode = "multiple",
   pendingLabel = "Đang thêm...",
   actionSummary = "Thêm vào buổi tập",
+  showSetInputs = false,
 }: CatalogPickerPanelProps) {
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<string>("all");
@@ -147,7 +149,7 @@ export function CatalogPickerPanel({
                   </button>
                 ))}
               </div>
-              {selectionMode === "multiple" ? (
+              {selectionMode === "multiple" && showSetInputs ? (
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <label className="space-y-1">
                     <span className="text-[12px] font-bold text-[#8B919B]">Số set</span>

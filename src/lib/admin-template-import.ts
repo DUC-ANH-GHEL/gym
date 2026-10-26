@@ -70,8 +70,6 @@ const importSchema = z.object({
                     imageUrl: z.string().max(2048).nullable().optional(),
                     animationUrl: z.string().max(2048).nullable().optional(),
                     defaultWeightKg: z.number().min(0).max(1000).nullable().optional(),
-                    defaultSets: nullableInt,
-                    defaultReps: nullableInt,
                     note: z.string().max(500).nullable().optional(),
                     sets: z
                       .array(
@@ -138,8 +136,6 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
     imageUrl: string;
     animationUrl: string | null;
     defaultWeightKg: number | null;
-    defaultSets: number | null;
-    defaultReps: number | null;
     note: string | null;
     sortOrder: number;
   };
@@ -203,8 +199,6 @@ export async function importWorkoutTemplatesAction(formData: FormData): Promise<
             imageUrl: safeImageUrl(exercise.imageUrl),
             animationUrl: safeAnimationUrl(exercise.animationUrl),
             defaultWeightKg: exercise.defaultWeightKg ?? null,
-            defaultSets: exercise.defaultSets ?? null,
-            defaultReps: exercise.defaultReps ?? null,
             note: exercise.note || null,
             sortOrder: nextSortOrder,
           };

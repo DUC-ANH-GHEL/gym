@@ -187,6 +187,7 @@ export function TemplateDayCard({
             description="Chọn một hoặc nhiều bài, sau đó bấm thêm vào ngày tập."
             submitLabel={`Thêm bài vào ${dayName}`}
             emptyLabel="Không còn bài phù hợp để thêm cho ngày này."
+            showSetInputs
           />
         </form>
       ) : null}
